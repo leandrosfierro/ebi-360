@@ -22,6 +22,29 @@ const config: Config = {
                     yellow: "#F59E0B",
                     teal: "#14B8A6",
                 },
+                // Override default colors to use Hex instead of oklch/oklab for html2canvas compatibility
+                purple: {
+                    600: "#9333ea",
+                    700: "#7e22ce",
+                },
+                pink: {
+                    600: "#db2777",
+                },
+                green: {
+                    500: "#22c55e",
+                },
+                yellow: {
+                    500: "#eab308",
+                },
+                red: {
+                    500: "#ef4444",
+                },
+                cyan: {
+                    400: "#22d3ee",
+                },
+                blue: {
+                    500: "#3b82f6",
+                },
                 background: "var(--background)",
                 foreground: "var(--foreground)",
             },
