@@ -58,7 +58,7 @@ export default function ProfilePage() {
                 </h1>
 
                 {/* Profile Card */}
-                <div className="mb-6 rounded-3xl bg-white/15 p-8 shadow-glass backdrop-blur-md border border-white/20">
+                <div className="mb-6 rounded-3xl bg-white/15 p-8 shadow-glass backdrop-blur-md border border-white/20 animate-fadeIn">
                     <div className="mb-6 flex flex-col items-center">
                         <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg">
                             <User className="h-12 w-12 text-white" />
@@ -90,12 +90,12 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Settings Section */}
-                <div className="mb-6 space-y-3">
+                <div className="mb-6 space-y-3 animate-fadeIn" style={{ animationDelay: "0.1s" }}>
                     <h3 className="mb-3 text-lg font-semibold text-white drop-shadow">
                         Configuración
                     </h3>
 
-                    <div className="flex w-full items-center justify-between rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20">
+                    <div className="flex w-full items-center justify-between rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20 transition-all hover:bg-white/20">
                         <div className="flex items-center space-x-3">
                             <Settings className="h-5 w-5 text-white" />
                             <span className="font-semibold text-white drop-shadow">Notificaciones</span>
@@ -112,7 +112,7 @@ export default function ProfilePage() {
 
                     <button
                         onClick={handleClearData}
-                        className="flex w-full items-center justify-between rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20 transition-all hover:bg-red-500/30"
+                        className="flex w-full items-center justify-between rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20 transition-all hover:bg-red-500/30 active:scale-[0.99]"
                     >
                         <div className="flex items-center space-x-3">
                             <LogOut className="h-5 w-5 text-white" />

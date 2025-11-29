@@ -88,7 +88,40 @@ export default function ResultsPage() {
         router.push("/diagnostico");
     };
 
-    if (loading) return <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 p-8 text-center text-white">Calculando resultados...</div>;
+    if (loading) return (
+        <div className="flex min-h-screen flex-col bg-gradient-mockup px-6 py-8 pb-24">
+            <div className="mb-8 animate-pulse">
+                <div className="h-8 w-48 bg-white/20 rounded-lg mb-2"></div>
+                <div className="h-4 w-32 bg-white/10 rounded"></div>
+            </div>
+
+            {/* Skeleton for circular progress */}
+            <div className="mb-8 flex flex-col items-center rounded-3xl bg-white/10 p-8 animate-pulse">
+                <div className="h-48 w-48 rounded-full bg-white/20 mb-4"></div>
+                <div className="h-6 w-24 bg-white/20 rounded"></div>
+            </div>
+
+            {/* Skeleton for domain icons */}
+            <div className="mb-8 flex justify-around rounded-2xl bg-white/10 p-4 animate-pulse">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                    <div key={i} className="flex flex-col items-center">
+                        <div className="h-12 w-12 rounded-full bg-white/20 mb-1"></div>
+                        <div className="h-3 w-8 bg-white/10 rounded"></div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Skeleton for domain breakdown */}
+            <div className="space-y-3">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                    <div key={i} className="rounded-2xl bg-white/10 p-4 animate-pulse">
+                        <div className="h-5 w-32 bg-white/20 rounded mb-2"></div>
+                        <div className="h-2 w-full bg-white/10 rounded"></div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 
     const pieData = [
         { name: "Score", value: globalScore },
@@ -97,7 +130,7 @@ export default function ResultsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-mockup px-6 py-8 pb-24">
-            <div id="results-container">
+            <div id="results-container" className="animate-fadeIn">
                 <h1 className="mb-2 text-2xl font-bold text-white drop-shadow-lg">
                     Índice General de Bienestar
                 </h1>
@@ -106,7 +139,7 @@ export default function ResultsPage() {
                 </p>
 
                 {/* Circular Progress */}
-                <div className="mb-8 flex flex-col items-center rounded-3xl bg-white/15 p-8 shadow-glass backdrop-blur-md border border-white/20">
+                <div className="mb-8 flex flex-col items-center rounded-3xl bg-white/15 p-8 shadow-glass backdrop-blur-md border border-white/20 animate-fadeIn" style={{ animationDelay: "0.1s" }}>
                     <div className="relative h-48 w-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -140,7 +173,7 @@ export default function ResultsPage() {
                 </div>
 
                 {/* Domain Icons Row */}
-                <div className="mb-8 flex justify-around rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20">
+                <div className="mb-8 flex justify-around rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20 animate-fadeIn" style={{ animationDelay: "0.2s" }}>
                     {domains.map((d) => {
                         const Icon = domainIcons[d];
                         const score = scores[d] || 0;
@@ -159,13 +192,13 @@ export default function ResultsPage() {
                 </div>
 
                 {/* Domain Breakdown */}
-                <div className="space-y-3">
+                <div className="space-y-3 animate-fadeIn" style={{ animationDelay: "0.3s" }}>
                     {domains.map((d) => {
                         const score = scores[d] || 0;
                         return (
                             <div
                                 key={d}
-                                className="rounded-2xl bg-white/15 p-4 shadow-glass backdrop-blur-md border border-white/20"
+                                className="rounded-2xl bg-white/15 p-4 shadow-glass backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-[1.01]"
                             >
                                 <div className="mb-2 flex items-center justify-between">
                                     <h3 className="font-semibold text-white drop-shadow">{d}</h3>

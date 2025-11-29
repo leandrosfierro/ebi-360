@@ -99,21 +99,30 @@ export default function DiagnosticPage() {
             <div className="flex items-center justify-between px-6 py-6">
                 <button
                     onClick={handleBack}
-                    className="rounded-full bg-white/20 p-2 text-white backdrop-blur-md transition-all hover:bg-white/30"
+                    className="rounded-full bg-white/20 p-3 text-white backdrop-blur-md transition-all hover:bg-white/30 hover:scale-110 active:scale-95"
                 >
-                    <ArrowLeft className="h-6 w-6" />
+                    <ArrowLeft className="h-5 w-5" />
                 </button>
-                <span className="text-sm font-semibold text-white drop-shadow">
-                    {currentStep + 1} de {totalSteps}
-                </span>
+                <div className="flex items-center space-x-2">
+                    <span className="rounded-full bg-white/25 px-4 py-2 text-sm font-bold text-white backdrop-blur-md drop-shadow">
+                        {currentStep + 1}/{totalSteps}
+                    </span>
+                    <span className="text-xs font-semibold text-white/80 drop-shadow">
+                        {Math.round(progress)}%
+                    </span>
+                </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="mx-6 mb-8 h-2 overflow-hidden rounded-full bg-white/20 backdrop-blur-md">
-                <div
-                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500 ease-out"
-                    style={{ width: `${progress}%` }}
-                />
+            <div className="mx-6 mb-8">
+                <div className="relative h-3 overflow-hidden rounded-full bg-white/20 backdrop-blur-md shadow-inner">
+                    <div
+                        className="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 transition-all duration-500 ease-out shadow-lg"
+                        style={{ width: `${progress}%` }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+                    </div>
+                </div>
             </div>
 
             {/* Question Card */}
@@ -148,10 +157,10 @@ export default function DiagnosticPage() {
                                 key={value}
                                 onClick={() => handleAnswer(value)}
                                 className={cn(
-                                    "flex w-full items-center justify-between rounded-2xl p-4 font-semibold transition-all active:scale-98",
+                                    "group flex w-full items-center justify-between rounded-2xl p-5 font-semibold transition-all duration-200",
                                     isSelected
-                                        ? "bg-white text-purple-700 shadow-glass-lg"
-                                        : "bg-white/15 text-white backdrop-blur-md hover:bg-white/25 border border-white/20"
+                                        ? "bg-white text-purple-700 shadow-glass-lg scale-[1.02] ring-2 ring-white/50"
+                                        : "bg-white/15 text-white backdrop-blur-md hover:bg-white/25 hover:scale-[1.01] active:scale-[0.99] border border-white/20"
                                 )}
                             >
                                 <span className="flex items-center space-x-3">

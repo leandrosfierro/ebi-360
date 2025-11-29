@@ -68,6 +68,35 @@ const config: Config = {
                 glass: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
                 "glass-lg": "0 12px 48px 0 rgba(31, 38, 135, 0.2)",
             },
+            keyframes: {
+                shimmer: {
+                    "0%": { transform: "translateX(-100%)" },
+                    "100%": { transform: "translateX(100%)" },
+                },
+                fadeIn: {
+                    "0%": { opacity: "0", transform: "translateY(10px)" },
+                    "100%": { opacity: "1", transform: "translateY(0)" },
+                },
+                slideInLeft: {
+                    "0%": { transform: "translateX(-100%)", opacity: "0" },
+                    "100%": { transform: "translateX(0)", opacity: "1" },
+                },
+                slideInRight: {
+                    "0%": { transform: "translateX(100%)", opacity: "0" },
+                    "100%": { transform: "translateX(0)", opacity: "1" },
+                },
+                pulse: {
+                    "0%, 100%": { opacity: "1" },
+                    "50%": { opacity: "0.8" },
+                },
+            },
+            animation: {
+                shimmer: "shimmer 2s infinite",
+                fadeIn: "fadeIn 0.5s ease-out",
+                slideInLeft: "slideInLeft 0.3s ease-out",
+                slideInRight: "slideInRight 0.3s ease-out",
+                pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            },
         },
     },
     plugins: [],
