@@ -29,10 +29,10 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             let yPosition = margin;
 
             // Colors
-            const primaryColor = [46, 16, 101]; // #2e1065
-            const accentColor = [59, 130, 246]; // #3b82f6
-            const textColor = [51, 51, 51];
-            const lightGray = [240, 240, 240];
+            const primaryColor: [number, number, number] = [46, 16, 101]; // #2e1065
+            const accentColor: [number, number, number] = [59, 130, 246]; // #3b82f6
+            const textColor: [number, number, number] = [51, 51, 51];
+            const lightGray: [number, number, number] = [240, 240, 240];
 
             // Helper function to add text with word wrap
             const addWrappedText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
@@ -44,7 +44,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             // ===== PAGE 1: COVER & INTRODUCTION =====
 
             // Header with logo (placeholder - would need actual logo)
-            pdf.setFillColor(...primaryColor);
+            pdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
             pdf.rect(0, 0, pageWidth, 60, 'F');
 
             // Logo placeholder (you'll need to add actual logo)
@@ -69,7 +69,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             yPosition = 75;
 
             // Global Score - Large Circle
-            pdf.setFillColor(...accentColor);
+            pdf.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
             pdf.circle(pageWidth / 2, yPosition + 30, 25, 'F');
 
             pdf.setTextColor(255, 255, 255);
@@ -83,7 +83,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
 
             yPosition += 70;
 
-            pdf.setTextColor(...textColor);
+            pdf.setTextColor(textColor[0], textColor[1], textColor[2]);
             pdf.setFontSize(14);
             pdf.setFont("helvetica", "bold");
             pdf.text("Índice General de Bienestar", pageWidth / 2, yPosition, { align: "center" });
@@ -99,7 +99,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             yPosition += 10;
 
             // Domain Summary Box
-            pdf.setFillColor(...lightGray);
+            pdf.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
             pdf.roundedRect(margin, yPosition, contentWidth, 50, 3, 3, 'F');
 
             yPosition += 8;
@@ -117,15 +117,15 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
 
             col1.forEach((domain, idx) => {
                 const score = scores[domain];
-                const color = score >= 8 ? [34, 197, 94] : score >= 5 ? [234, 179, 8] : [239, 68, 68];
-                pdf.setTextColor(...color);
+                const color: [number, number, number] = score >= 8 ? [34, 197, 94] : score >= 5 ? [234, 179, 8] : [239, 68, 68];
+                pdf.setTextColor(color[0], color[1], color[2]);
                 pdf.text(`● ${domain}: ${score.toFixed(1)}/10`, margin + 5, yPosition + (idx * 5));
             });
 
             col2.forEach((domain, idx) => {
                 const score = scores[domain];
-                const color = score >= 8 ? [34, 197, 94] : score >= 5 ? [234, 179, 8] : [239, 68, 68];
-                pdf.setTextColor(...color);
+                const color: [number, number, number] = score >= 8 ? [34, 197, 94] : score >= 5 ? [234, 179, 8] : [239, 68, 68];
+                pdf.setTextColor(color[0], color[1], color[2]);
                 pdf.text(`● ${domain}: ${score.toFixed(1)}/10`, pageWidth / 2 + 5, yPosition + (idx * 5));
             });
 
@@ -134,7 +134,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             yPosition = margin;
 
             // Header
-            pdf.setFillColor(...primaryColor);
+            pdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
             pdf.rect(0, 0, pageWidth, 20, 'F');
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(14);
@@ -144,7 +144,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             yPosition = 35;
 
             // Domain Details
-            pdf.setTextColor(...textColor);
+            pdf.setTextColor(textColor[0], textColor[1], textColor[2]);
             domains.forEach((domain) => {
                 const score = scores[domain];
                 const percentage = (score / 10) * 100;
@@ -155,8 +155,8 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
                 pdf.text(domain, margin, yPosition);
 
                 // Score badge
-                const badgeColor = score >= 8 ? [34, 197, 94] : score >= 5 ? [234, 179, 8] : [239, 68, 68];
-                pdf.setFillColor(...badgeColor);
+                const badgeColor: [number, number, number] = score >= 8 ? [34, 197, 94] : score >= 5 ? [234, 179, 8] : [239, 68, 68];
+                pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2]);
                 pdf.roundedRect(pageWidth - margin - 25, yPosition - 5, 25, 8, 2, 2, 'F');
                 pdf.setTextColor(255, 255, 255);
                 pdf.setFontSize(10);
@@ -165,15 +165,15 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
                 yPosition += 8;
 
                 // Progress bar
-                pdf.setFillColor(...lightGray);
+                pdf.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
                 pdf.roundedRect(margin, yPosition, contentWidth, 6, 2, 2, 'F');
-                pdf.setFillColor(...badgeColor);
+                pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2]);
                 pdf.roundedRect(margin, yPosition, (contentWidth * percentage) / 100, 6, 2, 2, 'F');
 
                 yPosition += 12;
 
                 // Status text
-                pdf.setTextColor(...textColor);
+                pdf.setTextColor(textColor[0], textColor[1], textColor[2]);
                 pdf.setFontSize(9);
                 pdf.setFont("helvetica", "italic");
                 const status = score >= 8 ? "Excelente - Mantén tus buenos hábitos" :
@@ -196,7 +196,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             yPosition = margin;
 
             // Header
-            pdf.setFillColor(...primaryColor);
+            pdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
             pdf.rect(0, 0, pageWidth, 20, 'F');
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(14);
@@ -206,7 +206,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             yPosition = 40;
 
             // About section
-            pdf.setTextColor(...textColor);
+            pdf.setTextColor(textColor[0], textColor[1], textColor[2]);
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "normal");
             const about = "Bienestar 360° es la primera plataforma de diagnóstico integral diseñada específicamente para la realidad de LATAM. Combinamos rigor científico con tecnología accesible para medir, analizar y mejorar el bienestar de personas y equipos.";
