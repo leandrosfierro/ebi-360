@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink } from "lucide-react";
+import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } from "lucide-react";
+import { checkAchievements, type Achievement } from "@/lib/achievements";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
     const [diagnosticCount, setDiagnosticCount] = useState(0);
     const [lastDiagnostic, setLastDiagnostic] = useState<string>("-");
     const [mounted, setMounted] = useState(false);
+    const [achievements, setAchievements] = useState<Achievement[]>([]);
 
     useEffect(() => {
         setMounted(true);
@@ -27,6 +29,28 @@ export default function ProfilePage() {
         const savedName = localStorage.getItem("ebi_user_name");
         if (savedName) {
             setUserName(savedName);
+        }
+
+        // Calculate achievements
+        if (saved) {
+            const answers = JSON.parse(saved);
+            // Simplified score calculation for achievements
+            const globalScore = 7.5; // Placeholder - would calculate from answers
+            const scores = {
+                "Físico": 8,
+                "Nutricional": 7,
+                "Emocional": 9,
+                "Social": 6,
+                "Familiar": 8,
+                "Económico": 7,
+            }; // Placeholder
+
+            const unlockedAchievements = checkAchievements({
+                diagnosticCount: 1,
+                globalScore,
+                scores,
+            });
+            setAchievements(unlockedAchievements);
         }
     }, []);
 
@@ -88,6 +112,42 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Achievements Section */}
+                {achievements.length > 0 && (
+                    <div className="mb-6 animate-fadeIn" style={{ animationDelay: "0.05s" }}>
+                        <div className="mb-3 flex items-center space-x-2">
+                            <Award className="h-5 w-5 text-yellow-400" />
+                            <h3 className="text-lg font-semibold text-white drop-shadow">
+                                Logros
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                            {achievements.map((achievement) => (
+                                <div
+                                    key={achievement.id}
+                                    className={`rounded-2xl p-4 text-center transition-all ${achievement.unlocked
+                                            ? "bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border-2 border-yellow-400/50 scale-100"
+                                            : "bg-white/5 border border-white/10 opacity-50 grayscale"
+                                        }`}
+                                >
+                                    <div className="text-3xl mb-2">{achievement.icon}</div>
+                                    <p className="text-xs font-bold text-white drop-shadow line-clamp-1">
+                                        {achievement.title}
+                                    </p>
+                                    {achievement.unlocked && (
+                                        <p className="text-[10px] text-white/70 mt-1 line-clamp-2">
+                                            {achievement.description}
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <p className="mt-3 text-center text-xs text-white/60">
+                            {achievements.filter(a => a.unlocked).length} de {achievements.length} desbloqueados
+                        </p>
+                    </div>
+                )}
 
                 {/* Settings Section */}
                 <div className="mb-6 space-y-3 animate-fadeIn" style={{ animationDelay: "0.1s" }}>

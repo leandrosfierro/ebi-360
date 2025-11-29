@@ -10,8 +10,9 @@ import {
 } from "recharts";
 import { questions, domains, calculateScore } from "@/lib/logic";
 import { cn } from "@/lib/utils";
-import { RefreshCcw, Activity, Apple, Heart, Users, Home as HomeIcon, DollarSign } from "lucide-react";
+import { RefreshCcw, Activity, Apple, Heart, Users, Home as HomeIcon, DollarSign, Share2, Lightbulb } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
+import { getRecommendations } from "@/lib/achievements";
 
 const domainIcons: Record<string, any> = {
     "Físico": Activity,
@@ -36,6 +37,25 @@ export default function ResultsPage() {
     const [scores, setScores] = useState<Record<string, number>>({});
     const [globalScore, setGlobalScore] = useState(0);
     const [loading, setLoading] = useState(true);
+
+    const handleShare = async () => {
+        const shareText = `¡Completé mi diagnóstico de Bienestar 360°!\n\nPuntaje Global: ${globalScore.toFixed(1)}/10\n\n${domains.map(d => `${d}: ${(scores[d] || 0).toFixed(1)}`).join('\n')}\n\n¡Descubre tu bienestar integral!`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Mi Bienestar 360°',
+                    text: shareText,
+                });
+            } catch (err) {
+                console.log('Share cancelled');
+            }
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(shareText);
+            alert('¡Resultados copiados al portapapeles!');
+        }
+    };
 
     useEffect(() => {
         const saved = localStorage.getItem("ebi_answers");
@@ -193,8 +213,12 @@ export default function ResultsPage() {
 
                 {/* Domain Breakdown */}
                 <div className="space-y-3 animate-fadeIn" style={{ animationDelay: "0.3s" }}>
+                    <h3 className="mb-4 text-lg font-semibold text-white drop-shadow">
+                        Desglose por Dominio
+                    </h3>
                     {domains.map((d) => {
                         const score = scores[d] || 0;
+                        const recommendation = getRecommendations(d, score);
                         return (
                             <div
                                 key={d}
@@ -224,15 +248,42 @@ export default function ResultsPage() {
                                         }}
                                     />
                                 </div>
+
+                                {/* Recommendations */}
+                                {recommendation && (
+                                    <div className="mt-3 rounded-xl bg-white/5 p-3 border border-white/10">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                            <Lightbulb className="h-4 w-4 text-yellow-400" />
+                                            <p className="text-xs font-bold text-white">{recommendation.title}</p>
+                                        </div>
+                                        <ul className="space-y-1">
+                                            {recommendation.suggestions.slice(0, 2).map((suggestion, idx) => (
+                                                <li key={idx} className="text-xs text-white/80 flex items-start">
+                                                    <span className="mr-2">•</span>
+                                                    <span>{suggestion}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
                 </div>
             </div>
 
-            {/* Export Button */}
-            <div className="mt-8">
-                <ExportButton globalScore={globalScore} scores={scores} />
+            {/* Action Buttons */}
+            <div className="mt-8 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                    <ExportButton globalScore={globalScore} scores={scores} />
+                    <button
+                        onClick={handleShare}
+                        className="flex items-center justify-center space-x-2 rounded-2xl bg-white/15 px-6 py-4 font-semibold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/25 hover:scale-[1.02] active:scale-[0.99]"
+                    >
+                        <Share2 className="h-5 w-5" />
+                        <span>Compartir</span>
+                    </button>
+                </div>
             </div>
 
             <button
