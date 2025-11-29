@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600">
       {/* Glassmorphic Container */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-10">
+      <div className="flex flex-1 flex-col items-center justify-center px-6 pt-10 pb-32">
         {/* Logo/Icon */}
         <div className="mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-white/20 shadow-glass backdrop-blur-md">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg">
