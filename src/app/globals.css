@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom gradient for mockup design */
+.bg-gradient-mockup {
+  background: linear-gradient(180deg, #2e1065 0%, #4c1d95 40%, #831843 100%);
+}
+
+.bg-gradient-purple-pink {
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
