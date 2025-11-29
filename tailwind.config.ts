@@ -55,6 +55,7 @@ const config: Config = {
                 "gradient-warm": "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
                 "gradient-cool": "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
                 "gradient-purple-pink": "linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+                "gradient-mockup": "linear-gradient(180deg, #2e1065 0%, #4c1d95 40%, #831843 100%)", // Deep purple to pink/red
             },
             backdropBlur: {
                 xs: "2px",

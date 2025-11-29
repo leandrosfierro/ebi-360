@@ -5,7 +5,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600">
+    <div className="relative flex min-h-screen flex-col bg-gradient-mockup">
       {/* Glassmorphic Container */}
       <div className="flex flex-1 flex-col items-center justify-center px-6 pt-10 pb-32">
         {/* Logo/Icon */}

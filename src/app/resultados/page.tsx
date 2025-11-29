@@ -96,7 +96,7 @@ export default function ResultsPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 px-6 py-8 pb-24">
+        <div className="min-h-screen bg-gradient-mockup px-6 py-8 pb-24">
             <div id="results-container">
                 <h1 className="mb-2 text-2xl font-bold text-white drop-shadow-lg">
                     Índice General de Bienestar

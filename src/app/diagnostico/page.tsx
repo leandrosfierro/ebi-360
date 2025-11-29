@@ -89,7 +89,7 @@ export default function DiagnosticPage() {
 
     return (
         <div
-            className="flex min-h-screen flex-col bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600"
+            className="flex min-h-screen flex-col bg-gradient-mockup"
             suppressHydrationWarning
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
