@@ -1,17 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-mockup">
       {/* Glassmorphic Container */}
       <div className="flex flex-1 flex-col items-center justify-center px-6 pt-10 pb-32">
-        {/* Logo/Icon */}
+        {/* Logo */}
         <div className="mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-white/20 shadow-glass backdrop-blur-md animate-fadeIn">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg">
-            <Sparkles className="h-12 w-12 text-white" />
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-lg">
+            <Image
+              src="/logo.png"
+              alt="Bienestar 360° Logo"
+              width={80}
+              height={80}
+              className="object-contain"
+            />
           </div>
         </div>
 

@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "EBI 360 - Bienestar Integral",
   description: "Plataforma de diagnóstico integral diseñada para la realidad de LATAM.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
