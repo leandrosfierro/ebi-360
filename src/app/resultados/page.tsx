@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { RefreshCcw, Activity, Apple, Heart, Users, Home as HomeIcon, DollarSign, Share2, Lightbulb } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 import { getRecommendations } from "@/lib/achievements";
+import { saveDiagnosticResult } from "@/lib/actions";
+import { createClient } from "@/lib/supabase/client";
 
 const domainIcons: Record<string, any> = {
     "Físico": Activity,
@@ -97,14 +99,32 @@ export default function ResultsPage() {
         });
 
         setScores(finalScores);
-        setGlobalScore(
-            countGlobal > 0 ? Math.round((totalGlobal / countGlobal) * 10) / 10 : 0
-        );
+        const calculatedGlobal = countGlobal > 0 ? Math.round((totalGlobal / countGlobal) * 10) / 10 : 0;
+        setGlobalScore(calculatedGlobal);
         setLoading(false);
+
+        // Attempt to save to DB if user is logged in
+        const saveToDb = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (user) {
+                // Check if we already saved this specific result to avoid duplicates on refresh
+                // For a simple MVP, we might just save. Ideally we check a flag in localStorage or similar.
+                const savedFlag = localStorage.getItem("ebi_saved_db");
+                if (!savedFlag) {
+                    await saveDiagnosticResult(calculatedGlobal, finalScores, answers);
+                    localStorage.setItem("ebi_saved_db", "true");
+                }
+            }
+        };
+        saveToDb();
+
     }, [router]);
 
     const handleReset = () => {
         localStorage.removeItem("ebi_answers");
+        localStorage.removeItem("ebi_saved_db");
         router.push("/diagnostico");
     };
 
