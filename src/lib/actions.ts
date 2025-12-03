@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function saveDiagnosticResult(
@@ -218,9 +218,12 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         return { error: "Unauthorized: Super Admin only" };
     }
 
+    // Use Admin Client for privileged operations
+    const supabaseAdmin = createAdminClient();
+
     try {
-        // 1. Check if user already exists
-        const { data: existingUser } = await supabase
+        // 1. Check if user already exists (using admin client to ensure visibility)
+        const { data: existingUser } = await supabaseAdmin
             .from('profiles')
             .select('id')
             .eq('email', email)
@@ -228,7 +231,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
 
         if (existingUser) {
             // Update existing user to be company admin
-            const { error: updateError } = await supabase
+            const { error: updateError } = await supabaseAdmin
                 .from('profiles')
                 .update({
                     role: 'company_admin',
@@ -239,7 +242,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
             if (updateError) throw updateError;
         } else {
             // 2. Invite new user
-            const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+            const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
                 email,
                 {
                     data: {
@@ -252,10 +255,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
             );
 
             if (inviteError) {
-                // Fallback: Create profile manually if invite fails (e.g. in dev without SMTP)
-                // Note: In production with SMTP, inviteUserByEmail is better.
-                // For now, we'll try to insert the profile directly as a placeholder if invite fails,
-                // but usually inviteError means something blocked the auth user creation.
+                console.error("Invite error details:", inviteError);
                 throw inviteError;
             }
         }
