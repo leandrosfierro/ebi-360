@@ -1,7 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, FileText, TrendingUp } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
-export default function SuperAdminDashboard() {
+export default async function SuperAdminDashboard() {
+    const supabase = await createClient();
+
+    // Fetch real stats
+    const { count: companiesCount } = await supabase.from("companies").select("*", { count: "exact", head: true });
+    const { count: usersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+    const { count: resultsCount } = await supabase.from("results").select("*", { count: "exact", head: true });
+
+    // Calculate average global score
+    const { data: results } = await supabase.from("results").select("global_score");
+    const averageScore = results?.length
+        ? (results.reduce((acc, curr) => acc + Number(curr.global_score), 0) / results.length).toFixed(1)
+        : "0.0";
+
     return (
         <div className="space-y-8">
             <div>
@@ -17,8 +31,8 @@ export default function SuperAdminDashboard() {
                         <Building2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12</div>
-                        <p className="text-xs text-muted-foreground">+2 desde el mes pasado</p>
+                        <div className="text-2xl font-bold">{companiesCount || 0}</div>
+                        <p className="text-xs text-muted-foreground">Total registradas</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -27,8 +41,8 @@ export default function SuperAdminDashboard() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">+2,350</div>
-                        <p className="text-xs text-muted-foreground">+180 nuevos usuarios</p>
+                        <div className="text-2xl font-bold">{usersCount || 0}</div>
+                        <p className="text-xs text-muted-foreground">Usuarios registrados</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -37,8 +51,8 @@ export default function SuperAdminDashboard() {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">+12,234</div>
-                        <p className="text-xs text-muted-foreground">+19% incremento</p>
+                        <div className="text-2xl font-bold">{resultsCount || 0}</div>
+                        <p className="text-xs text-muted-foreground">Total históricas</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -47,8 +61,8 @@ export default function SuperAdminDashboard() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">7.8</div>
-                        <p className="text-xs text-muted-foreground">+0.2 puntos</p>
+                        <div className="text-2xl font-bold">{averageScore}</div>
+                        <p className="text-xs text-muted-foreground">Promedio general</p>
                     </CardContent>
                 </Card>
             </div>

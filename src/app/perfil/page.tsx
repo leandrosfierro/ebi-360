@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } from "lucide-react";
 import { checkAchievements, type Achievement } from "@/lib/achievements";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -13,45 +14,83 @@ export default function ProfilePage() {
 
     useEffect(() => {
         setMounted(true);
-        // Check if there are saved answers
-        const saved = localStorage.getItem("ebi_answers");
-        if (saved) {
-            setDiagnosticCount(1);
-            const date = new Date().toLocaleDateString("es-ES", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
-            setLastDiagnostic(date);
-        }
 
-        // Check for saved user name
-        const savedName = localStorage.getItem("ebi_user_name");
-        if (savedName) {
-            setUserName(savedName);
-        }
+        const fetchData = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
 
-        // Calculate achievements
-        if (saved) {
-            const answers = JSON.parse(saved);
-            // Simplified score calculation for achievements
-            const globalScore = 7.5; // Placeholder - would calculate from answers
-            const scores = {
-                "Físico": 8,
-                "Nutricional": 7,
-                "Emocional": 9,
-                "Social": 6,
-                "Familiar": 8,
-                "Económico": 7,
-            }; // Placeholder
+            if (user) {
+                // Fetch from DB
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("full_name")
+                    .eq("id", user.id)
+                    .single();
 
-            const unlockedAchievements = checkAchievements({
-                diagnosticCount: 1,
-                globalScore,
-                scores,
-            });
-            setAchievements(unlockedAchievements);
-        }
+                if (profile?.full_name) {
+                    setUserName(profile.full_name);
+                }
+
+                const { data: results } = await supabase
+                    .from("results")
+                    .select("*")
+                    .eq("user_id", user.id)
+                    .order("created_at", { ascending: false });
+
+                if (results && results.length > 0) {
+                    setDiagnosticCount(results.length);
+                    const lastDate = new Date(results[0].created_at).toLocaleDateString("es-ES", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    });
+                    setLastDiagnostic(lastDate);
+
+                    // Calculate achievements based on latest result
+                    const latest = results[0];
+                    const unlockedAchievements = checkAchievements({
+                        diagnosticCount: results.length,
+                        globalScore: Number(latest.global_score),
+                        scores: latest.domain_scores,
+                    });
+                    setAchievements(unlockedAchievements);
+                }
+            } else {
+                // Fallback to Local Storage
+                const saved = localStorage.getItem("ebi_answers");
+                if (saved) {
+                    setDiagnosticCount(1);
+                    const date = new Date().toLocaleDateString("es-ES", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    });
+                    setLastDiagnostic(date);
+
+                    const answers = JSON.parse(saved);
+                    // Simplified score calculation for achievements (mock for local)
+                    const globalScore = 7.5;
+                    const scores = {
+                        "Físico": 8, "Nutricional": 7, "Emocional": 9,
+                        "Social": 6, "Familiar": 8, "Económico": 7,
+                    };
+
+                    const unlockedAchievements = checkAchievements({
+                        diagnosticCount: 1,
+                        globalScore,
+                        scores,
+                    });
+                    setAchievements(unlockedAchievements);
+                }
+
+                const savedName = localStorage.getItem("ebi_user_name");
+                if (savedName) {
+                    setUserName(savedName);
+                }
+            }
+        };
+
+        fetchData();
     }, []);
 
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -127,8 +166,8 @@ export default function ProfilePage() {
                                 <div
                                     key={achievement.id}
                                     className={`rounded-2xl p-4 text-center transition-all ${achievement.unlocked
-                                            ? "bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border-2 border-yellow-400/50 scale-100"
-                                            : "bg-white/5 border border-white/10 opacity-50 grayscale"
+                                        ? "bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border-2 border-yellow-400/50 scale-100"
+                                        : "bg-white/5 border border-white/10 opacity-50 grayscale"
                                         }`}
                                 >
                                     <div className="text-3xl mb-2">{achievement.icon}</div>

@@ -37,25 +37,62 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (
+    // Protected routes logic
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+        // 1. Check if user is authenticated
+        if (!user) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            url.searchParams.set('next', request.nextUrl.pathname)
+            return NextResponse.redirect(url)
+        }
+
+        // 2. Check user role
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        const role = profile?.role
+
+        // Super Admin protection
+        if (request.nextUrl.pathname.startsWith('/admin/super')) {
+            if (role !== 'super_admin') {
+                // Redirect unauthorized users to their appropriate dashboard or home
+                const url = request.nextUrl.clone()
+                if (role === 'company_admin') {
+                    url.pathname = '/admin/company'
+                } else {
+                    url.pathname = '/'
+                }
+                return NextResponse.redirect(url)
+            }
+        }
+
+        // Company Admin protection
+        if (request.nextUrl.pathname.startsWith('/admin/company')) {
+            if (role !== 'company_admin' && role !== 'super_admin') {
+                const url = request.nextUrl.clone()
+                url.pathname = '/'
+                return NextResponse.redirect(url)
+            }
+        }
+    } else if (
         !user &&
         !request.nextUrl.pathname.startsWith('/login') &&
         !request.nextUrl.pathname.startsWith('/auth') &&
-        request.nextUrl.pathname.startsWith('/admin')
+        !request.nextUrl.pathname.startsWith('/') // Allow landing page
     ) {
-        // no user, potentially respond by redirecting the user to the login page
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
+        // Optional: Protect other routes if needed, but for now we allow public access to home
+        // If you want to protect /diagnostico or /perfil, add them here
+        if (request.nextUrl.pathname.startsWith('/perfil')) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            url.searchParams.set('next', request.nextUrl.pathname)
+            return NextResponse.redirect(url)
+        }
     }
 
-    // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-    // creating a new response object with NextResponse.next() make sure to:
-    // 1. Pass the request in it, like so:
-    //    const myNewResponse = NextResponse.next({ request })
-    // 2. Copy over the cookies, like so:
-    //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-    // 3. Change the myNewResponse object to fit your needs, but avoid changing
-    //    the cookies!
     return supabaseResponse
 }
