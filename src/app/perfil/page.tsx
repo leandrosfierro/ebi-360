@@ -11,6 +11,8 @@ export default function ProfilePage() {
     const [lastDiagnostic, setLastDiagnostic] = useState<string>("-");
     const [mounted, setMounted] = useState(false);
     const [achievements, setAchievements] = useState<Achievement[]>([]);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -20,12 +22,17 @@ export default function ProfilePage() {
             const { data: { user } } = await supabase.auth.getUser();
 
             if (user) {
+                setIsAuthenticated(true);
                 // Fetch from DB
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select("full_name")
                     .eq("id", user.id)
                     .single();
+
+                if (profile?.role) {
+                    setUserRole(profile.role);
+                }
 
                 if (profile?.full_name) {
                     setUserName(profile.full_name);
@@ -103,13 +110,19 @@ export default function ProfilePage() {
         }
     };
 
-    const handleClearData = () => {
-        if (confirm("¿Estás seguro de que quieres borrar todos tus datos?")) {
+    const handleClearData = async () => {
+        if (confirm("¿Estás seguro de que quieres cerrar sesión y borrar datos locales?")) {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+
             localStorage.removeItem("ebi_answers");
             localStorage.removeItem("ebi_user_name");
             setDiagnosticCount(0);
             setLastDiagnostic("-");
             setUserName("Usuario");
+            setIsAuthenticated(false);
+            setUserRole(null);
+            window.location.reload();
         }
     };
 
@@ -127,12 +140,30 @@ export default function ProfilePage() {
                             <User className="h-12 w-12 text-white" />
                         </div>
                         <h2 className="text-2xl font-bold text-white drop-shadow">{userName}</h2>
-                        <button
-                            onClick={handleNameChange}
-                            className="mt-2 text-sm text-white/80 hover:text-white transition-colors"
-                        >
-                            Editar nombre
-                        </button>
+
+                        {!isAuthenticated ? (
+                            <a
+                                href="/login"
+                                className="mt-4 rounded-full bg-white px-6 py-2 text-sm font-bold text-purple-600 shadow-lg transition-transform hover:scale-105 active:scale-95"
+                            >
+                                Iniciar Sesión
+                            </a>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <span className="mt-1 rounded-full bg-white/20 px-3 py-0.5 text-xs font-medium text-white">
+                                    {userRole === 'super_admin' ? 'Super Admin' :
+                                        userRole === 'company_admin' ? 'Admin Empresa' : 'Usuario'}
+                                </span>
+                                {(userRole === 'super_admin' || userRole === 'company_admin') && (
+                                    <a
+                                        href={userRole === 'super_admin' ? "/admin/super" : "/admin/company"}
+                                        className="mt-3 flex items-center gap-2 text-sm font-medium text-white underline underline-offset-4 hover:text-white/80"
+                                    >
+                                        Ir al Panel Admin <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Stats */}
@@ -215,7 +246,7 @@ export default function ProfilePage() {
                     >
                         <div className="flex items-center space-x-3">
                             <LogOut className="h-5 w-5 text-white" />
-                            <span className="font-semibold text-white drop-shadow">Borrar todos los datos</span>
+                            <span className="font-semibold text-white drop-shadow">Cerrar Sesión</span>
                         </div>
                     </button>
                 </div>
