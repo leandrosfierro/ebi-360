@@ -19,7 +19,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
     return (
         <div className="flex min-h-screen flex-col">
             <main
-                className={`flex w-full flex-1 flex-col overflow-x-hidden ${isFullWidth ? "" : "mx-auto max-w-md"
+                className={`flex flex-1 flex-col overflow-x-hidden ${isFullWidth ? "w-full min-w-full" : "mx-auto w-full max-w-md"
                     }`}
             >
                 <div className="flex-1">
