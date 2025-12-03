@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } from "lucide-react";
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
+import { RoleCard } from "@/components/profile/RoleCard";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -13,6 +14,9 @@ export default function ProfilePage() {
     const [achievements, setAchievements] = useState<Achievement[]>([]);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
+    const [userRoles, setUserRoles] = useState<string[]>([]);
+    const [activeRole, setActiveRole] = useState<string | null>(null);
+    const [companyName, setCompanyName] = useState<string>("");
 
     useEffect(() => {
         setMounted(true);
@@ -23,15 +27,33 @@ export default function ProfilePage() {
 
             if (user) {
                 setIsAuthenticated(true);
-                // Fetch from DB
+                // Fetch from DB with roles
                 const { data: profile } = await supabase
                     .from("profiles")
-                    .select("full_name, role")
+                    .select(`
+                        full_name, 
+                        role, 
+                        roles, 
+                        active_role,
+                        company:companies(name)
+                    `)
                     .eq("id", user.id)
                     .single();
 
                 if (profile?.role) {
                     setUserRole(profile.role);
+                }
+
+                if (profile?.roles) {
+                    setUserRoles(profile.roles);
+                }
+
+                if (profile?.active_role) {
+                    setActiveRole(profile.active_role);
+                }
+
+                if (profile?.company && typeof profile.company === 'object' && 'name' in profile.company) {
+                    setCompanyName((profile.company as any).name);
                 }
 
                 if (profile?.full_name) {
@@ -182,6 +204,55 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Role Selection - Only show if user has multiple roles */}
+                {isAuthenticated && userRoles.length > 1 && (
+                    <div className="mb-6 space-y-4 animate-fadeIn" style={{ animationDelay: "0.05s" }}>
+                        <div className="mb-3">
+                            <h3 className="text-lg font-semibold text-white drop-shadow">
+                                Mis Roles de Acceso
+                            </h3>
+                            <p className="text-sm text-white/70">
+                                Selecciona el rol con el que deseas trabajar
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {userRoles.includes('super_admin') && (
+                                <RoleCard
+                                    title="Super Administrador"
+                                    description="Gestión global de todas las empresas"
+                                    icon={<Settings className="h-6 w-6" />}
+                                    role="super_admin"
+                                    active={activeRole === 'super_admin'}
+                                    href="/admin/super"
+                                />
+                            )}
+
+                            {userRoles.includes('company_admin') && (
+                                <RoleCard
+                                    title="Administrador de Empresa"
+                                    description={companyName ? `Gestión de ${companyName}` : "Gestión de empresa"}
+                                    icon={<User className="h-6 w-6" />}
+                                    role="company_admin"
+                                    active={activeRole === 'company_admin'}
+                                    href="/admin/company"
+                                />
+                            )}
+
+                            {userRoles.includes('employee') && (
+                                <RoleCard
+                                    title="Empleado"
+                                    description="Realizar diagnósticos y ver resultados"
+                                    icon={<TrendingUp className="h-6 w-6" />}
+                                    role="employee"
+                                    active={activeRole === 'employee'}
+                                    href="/diagnostico"
+                                />
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Achievements Section */}
                 {achievements.length > 0 && (

@@ -465,3 +465,48 @@ export async function resendAdminInvitation(adminId: string) {
         return { error: error.message || "Failed to resend invitation" };
     }
 }
+
+export async function switchRole(newRole: 'super_admin' | 'company_admin' | 'employee') {
+    const supabase = await createClient();
+
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    try {
+        // Verify user has access to this role
+        const { data: profile, error: fetchError } = await supabase
+            .from('profiles')
+            .select('roles, active_role')
+            .eq('id', user.id)
+            .single();
+
+        if (fetchError || !profile) {
+            throw new Error("Profile not found");
+        }
+
+        // Check if user has this role
+        if (!profile.roles?.includes(newRole)) {
+            return { error: "No tienes acceso a este rol" };
+        }
+
+        // Update active role
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ active_role: newRole })
+            .eq('id', user.id);
+
+        if (updateError) throw updateError;
+
+        // Revalidate relevant paths
+        revalidatePath('/perfil');
+        revalidatePath('/admin/super');
+        revalidatePath('/admin/company');
+        revalidatePath('/diagnostico');
+
+        return { success: true, newRole };
+    } catch (error: any) {
+        console.error("Error switching role:", error);
+        return { error: error.message || "Failed to switch role" };
+    }
+}
