@@ -30,10 +30,13 @@ export default async function EmployeesPage() {
                     <p className="text-gray-500">Gestiona el acceso y seguimiento de tu equipo.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Link
+                        href="/admin/company/employees/upload"
+                        className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
                         <Upload className="h-4 w-4" />
                         Carga Masiva
-                    </button>
+                    </Link>
                     <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                         <Plus className="h-4 w-4" />
                         Invitar Usuario
