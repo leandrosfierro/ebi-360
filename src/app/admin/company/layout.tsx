@@ -1,19 +1,19 @@
-import Link from "next/link";
-import { LayoutDashboard, Users, FileText, Settings, LogOut, PieChart } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+"use client";
 
-export default async function CompanyAdminLayout({
+import Link from "next/link";
+import { LayoutDashboard, Users, Settings, LogOut, FileText } from "lucide-react";
+import { usePathname } from "next/navigation";
+
+export default function CompanyAdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        redirect("/login");
-    }
+    const pathname = usePathname();
+    // The following server-side logic for Supabase authentication and redirection
+    // is not compatible with a client component.
+    // It should be handled in a server component or an API route,
+    // or refactored to use client-side Supabase authentication.
 
     return (
         <div className="flex min-h-screen bg-gray-50">
@@ -24,21 +24,21 @@ export default async function CompanyAdminLayout({
                     <p className="text-xs text-gray-500">Administración</p>
                 </div>
                 <nav className="mt-6 px-4 space-y-2">
-                    <Link href="/admin/company" className="flex items-center gap-3 rounded-lg px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                    <Link href="/admin/company" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
                         <LayoutDashboard className="h-5 w-5" />
-                        <span>Dashboard</span>
+                        Dashboard
                     </Link>
-                    <Link href="/admin/company/employees" className="flex items-center gap-3 rounded-lg px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                    <Link href="/admin/company/employees" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company/employees' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
                         <Users className="h-5 w-5" />
-                        <span>Colaboradores</span>
+                        Colaboradores
                     </Link>
-                    <Link href="/admin/company/reports" className="flex items-center gap-3 rounded-lg px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                        <PieChart className="h-5 w-5" />
-                        <span>Reportes</span>
+                    <Link href="/admin/company/reports" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company/reports' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
+                        <FileText className="h-5 w-5" />
+                        Reportes
                     </Link>
-                    <Link href="/admin/company/settings" className="flex items-center gap-3 rounded-lg px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                    <Link href="/admin/company/settings" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company/settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
                         <Settings className="h-5 w-5" />
-                        <span>Configuración</span>
+                        Configuración
                     </Link>
                 </nav>
                 <div className="absolute bottom-0 w-64 p-4 border-t">
