@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, FileText, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function SuperAdminDashboard() {
     const supabase = await createClient();
@@ -15,6 +16,13 @@ export default async function SuperAdminDashboard() {
     const averageScore = results?.length
         ? (results.reduce((acc, curr) => acc + Number(curr.global_score), 0) / results.length).toFixed(1)
         : "0.0";
+
+    // Fetch Recent Companies
+    const { data: recentCompanies } = await supabase
+        .from("companies")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5);
 
     return (
         <div className="space-y-8">
@@ -67,10 +75,15 @@ export default async function SuperAdminDashboard() {
                 </Card>
             </div>
 
-            {/* Recent Activity / Companies List Placeholder */}
+            {/* Recent Activity / Companies List */}
             <div className="rounded-xl border bg-white shadow-sm">
                 <div className="p-6">
-                    <h3 className="text-lg font-medium">Empresas Recientes</h3>
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium">Empresas Recientes</h3>
+                        <Link href="/admin/super/companies" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                            Ver todas
+                        </Link>
+                    </div>
                     <div className="mt-4">
                         <table className="w-full text-left text-sm">
                             <thead className="border-b bg-gray-50 text-gray-500">
@@ -78,32 +91,40 @@ export default async function SuperAdminDashboard() {
                                     <th className="px-4 py-3 font-medium">Empresa</th>
                                     <th className="px-4 py-3 font-medium">Plan</th>
                                     <th className="px-4 py-3 font-medium">Estado</th>
-                                    <th className="px-4 py-3 font-medium">Usuarios</th>
                                     <th className="px-4 py-3 font-medium">Fecha Registro</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
-                                <tr>
-                                    <td className="px-4 py-3 font-medium">Tech Solutions SA</td>
-                                    <td className="px-4 py-3"><span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">Enterprise</span></td>
-                                    <td className="px-4 py-3"><span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">Activo</span></td>
-                                    <td className="px-4 py-3">450</td>
-                                    <td className="px-4 py-3 text-gray-500">01 Dic 2025</td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3 font-medium">Consultora Global</td>
-                                    <td className="px-4 py-3"><span className="rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-700">Pro</span></td>
-                                    <td className="px-4 py-3"><span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">Activo</span></td>
-                                    <td className="px-4 py-3">120</td>
-                                    <td className="px-4 py-3 text-gray-500">28 Nov 2025</td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3 font-medium">StartUp Innova</td>
-                                    <td className="px-4 py-3"><span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700">Basic</span></td>
-                                    <td className="px-4 py-3"><span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-700">Pendiente</span></td>
-                                    <td className="px-4 py-3">15</td>
-                                    <td className="px-4 py-3 text-gray-500">25 Nov 2025</td>
-                                </tr>
+                                {recentCompanies && recentCompanies.length > 0 ? (
+                                    recentCompanies.map((company) => (
+                                        <tr key={company.id}>
+                                            <td className="px-4 py-3 font-medium">{company.name}</td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                    ${company.subscription_plan === 'enterprise' ? 'bg-blue-100 text-blue-800' :
+                                                        company.subscription_plan === 'pro' ? 'bg-purple-100 text-purple-800' :
+                                                            'bg-gray-100 text-gray-800'}`}>
+                                                    {company.subscription_plan.charAt(0).toUpperCase() + company.subscription_plan.slice(1)}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                    ${company.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    {company.active ? 'Activo' : 'Inactivo'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-500">
+                                                {new Date(company.created_at).toLocaleDateString()}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                                            No hay empresas registradas recientemente.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

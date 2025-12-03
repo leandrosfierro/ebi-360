@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Plus, Search, Building2 } from "lucide-react";
 import Link from "next/link";
 import { InviteAdminDialog } from "@/components/admin/InviteAdminDialog";
+import { CompanyActionsMenu } from "@/components/admin/CompanyActionsMenu";
 
 export default async function CompaniesPage() {
     const supabase = await createClient();
@@ -54,6 +55,7 @@ export default async function CompaniesPage() {
                             <th className="px-6 py-4 font-medium">Estado</th>
                             <th className="px-6 py-4 font-medium">Fecha Registro</th>
                             <th className="px-6 py-4 font-medium text-right">Admin</th>
+                            <th className="px-6 py-4 font-medium text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -95,11 +97,14 @@ export default async function CompaniesPage() {
                                     <td className="px-6 py-4 text-right">
                                         <InviteAdminDialog companyId={company.id} companyName={company.name} />
                                     </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <CompanyActionsMenu company={company} />
+                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                                     <div className="flex flex-col items-center justify-center">
                                         <Building2 className="h-12 w-12 text-gray-300 mb-3" />
                                         <p className="text-lg font-medium text-gray-900">No hay empresas registradas</p>

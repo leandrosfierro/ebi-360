@@ -267,3 +267,82 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         return { error: error.message || "Failed to invite admin" };
     }
 }
+
+export async function updateCompany(companyId: string, formData: FormData) {
+    const supabase = await createClient();
+
+    // Verify super admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (adminProfile?.role !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    const name = formData.get("name") as string;
+    const plan = formData.get("plan") as "basic" | "pro" | "enterprise";
+    const active = formData.get("active") === "on";
+
+    try {
+        const { error } = await supabase
+            .from("companies")
+            .update({
+                name,
+                subscription_plan: plan,
+                active
+            })
+            .eq("id", companyId);
+
+        if (error) throw error;
+
+        revalidatePath("/admin/super/companies");
+        revalidatePath("/admin/super");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error updating company:", error);
+        return { error: error.message || "Failed to update company" };
+    }
+}
+
+export async function deleteCompany(companyId: string) {
+    const supabase = await createClient();
+
+    // Verify super admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (adminProfile?.role !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    try {
+        // Note: This might fail if there are foreign key constraints (users, results, surveys)
+        // Ideally we should use CASCADE in DB or delete related data first.
+        // For now, we assume the DB handles cascade or we catch the error.
+        const { error } = await supabase
+            .from("companies")
+            .delete()
+            .eq("id", companyId);
+
+        if (error) throw error;
+
+        revalidatePath("/admin/super/companies");
+        revalidatePath("/admin/super");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error deleting company:", error);
+        return { error: error.message || "Failed to delete company. Ensure it has no active users." };
+    }
+}
