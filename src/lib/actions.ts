@@ -173,3 +173,30 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
         errors
     };
 }
+
+export async function updateProfile(formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: "User not authenticated" };
+    }
+
+    const fullName = formData.get("fullName") as string;
+
+    try {
+        const { error } = await supabase
+            .from("profiles")
+            .update({ full_name: fullName })
+            .eq("id", user.id);
+
+        if (error) throw error;
+
+        revalidatePath("/admin/super/settings");
+        revalidatePath("/perfil");
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        return { error: "Failed to update profile" };
+    }
+}
