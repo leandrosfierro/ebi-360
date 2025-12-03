@@ -3,12 +3,24 @@ import { Plus, Search, Building2 } from "lucide-react";
 import Link from "next/link";
 import { InviteAdminDialog } from "@/components/admin/InviteAdminDialog";
 import { CompanyActionsMenu } from "@/components/admin/CompanyActionsMenu";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export default async function CompaniesPage() {
     const supabase = await createClient();
+
+    // Fetch companies with their admin information
     const { data: companies } = await supabase
         .from("companies")
-        .select("*")
+        .select(`
+            *,
+            admin:profiles!profiles_company_id_fkey(
+                id,
+                email,
+                full_name,
+                admin_status,
+                last_active_at
+            )
+        `)
         .order("created_at", { ascending: false });
 
     return (
@@ -53,58 +65,87 @@ export default async function CompaniesPage() {
                             <th className="px-6 py-4 font-medium">Empresa</th>
                             <th className="px-6 py-4 font-medium">Plan</th>
                             <th className="px-6 py-4 font-medium">Estado</th>
-                            <th className="px-6 py-4 font-medium">Fecha Registro</th>
-                            <th className="px-6 py-4 font-medium text-right">Admin</th>
+                            <th className="px-6 py-4 font-medium">Administrador</th>
+                            <th className="px-6 py-4 font-medium">Estado Admin</th>
+                            <th className="px-6 py-4 font-medium">Última Actividad</th>
                             <th className="px-6 py-4 font-medium text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {companies && companies.length > 0 ? (
-                            companies.map((company) => (
-                                <tr key={company.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
-                                                {company.logo_url ? (
-                                                    <img src={company.logo_url} alt={company.name} className="h-full w-full object-cover rounded-lg" />
-                                                ) : (
-                                                    <Building2 className="h-5 w-5" />
-                                                )}
+                            companies.map((company) => {
+                                // Find the company admin (there should be only one per company)
+                                const admin = Array.isArray(company.admin)
+                                    ? company.admin.find((a: any) => a.id)
+                                    : company.admin;
+
+                                return (
+                                    <tr key={company.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                                                    {company.logo_url ? (
+                                                        <img src={company.logo_url} alt={company.name} className="h-full w-full object-cover rounded-lg" />
+                                                    ) : (
+                                                        <Building2 className="h-5 w-5" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{company.name}</p>
+                                                    <p className="text-xs text-gray-500">Creada {new Date(company.created_at).toLocaleDateString()}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">{company.name}</p>
-                                                <p className="text-xs text-gray-500 truncate max-w-[200px]">{company.id}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                      ${company.subscription_plan === 'enterprise' ? 'bg-blue-100 text-blue-800' :
-                                                company.subscription_plan === 'pro' ? 'bg-purple-100 text-purple-800' :
-                                                    'bg-gray-100 text-gray-800'}`}>
-                                            {company.subscription_plan.charAt(0).toUpperCase() + company.subscription_plan.slice(1)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                      ${company.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {company.active ? 'Activo' : 'Inactivo'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-500">
-                                        {new Date(company.created_at).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <InviteAdminDialog companyId={company.id} companyName={company.name} />
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <CompanyActionsMenu company={company} />
-                                    </td>
-                                </tr>
-                            ))
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                ${company.subscription_plan === 'enterprise' ? 'bg-blue-100 text-blue-800' :
+                                                    company.subscription_plan === 'pro' ? 'bg-purple-100 text-purple-800' :
+                                                        'bg-gray-100 text-gray-800'}`}>
+                                                {company.subscription_plan.charAt(0).toUpperCase() + company.subscription_plan.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                ${company.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                {company.active ? 'Activo' : 'Inactivo'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {admin ? (
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{admin.full_name || 'Sin nombre'}</p>
+                                                    <p className="text-xs text-gray-500">{admin.email}</p>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-gray-400 text-sm">Sin asignar</span>
+                                                    <InviteAdminDialog companyId={company.id} companyName={company.name} />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {admin ? (
+                                                <StatusBadge status={admin.admin_status || 'invited'} />
+                                            ) : (
+                                                <span className="text-gray-400 text-sm">-</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-500 text-sm">
+                                            {admin?.last_active_at ? (
+                                                <span>{new Date(admin.last_active_at).toLocaleDateString()}</span>
+                                            ) : (
+                                                <span className="text-gray-400">Nunca</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <CompanyActionsMenu company={company} admin={admin} />
+                                        </td>
+                                    </tr>
+                                );
+                            })
                         ) : (
                             <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                                     <div className="flex flex-col items-center justify-center">
                                         <Building2 className="h-12 w-12 text-gray-300 mb-3" />
                                         <p className="text-lg font-medium text-gray-900">No hay empresas registradas</p>

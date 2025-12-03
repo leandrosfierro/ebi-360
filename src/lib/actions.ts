@@ -264,6 +264,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                         full_name: fullName,
                         company_id: companyId,
                         role: 'company_admin',
+                        admin_status: 'invited',
                     },
                     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
                 }
@@ -371,5 +372,96 @@ export async function deleteCompany(companyId: string) {
     } catch (error: any) {
         console.error("Error deleting company:", error);
         return { error: error.message || "Failed to delete company. Ensure it has no active users." };
+    }
+}
+
+export async function updateAdminStatus(adminId: string, newStatus: 'invited' | 'active' | 'inactive' | 'suspended') {
+    const supabase = await createClient();
+
+    // Verify super admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (adminProfile?.role !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    const supabaseAdmin = createAdminClient();
+
+    try {
+        const { error } = await supabaseAdmin
+            .from('profiles')
+            .update({ admin_status: newStatus })
+            .eq('id', adminId)
+            .eq('role', 'company_admin'); // Extra safety check
+
+        if (error) throw error;
+
+        revalidatePath("/admin/super/companies");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error updating admin status:", error);
+        return { error: error.message || "Failed to update admin status" };
+    }
+}
+
+export async function resendAdminInvitation(adminId: string) {
+    const supabase = await createClient();
+
+    // Verify super admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (adminProfile?.role !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    const supabaseAdmin = createAdminClient();
+
+    try {
+        // Get admin details
+        const { data: admin, error: fetchError } = await supabaseAdmin
+            .from('profiles')
+            .select('email, full_name, company_id')
+            .eq('id', adminId)
+            .single();
+
+        if (fetchError || !admin) {
+            throw new Error("Admin not found");
+        }
+
+        // Resend invitation
+        const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+            admin.email,
+            {
+                data: {
+                    full_name: admin.full_name,
+                    company_id: admin.company_id,
+                    role: 'company_admin',
+                    admin_status: 'invited',
+                },
+                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+            }
+        );
+
+        if (inviteError) throw inviteError;
+
+        revalidatePath("/admin/super/companies");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error resending invitation:", error);
+        return { error: error.message || "Failed to resend invitation" };
     }
 }

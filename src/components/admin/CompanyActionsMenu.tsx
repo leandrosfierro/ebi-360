@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, UserPlus } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Mail, Ban, CheckCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditCompanyDialog } from "./EditCompanyDialog";
 import { DeleteCompanyAlert } from "./DeleteCompanyAlert";
-import { InviteAdminDialog } from "./InviteAdminDialog";
+import { updateAdminStatus, resendAdminInvitation } from "@/lib/actions";
+import { useRouter } from "next/navigation";
 
 interface CompanyActionsMenuProps {
     company: {
@@ -22,29 +23,57 @@ interface CompanyActionsMenuProps {
         subscription_plan: "basic" | "pro" | "enterprise";
         active: boolean;
     };
+    admin?: {
+        id: string;
+        email: string;
+        full_name: string;
+        admin_status: string;
+    } | null;
 }
 
-export function CompanyActionsMenu({ company }: CompanyActionsMenuProps) {
+export function CompanyActionsMenu({ company, admin }: CompanyActionsMenuProps) {
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    // Invite dialog manages its own state, but we need to trigger it. 
-    // Actually, InviteAdminDialog is a DialogTrigger itself.
-    // We can't easily nest DialogTrigger inside DropdownMenuItem without issues.
-    // So we'll keep InviteAdminDialog separate in the UI or handle it differently.
-    // For now, let's keep Invite separate in the column as it's a primary action, 
-    // and put Edit/Delete in the menu.
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+
+    const handleResendInvitation = async () => {
+        if (!admin) return;
+        setIsLoading(true);
+        const result = await resendAdminInvitation(admin.id);
+        if (result.error) {
+            alert(`Error: ${result.error}`);
+        } else {
+            alert("Invitación reenviada correctamente");
+        }
+        setIsLoading(false);
+        router.refresh();
+    };
+
+    const handleUpdateStatus = async (newStatus: 'active' | 'inactive' | 'suspended') => {
+        if (!admin) return;
+        setIsLoading(true);
+        const result = await updateAdminStatus(admin.id, newStatus);
+        if (result.error) {
+            alert(`Error: ${result.error}`);
+        } else {
+            alert("Estado actualizado correctamente");
+        }
+        setIsLoading(false);
+        router.refresh();
+    };
 
     return (
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
+                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={isLoading}>
                         <span className="sr-only">Abrir menú</span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                    <DropdownMenuLabel>Acciones de Empresa</DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         Editar Empresa
@@ -54,6 +83,41 @@ export function CompanyActionsMenu({ company }: CompanyActionsMenuProps) {
                         <Trash2 className="mr-2 h-4 w-4" />
                         Eliminar Empresa
                     </DropdownMenuItem>
+
+                    {admin && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Acciones de Admin</DropdownMenuLabel>
+
+                            {admin.admin_status === 'invited' && (
+                                <DropdownMenuItem onClick={handleResendInvitation}>
+                                    <Mail className="mr-2 h-4 w-4" />
+                                    Reenviar Invitación
+                                </DropdownMenuItem>
+                            )}
+
+                            {admin.admin_status !== 'suspended' && (
+                                <DropdownMenuItem onClick={() => handleUpdateStatus('suspended')} className="text-red-600 focus:text-red-600">
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    Suspender Admin
+                                </DropdownMenuItem>
+                            )}
+
+                            {admin.admin_status === 'suspended' && (
+                                <DropdownMenuItem onClick={() => handleUpdateStatus('active')} className="text-green-600 focus:text-green-600">
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Reactivar Admin
+                                </DropdownMenuItem>
+                            )}
+
+                            {admin.admin_status === 'inactive' && (
+                                <DropdownMenuItem onClick={() => handleUpdateStatus('active')} className="text-green-600 focus:text-green-600">
+                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                    Marcar como Activo
+                                </DropdownMenuItem>
+                            )}
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 
