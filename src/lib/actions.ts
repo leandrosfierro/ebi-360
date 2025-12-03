@@ -218,16 +218,28 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         return { error: "Unauthorized: Super Admin only" };
     }
 
+    // Validate that SERVICE_ROLE_KEY is configured
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+        return { error: "Server configuration error: Missing service role key. Please contact support." };
+    }
+
     // Use Admin Client for privileged operations
     const supabaseAdmin = createAdminClient();
 
     try {
         // 1. Check if user already exists (using admin client to ensure visibility)
-        const { data: existingUser } = await supabaseAdmin
+        const { data: existingUser, error: checkError } = await supabaseAdmin
             .from('profiles')
             .select('id')
             .eq('email', email)
             .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+            // PGRST116 is "not found" which is expected for new users
+            console.error("Error checking existing user:", checkError);
+            throw new Error(`Database error: ${checkError.message}`);
+        }
 
         if (existingUser) {
             // Update existing user to be company admin
@@ -239,10 +251,13 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                 })
                 .eq('id', existingUser.id);
 
-            if (updateError) throw updateError;
+            if (updateError) {
+                console.error("Error updating user:", updateError);
+                throw new Error(`Failed to update user: ${updateError.message}`);
+            }
         } else {
             // 2. Invite new user
-            const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+            const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
                 email,
                 {
                     data: {
@@ -256,8 +271,20 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
 
             if (inviteError) {
                 console.error("Invite error details:", inviteError);
-                throw inviteError;
+
+                // Provide user-friendly error messages
+                if (inviteError.message?.includes('User already registered')) {
+                    throw new Error("Este email ya está registrado en el sistema");
+                } else if (inviteError.message?.includes('rate limit')) {
+                    throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
+                } else if (inviteError.message?.includes('SMTP')) {
+                    throw new Error("Error de configuración de email. Verifica la configuración SMTP en Supabase.");
+                }
+
+                throw new Error(inviteError.message || "Failed to send invitation");
             }
+
+            console.log("Invitation sent successfully to:", email);
         }
 
         revalidatePath("/admin/super/companies");
