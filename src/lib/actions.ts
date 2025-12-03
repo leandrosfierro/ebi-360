@@ -51,3 +51,42 @@ export async function saveDiagnosticResult(
         return { error: "Failed to save result" };
     }
 }
+
+export async function createCompany(formData: FormData) {
+    const supabase = await createClient();
+
+    // Verify super admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (profile?.role !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    const name = formData.get("name") as string;
+    const plan = formData.get("plan") as "basic" | "pro" | "enterprise";
+    const active = formData.get("active") === "on";
+
+    try {
+        const { error } = await supabase.from("companies").insert({
+            name,
+            subscription_plan: plan,
+            active,
+            primary_color: "#7e22ce", // Default purple
+        });
+
+        if (error) throw error;
+
+        revalidatePath("/admin/super/companies");
+        return { success: true };
+    } catch (error) {
+        console.error("Error creating company:", error);
+        return { error: "Failed to create company" };
+    }
+}
