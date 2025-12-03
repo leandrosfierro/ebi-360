@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Settings, TrendingUp, Users, AlertTriangle, Activity } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { CompanyReportExport } from "@/components/CompanyReportExport";
 
 export default async function ReportsPage() {
     const supabase = await createClient();
@@ -110,10 +111,16 @@ export default async function ReportsPage() {
                         <Settings className="h-4 w-4" />
                         Configurar Branding
                     </Link>
-                    <button className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors">
-                        <Download className="h-4 w-4" />
-                        Exportar PDF
-                    </button>
+                    <CompanyReportExport
+                        companyName="Mi Empresa"
+                        metrics={{
+                            participationRate,
+                            avgGlobalScore,
+                            atRiskCount,
+                            completedSurveys,
+                            employeesCount,
+                        }}
+                    />
                 </div>
             </div>
 
