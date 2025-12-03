@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { Plus, Search, Mail, Upload, MoreHorizontal, User } from "lucide-react";
+import { Plus, Search, Mail, Upload, MoreHorizontal, User, Users } from "lucide-react";
 import Link from "next/link";
 
 export default async function EmployeesPage() {
