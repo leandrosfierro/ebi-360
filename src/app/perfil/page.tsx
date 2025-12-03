@@ -26,7 +26,7 @@ export default function ProfilePage() {
                 // Fetch from DB
                 const { data: profile } = await supabase
                     .from("profiles")
-                    .select("full_name")
+                    .select("full_name, role")
                     .eq("id", user.id)
                     .single();
 
