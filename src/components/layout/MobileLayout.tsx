@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { BottomNav } from "./BottomNav";
 
 interface MobileLayoutProps {
@@ -6,14 +9,24 @@ interface MobileLayoutProps {
 }
 
 export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
+    const pathname = usePathname();
+    const isAdmin = pathname?.startsWith("/admin");
+
+    // For admin routes, we want full width and no bottom nav
+    const isFullWidth = isAdmin;
+    const shouldShowNav = showNav && !isAdmin;
+
     return (
         <div className="flex min-h-screen flex-col">
-            <main className="mx-auto flex w-full max-w-md flex-1 flex-col overflow-x-hidden">
+            <main
+                className={`flex w-full flex-1 flex-col overflow-x-hidden ${isFullWidth ? "" : "mx-auto max-w-md"
+                    }`}
+            >
                 <div className="flex-1">
                     {children}
                 </div>
             </main>
-            {showNav && <BottomNav />}
+            {shouldShowNav && <BottomNav />}
         </div>
     );
 }
