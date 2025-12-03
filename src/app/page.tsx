@@ -24,7 +24,7 @@ export default function Home() {
 
         {/* Title */}
         <h1 className="mb-4 text-center text-4xl font-bold text-white drop-shadow-lg animate-fadeIn" style={{ animationDelay: "0.1s" }}>
-          Bienestar 360°
+          EBI 360
         </h1>
 
         <p className="mb-12 max-w-sm text-center text-lg text-white drop-shadow animate-fadeIn" style={{ animationDelay: "0.2s" }}>

@@ -332,10 +332,10 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="mb-2 font-semibold text-white drop-shadow">
-                                Acerca de Bienestar 360°
+                                Acerca de EBI 360
                             </h3>
                             <p className="text-sm text-white/80">
-                                Visita nuestro sitio web oficial para más información.
+                                Plataforma de diagnóstico integral para LATAM.
                             </p>
                         </div>
                         <ExternalLink className="h-5 w-5 text-white/60" />

@@ -28,7 +28,7 @@ export default async function SuperAdminDashboard() {
         <div className="space-y-8">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard General</h2>
-                <p className="text-gray-500">Bienvenido al panel de control de Bienestar 360°.</p>
+                <p className="text-gray-500">Bienvenido al panel de control de EBI 360.</p>
             </div>
 
             {/* Stats Grid */}
