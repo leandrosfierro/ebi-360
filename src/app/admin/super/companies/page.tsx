@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { Plus, Search, MoreHorizontal, Building2 } from "lucide-react";
+import { Plus, Search, Building2 } from "lucide-react";
 import Link from "next/link";
+import { InviteAdminDialog } from "@/components/admin/InviteAdminDialog";
 
 export default async function CompaniesPage() {
     const supabase = await createClient();
@@ -52,7 +53,7 @@ export default async function CompaniesPage() {
                             <th className="px-6 py-4 font-medium">Plan</th>
                             <th className="px-6 py-4 font-medium">Estado</th>
                             <th className="px-6 py-4 font-medium">Fecha Registro</th>
-                            <th className="px-6 py-4 font-medium text-right">Acciones</th>
+                            <th className="px-6 py-4 font-medium text-right">Admin</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -92,9 +93,7 @@ export default async function CompaniesPage() {
                                         {new Date(company.created_at).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="text-gray-400 hover:text-gray-600">
-                                            <MoreHorizontal className="h-5 w-5" />
-                                        </button>
+                                        <InviteAdminDialog companyId={company.id} companyName={company.name} />
                                     </td>
                                 </tr>
                             ))

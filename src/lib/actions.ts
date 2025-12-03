@@ -200,3 +200,70 @@ export async function updateProfile(formData: FormData) {
         return { error: "Failed to update profile" };
     }
 }
+
+export async function inviteCompanyAdmin(email: string, fullName: string, companyId: string) {
+    const supabase = await createClient();
+
+    // Verify super admin role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (adminProfile?.role !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    try {
+        // 1. Check if user already exists
+        const { data: existingUser } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (existingUser) {
+            // Update existing user to be company admin
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                    role: 'company_admin',
+                    company_id: companyId
+                })
+                .eq('id', existingUser.id);
+
+            if (updateError) throw updateError;
+        } else {
+            // 2. Invite new user
+            const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+                email,
+                {
+                    data: {
+                        full_name: fullName,
+                        company_id: companyId,
+                        role: 'company_admin',
+                    },
+                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+                }
+            );
+
+            if (inviteError) {
+                // Fallback: Create profile manually if invite fails (e.g. in dev without SMTP)
+                // Note: In production with SMTP, inviteUserByEmail is better.
+                // For now, we'll try to insert the profile directly as a placeholder if invite fails,
+                // but usually inviteError means something blocked the auth user creation.
+                throw inviteError;
+            }
+        }
+
+        revalidatePath("/admin/super/companies");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error inviting admin:", error);
+        return { error: error.message || "Failed to invite admin" };
+    }
+}
