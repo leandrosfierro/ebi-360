@@ -574,10 +574,16 @@ export async function inviteEmployee(email: string, fullName: string) {
         );
 
         if (inviteError) {
-            console.error("Invite error details:", inviteError);
+            console.error("Invite error details:", JSON.stringify(inviteError, null, 2));
+
             if (inviteError.message?.includes('rate limit')) {
                 throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
             }
+            if (inviteError.message?.includes('SMTP') || inviteError.message === "Error sending invite email") {
+                throw new Error("Error al enviar el email. Verifica la configuración SMTP en Supabase.");
+            }
+
+            // Return the raw error message for debugging if it's not one of the above
             throw new Error(inviteError.message || "Failed to send invitation");
         }
 
