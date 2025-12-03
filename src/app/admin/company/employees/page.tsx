@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Plus, Search, Mail, Upload, MoreHorizontal, User, Users } from "lucide-react";
 import Link from "next/link";
+import { InviteEmployeeDialog } from "@/components/admin/company/InviteEmployeeDialog";
 
 export default async function EmployeesPage() {
     const supabase = await createClient();
@@ -37,10 +38,7 @@ export default async function EmployeesPage() {
                         <Upload className="h-4 w-4" />
                         Carga Masiva
                     </Link>
-                    <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                        <Plus className="h-4 w-4" />
-                        Invitar Usuario
-                    </button>
+                    <InviteEmployeeDialog />
                 </div>
             </div>
 
@@ -119,9 +117,9 @@ export default async function EmployeesPage() {
                                         <Users className="h-12 w-12 text-gray-300 mb-3" />
                                         <p className="text-lg font-medium text-gray-900">No hay colaboradores</p>
                                         <p className="text-sm text-gray-500 mb-4">Comienza invitando a tu equipo o carga una lista masiva.</p>
-                                        <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                                            Invitar Colaborador
-                                        </button>
+                                        <div className="flex justify-center">
+                                            <InviteEmployeeDialog />
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

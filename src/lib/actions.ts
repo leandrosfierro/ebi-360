@@ -510,3 +510,81 @@ export async function switchRole(newRole: 'super_admin' | 'company_admin' | 'emp
         return { error: error.message || "Failed to switch role" };
     }
 }
+
+export async function inviteEmployee(email: string, fullName: string) {
+    const supabase = await createClient();
+
+    // Verify company admin role (or super admin)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, active_role, company_id')
+        .eq('id', user.id)
+        .single();
+
+    // Check permissions using active_role for multi-role support
+    const activeRole = profile?.active_role || profile?.role;
+
+    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+        return { error: "Unauthorized: Company Admin only" };
+    }
+
+    const companyId = profile?.company_id;
+    if (!companyId) {
+        return { error: "No company assigned to admin" };
+    }
+
+    // Validate that SERVICE_ROLE_KEY is configured
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+        return { error: "Server configuration error: Missing service role key." };
+    }
+
+    const supabaseAdmin = createAdminClient();
+
+    try {
+        // 1. Check if user already exists
+        const { data: existingUser, error: checkError } = await supabaseAdmin
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+            throw new Error(`Database error: ${checkError.message}`);
+        }
+
+        if (existingUser) {
+            return { error: "Este usuario ya está registrado en el sistema." };
+        }
+
+        // 2. Invite new user
+        const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+            email,
+            {
+                data: {
+                    full_name: fullName,
+                    company_id: companyId,
+                    role: 'employee',
+                },
+                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+            }
+        );
+
+        if (inviteError) {
+            console.error("Invite error details:", inviteError);
+            if (inviteError.message?.includes('rate limit')) {
+                throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
+            }
+            throw new Error(inviteError.message || "Failed to send invitation");
+        }
+
+        revalidatePath("/admin/company/employees");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error inviting employee:", error);
+        return { error: error.message || "Failed to invite employee" };
+    }
+}
