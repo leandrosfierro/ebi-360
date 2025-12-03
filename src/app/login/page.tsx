@@ -12,10 +12,14 @@ export default function LoginPage() {
     const handleLogin = async () => {
         setIsLoading(true);
         try {
+            const redirectTo = process.env.NEXT_PUBLIC_SITE_URL
+                ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+                : `${window.location.origin}/auth/callback`;
+
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: `${location.origin}/auth/callback`,
+                    redirectTo,
                 },
             });
 
