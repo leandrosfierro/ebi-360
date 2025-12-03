@@ -1,100 +1,156 @@
-import { createClient } from "@/lib/supabase/server";
+"use client";
+
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Settings, TrendingUp, Users, AlertTriangle, Activity } from "lucide-react";
+import { Settings, TrendingUp, Users, AlertTriangle, Activity } from "lucide-react";
 import Link from "next/link";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { CompanyReportExport } from "@/components/CompanyReportExport";
 
-export default async function ReportsPage() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+// Dynamically import Recharts components to avoid SSR issues
+const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false });
+const LineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false });
+const Line = dynamic(() => import('recharts').then(mod => mod.Line), { ssr: false });
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false });
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), { ssr: false });
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
+const Legend = dynamic(() => import('recharts').then(mod => mod.Legend), { ssr: false });
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
 
-    // Get company_id
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user?.id)
-        .single();
+export default function ReportsPage() {
+    const [loading, setLoading] = useState(true);
+    const [participationRate, setParticipationRate] = useState(0);
+    const [avgGlobalScore, setAvgGlobalScore] = useState("0.0");
+    const [atRiskCount, setAtRiskCount] = useState(0);
+    const [completedSurveys, setCompletedSurveys] = useState(0);
+    const [employeesCount, setEmployeesCount] = useState(0);
+    const [domainChartData, setDomainChartData] = useState<any[]>([]);
+    const [trendData, setTrendData] = useState<any[]>([]);
 
-    const companyId = profile?.company_id;
+    useEffect(() => {
+        fetchData();
+    }, []);
 
-    // Get user IDs for this company
-    const { data: companyProfiles } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('company_id', companyId);
+    const fetchData = async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-    const userIds = companyProfiles?.map(p => p.id) || [];
+        if (!user) {
+            setLoading(false);
+            return;
+        }
 
-    // Fetch all results for this company
-    const { data: allResults } = await supabase
-        .from('results')
-        .select(`
-      global_score,
-      domain_scores,
-      created_at,
-      user_id
-    `)
-        .in('user_id', userIds);
+        // Get company_id
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('id', user.id)
+            .single();
 
-    // Calculate metrics
-    const totalEmployees = await supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('company_id', companyId)
-        .eq('role', 'employee');
+        const companyId = profile?.company_id;
 
-    const employeesCount = totalEmployees.count || 0;
-    const completedSurveys = allResults?.length || 0;
-    const participationRate = employeesCount > 0 ? Math.round((completedSurveys / employeesCount) * 100) : 0;
+        // Get user IDs for this company
+        const { data: companyProfiles } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('company_id', companyId);
 
-    // Calculate average global score
-    const avgGlobalScore = allResults && allResults.length > 0
-        ? (allResults.reduce((sum, r) => sum + Number(r.global_score), 0) / allResults.length).toFixed(1)
-        : "0.0";
+        const userIds = companyProfiles?.map((p: any) => p.id) || [];
 
-    // Calculate domain averages
-    const domainAverages: Record<string, number> = {};
-    if (allResults && allResults.length > 0) {
-        const domains = ["Físico", "Nutricional", "Emocional", "Social", "Familiar", "Económico"];
-        domains.forEach(domain => {
-            const scores = allResults
-                .map(r => r.domain_scores?.[domain])
-                .filter(s => s !== undefined && s !== null);
-            domainAverages[domain] = scores.length > 0
-                ? scores.reduce((sum, s) => sum + Number(s), 0) / scores.length
-                : 0;
-        });
-    }
+        // Fetch all results for this company
+        const { data: allResults } = await supabase
+            .from('results')
+            .select(`
+                global_score,
+                domain_scores,
+                created_at,
+                user_id
+            `)
+            .in('user_id', userIds);
 
-    // Prepare data for charts
-    const domainChartData = Object.entries(domainAverages).map(([name, value]) => ({
-        name,
-        score: Number(value.toFixed(1)),
-    }));
+        // Calculate metrics
+        const totalEmployees = await supabase
+            .from('profiles')
+            .select('id', { count: 'exact', head: true })
+            .eq('company_id', companyId)
+            .eq('role', 'employee');
 
-    // Risk detection (scores below 5)
-    const atRiskCount = allResults?.filter(r => Number(r.global_score) < 5).length || 0;
+        const empCount = totalEmployees.count || 0;
+        const completedCount = allResults?.length || 0;
+        const partRate = empCount > 0 ? Math.round((completedCount / empCount) * 100) : 0;
 
-    // Trend data (group by month if multiple surveys)
-    const trendData = allResults && allResults.length > 0
-        ? allResults.reduce((acc: any[], result) => {
-            const month = new Date(result.created_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
-            const existing = acc.find(item => item.month === month);
-            if (existing) {
-                existing.total += Number(result.global_score);
-                existing.count += 1;
-            } else {
-                acc.push({ month, total: Number(result.global_score), count: 1 });
-            }
-            return acc;
-        }, []).map(item => ({
-            month: item.month,
-            score: Number((item.total / item.count).toFixed(1)),
-        }))
-        : [];
+        setEmployeesCount(empCount);
+        setCompletedSurveys(completedCount);
+        setParticipationRate(partRate);
+
+        // Calculate average global score
+        const avgScore = allResults && allResults.length > 0
+            ? (allResults.reduce((sum: number, r: any) => sum + Number(r.global_score), 0) / allResults.length).toFixed(1)
+            : "0.0";
+        setAvgGlobalScore(avgScore);
+
+        // Calculate domain averages
+        const domainAverages: Record<string, number> = {};
+        if (allResults && allResults.length > 0) {
+            const domains = ["Físico", "Nutricional", "Emocional", "Social", "Familiar", "Económico"];
+            domains.forEach(domain => {
+                const scores = allResults
+                    .map((r: any) => r.domain_scores?.[domain])
+                    .filter((s: any) => s !== undefined && s !== null);
+                domainAverages[domain] = scores.length > 0
+                    ? scores.reduce((sum: number, s: any) => sum + Number(s), 0) / scores.length
+                    : 0;
+            });
+        }
+
+        // Prepare data for charts
+        const chartData = Object.entries(domainAverages).map(([name, value]) => ({
+            name,
+            score: Number(value.toFixed(1)),
+        }));
+        setDomainChartData(chartData);
+
+        // Risk detection
+        const riskCount = allResults?.filter((r: any) => Number(r.global_score) < 5).length || 0;
+        setAtRiskCount(riskCount);
+
+        // Trend data
+        const trend = allResults && allResults.length > 0
+            ? allResults.reduce((acc: any[], result: any) => {
+                const month = new Date(result.created_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                const existing = acc.find((item: any) => item.month === month);
+                if (existing) {
+                    existing.total += Number(result.global_score);
+                    existing.count += 1;
+                } else {
+                    acc.push({ month, total: Number(result.global_score), count: 1 });
+                }
+                return acc;
+            }, []).map((item: any) => ({
+                month: item.month,
+                score: Number((item.total / item.count).toFixed(1)),
+            }))
+            : [];
+        setTrendData(trend);
+
+        setLoading(false);
+    };
 
     const COLORS = ['#7e22ce', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-gray-500">Cargando...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
