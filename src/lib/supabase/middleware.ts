@@ -47,24 +47,24 @@ export async function updateSession(request: NextRequest) {
             return NextResponse.redirect(url)
         }
 
-        // 2. Check user role
+        // 2. Check user role (use active_role for multi-role support)
         const { data: profile } = await supabase
             .from('profiles')
-            .select('role')
+            .select('active_role, roles')
             .eq('id', user.id)
             .single()
 
-        const role = profile?.role
+        const activeRole = profile?.active_role
 
         // Super Admin protection
         if (request.nextUrl.pathname.startsWith('/admin/super')) {
-            if (role !== 'super_admin') {
+            if (activeRole !== 'super_admin') {
                 // Redirect unauthorized users to their appropriate dashboard or home
                 const url = request.nextUrl.clone()
-                if (role === 'company_admin') {
+                if (activeRole === 'company_admin') {
                     url.pathname = '/admin/company'
                 } else {
-                    url.pathname = '/'
+                    url.pathname = '/perfil'
                 }
                 return NextResponse.redirect(url)
             }
@@ -72,9 +72,9 @@ export async function updateSession(request: NextRequest) {
 
         // Company Admin protection
         if (request.nextUrl.pathname.startsWith('/admin/company')) {
-            if (role !== 'company_admin' && role !== 'super_admin') {
+            if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
                 const url = request.nextUrl.clone()
-                url.pathname = '/'
+                url.pathname = '/perfil'
                 return NextResponse.redirect(url)
             }
         }
