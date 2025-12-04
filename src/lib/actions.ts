@@ -561,7 +561,7 @@ export async function inviteEmployee(email: string, fullName: string) {
         }
 
         // 2. Invite new user
-        const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
             email,
             {
                 data: {
@@ -576,14 +576,51 @@ export async function inviteEmployee(email: string, fullName: string) {
         if (inviteError) {
             console.error("Invite error details:", JSON.stringify(inviteError, null, 2));
 
+            // FALLBACK: Create user manually if email fails
+            if (inviteError.message?.includes('SMTP') || inviteError.message === "Error sending invite email") {
+                console.log("SMTP failed, attempting manual creation...");
+
+                // Generate a random temporary password
+                const tempPassword = Math.random().toString(36).slice(-8) + "Aa1!";
+
+                const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+                    email: email,
+                    password: tempPassword,
+                    email_confirm: true, // Auto-confirm email
+                    user_metadata: {
+                        full_name: fullName,
+                        company_id: companyId,
+                        role: 'employee'
+                    }
+                });
+
+                if (createError) {
+                    throw new Error(`Error al crear usuario manual: ${createError.message}`);
+                }
+
+                // Create profile entry manually just in case trigger fails or is slow
+                await supabaseAdmin.from('profiles').upsert({
+                    id: userData.user.id,
+                    email: email,
+                    full_name: fullName,
+                    role: 'employee',
+                    company_id: companyId,
+                    active_role: 'employee',
+                    roles: ['employee']
+                });
+
+                revalidatePath("/admin/company/employees");
+                return {
+                    success: true,
+                    warning: "El email no se pudo enviar por error de SMTP. El usuario fue creado manualmente.",
+                    tempPassword: tempPassword
+                };
+            }
+
             if (inviteError.message?.includes('rate limit')) {
                 throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
             }
-            if (inviteError.message?.includes('SMTP') || inviteError.message === "Error sending invite email") {
-                throw new Error("Error al enviar el email. Verifica la configuración SMTP en Supabase.");
-            }
 
-            // Return the raw error message for debugging if it's not one of the above
             throw new Error(inviteError.message || "Failed to send invitation");
         }
 
