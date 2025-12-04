@@ -39,11 +39,19 @@ export default async function CompanyAdminDashboard() {
         .eq("role", "employee");
 
     // 2. Fetch Results for Company
-    // We use !inner join to filter results by company_id of the user
+    // First get all employee IDs from the company
+    const { data: companyEmployees } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("company_id", companyId);
+
+    const employeeIds = companyEmployees?.map(e => e.id) || [];
+
+    // Then fetch results for those employees
     const { data: results, count: resultsCount } = await supabase
         .from("results")
-        .select("global_score, domain_scores, profiles!inner(company_id)")
-        .eq("profiles.company_id", companyId);
+        .select("global_score, domain_scores, user_id")
+        .in("user_id", employeeIds);
 
     const totalEmployees = employeesCount || 0;
     const totalResults = resultsCount || 0;

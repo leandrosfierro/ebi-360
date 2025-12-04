@@ -11,6 +11,18 @@ export async function GET(request: Request) {
         const supabase = await createClient();
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
+            // Update user status to active on successful login
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase
+                    .from('profiles')
+                    .update({
+                        admin_status: 'active',
+                        last_active_at: new Date().toISOString()
+                    })
+                    .eq('id', user.id);
+            }
+
             const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
             const isLocalEnv = process.env.NODE_ENV === "development";
             if (isLocalEnv) {
