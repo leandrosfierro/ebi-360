@@ -815,7 +815,7 @@ export async function updateCompanyBranding(formData: FormData) {
             const filePath = `company-logos/${fileName}`;
 
             const { error: uploadError } = await supabaseAdmin.storage
-                .from('public')
+                .from('logos')
                 .upload(filePath, logoFile, {
                     cacheControl: '3600',
                     upsert: true
@@ -828,7 +828,7 @@ export async function updateCompanyBranding(formData: FormData) {
 
             // Get public URL
             const { data: { publicUrl } } = supabaseAdmin.storage
-                .from('public')
+                .from('logos')
                 .getPublicUrl(filePath);
 
             logoUrl = publicUrl;
