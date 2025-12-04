@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Plus, Search, Mail, Upload, MoreHorizontal, User, Users } from "lucide-react";
 import Link from "next/link";
 import { InviteEmployeeDialog } from "@/components/admin/company/InviteEmployeeDialog";
+import { EmployeeActionsMenu } from "@/components/admin/company/EmployeeActionsMenu";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export default async function EmployeesPage() {
     const supabase = await createClient();
@@ -96,17 +98,13 @@ export default async function EmployeesPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                                            Activo
-                                        </span>
+                                        <StatusBadge status={(employee.admin_status as any) || 'invited'} />
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         {new Date(employee.created_at).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="text-gray-400 hover:text-gray-600">
-                                            <MoreHorizontal className="h-5 w-5" />
-                                        </button>
+                                        <EmployeeActionsMenu employee={employee} />
                                     </td>
                                 </tr>
                             ))

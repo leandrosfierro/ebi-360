@@ -23,46 +23,37 @@ export function InviteEmployeeDialog() {
     const [email, setEmail] = useState("");
     const [fullName, setFullName] = useState("");
     const [error, setError] = useState("");
-    const [successData, setSuccessData] = useState<{ warning?: string; tempPassword?: string } | null>(null);
+    const [successMessage, setSuccessMessage] = useState("");
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError("");
-        setSuccessData(null);
+        setSuccessMessage("");
 
         try {
             const result = await inviteEmployee(email, fullName);
 
             if (result.error) {
                 setError(result.error);
-            } else if (result.tempPassword) {
-                // Manual creation fallback
-                setSuccessData({
-                    warning: result.warning,
-                    tempPassword: result.tempPassword
-                });
-                router.refresh();
             } else {
-                // Normal success
-                setOpen(false);
+                setSuccessMessage(result.message || "Usuario registrado correctamente");
                 setEmail("");
                 setFullName("");
                 router.refresh();
+
+                // Close dialog after 2 seconds
+                setTimeout(() => {
+                    setOpen(false);
+                    setSuccessMessage("");
+                }, 2000);
             }
         } catch (err) {
             setError("Ocurrió un error inesperado");
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-        setSuccessData(null);
-        setEmail("");
-        setFullName("");
     };
 
     return (
@@ -75,103 +66,75 @@ export function InviteEmployeeDialog() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>
-                        {successData ? "Usuario Creado Manualmente" : "Invitar Colaborador"}
-                    </DialogTitle>
+                    <DialogTitle>Invitar Colaborador</DialogTitle>
                     <DialogDescription>
-                        {successData
-                            ? "El usuario fue creado pero no se pudo enviar el email. Comparte estas credenciales:"
-                            : "Envía una invitación por email para que un colaborador se una a tu empresa."
-                        }
+                        El usuario podrá ingresar con Google usando este email.
                     </DialogDescription>
                 </DialogHeader>
 
-                {successData ? (
-                    <div className="space-y-4 py-4">
-                        <div className="rounded-md bg-yellow-50 p-4 border border-yellow-200">
-                            <p className="text-sm text-yellow-800 mb-2 font-medium">
-                                {successData.warning}
-                            </p>
-                            <div className="mt-3 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Email:</span>
-                                    <span className="font-mono font-medium">{email}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Contraseña Temporal:</span>
-                                    <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border">
-                                        {successData.tempPassword}
-                                    </span>
-                                </div>
-                            </div>
+                <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                    {error && (
+                        <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+                            {error}
                         </div>
-                        <p className="text-xs text-gray-500 text-center">
-                            Por favor copia esta contraseña y envíala al usuario por otro medio seguro.
-                        </p>
-                        <DialogFooter>
-                            <Button onClick={handleClose} className="w-full">
-                                Entendido, cerrar
-                            </Button>
-                        </DialogFooter>
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                        {error && (
-                            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
-                                {error}
-                            </div>
-                        )}
-                        <div className="space-y-2">
-                            <Label htmlFor="fullName">Nombre Completo</Label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                <Input
-                                    id="fullName"
-                                    placeholder="Juan Pérez"
-                                    className="pl-9"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    required
-                                />
-                            </div>
+                    )}
+                    {successMessage && (
+                        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 border border-green-200">
+                            ✓ {successMessage}
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email Corporativo</Label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="juan@empresa.com"
-                                    className="pl-9"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setOpen(false)}
+                    )}
+                    <div className="space-y-2">
+                        <Label htmlFor="fullName">Nombre Completo</Label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input
+                                id="fullName"
+                                placeholder="Juan Pérez"
+                                className="pl-9"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                required
                                 disabled={isLoading}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Enviando...
-                                    </>
-                                ) : (
-                                    "Enviar Invitación"
-                                )}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                )}
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email Corporativo</Label>
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="juan@empresa.com"
+                                className="pl-9"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                            disabled={isLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Registrando...
+                                </>
+                            ) : (
+                                "Registrar Usuario"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     );

@@ -536,7 +536,6 @@ export async function inviteEmployee(email: string, fullName: string) {
         return { error: "No company assigned to admin" };
     }
 
-    // Validate that SERVICE_ROLE_KEY is configured
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
         console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
         return { error: "Server configuration error: Missing service role key." };
@@ -545,89 +544,210 @@ export async function inviteEmployee(email: string, fullName: string) {
     const supabaseAdmin = createAdminClient();
 
     try {
-        // 1. Check if user already exists
-        const { data: existingUser, error: checkError } = await supabaseAdmin
+        // 1. Check if profile already exists
+        const { data: existingProfile } = await supabaseAdmin
             .from('profiles')
-            .select('id')
+            .select('id, email')
             .eq('email', email)
             .single();
 
-        if (checkError && checkError.code !== 'PGRST116') {
-            throw new Error(`Database error: ${checkError.message}`);
+        if (existingProfile) {
+            return { error: "Este email ya está registrado en el sistema." };
         }
 
-        if (existingUser) {
-            return { error: "Este usuario ya está registrado en el sistema." };
+        // 2. Create profile directly (Google Auth will link to this when user logs in)
+        // We create a "pending" profile that will be activated when user signs in with Google
+        const profileId = crypto.randomUUID();
+
+        const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .insert({
+                id: profileId,
+                email: email,
+                full_name: fullName,
+                role: 'employee',
+                company_id: companyId,
+                active_role: 'employee',
+                roles: ['employee']
+            });
+
+        if (profileError) {
+            throw new Error(`Error al crear perfil: ${profileError.message}`);
         }
 
-        // 2. Invite new user
-        const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-            email,
-            {
-                data: {
-                    full_name: fullName,
-                    company_id: companyId,
-                    role: 'employee',
-                },
-                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
-            }
-        );
-
-        if (inviteError) {
-            console.error("Invite error details:", JSON.stringify(inviteError, null, 2));
-
-            // FALLBACK: Create user manually if email fails
-            if (inviteError.message?.includes('SMTP') || inviteError.message === "Error sending invite email") {
-                console.log("SMTP failed, attempting manual creation...");
-
-                // Generate a random temporary password
-                const tempPassword = Math.random().toString(36).slice(-8) + "Aa1!";
-
-                const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-                    email: email,
-                    password: tempPassword,
-                    email_confirm: true, // Auto-confirm email
-                    user_metadata: {
+        // 3. Optionally try to send invitation email (non-blocking)
+        let emailSent = false;
+        try {
+            const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+                email,
+                {
+                    data: {
                         full_name: fullName,
                         company_id: companyId,
-                        role: 'employee'
-                    }
-                });
-
-                if (createError) {
-                    throw new Error(`Error al crear usuario manual: ${createError.message}`);
+                        role: 'employee',
+                    },
+                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
                 }
+            );
 
-                // Create profile entry manually just in case trigger fails or is slow
-                await supabaseAdmin.from('profiles').upsert({
-                    id: userData.user.id,
-                    email: email,
-                    full_name: fullName,
-                    role: 'employee',
-                    company_id: companyId,
-                    active_role: 'employee',
-                    roles: ['employee']
-                });
-
-                revalidatePath("/admin/company/employees");
-                return {
-                    success: true,
-                    warning: "El email no se pudo enviar por error de SMTP. El usuario fue creado manualmente.",
-                    tempPassword: tempPassword
-                };
+            if (!inviteError) {
+                emailSent = true;
+            } else {
+                console.warn("Email invitation failed (non-critical):", inviteError.message);
             }
-
-            if (inviteError.message?.includes('rate limit')) {
-                throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
-            }
-
-            throw new Error(inviteError.message || "Failed to send invitation");
+        } catch (emailError) {
+            console.warn("Email invitation failed (non-critical):", emailError);
         }
+
+        revalidatePath("/admin/company/employees");
+
+        return {
+            success: true,
+            emailSent,
+            message: emailSent
+                ? "Usuario registrado e invitación enviada por email."
+                : "Usuario registrado. Podrá ingresar con Google usando este email."
+        };
+    } catch (error: any) {
+        console.error("Error inviting employee:", error);
+        return { error: error.message || "Failed to invite employee" };
+    }
+}
+
+// New action: Update employee details
+export async function updateEmployee(employeeId: string, fullName: string, email: string) {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, active_role, company_id')
+        .eq('id', user.id)
+        .single();
+
+    const activeRole = profile?.active_role || profile?.role;
+
+    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+        return { error: "Unauthorized: Admin only" };
+    }
+
+    if (!profile?.company_id) {
+        return { error: "No company assigned" };
+    }
+
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                full_name: fullName,
+                email: email
+            })
+            .eq('id', employeeId)
+            .eq('company_id', profile.company_id); // Security: only update own company's employees
+
+        if (error) throw error;
 
         revalidatePath("/admin/company/employees");
         return { success: true };
     } catch (error: any) {
-        console.error("Error inviting employee:", error);
-        return { error: error.message || "Failed to invite employee" };
+        console.error("Error updating employee:", error);
+        return { error: error.message || "Failed to update employee" };
+    }
+}
+
+// New action: Toggle employee active status
+export async function toggleEmployeeStatus(employeeId: string, active: boolean) {
+    const supabase = await createClient();
+
+    const { data: { user } = {} } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, active_role, company_id')
+        .eq('id', user.id)
+        .single();
+
+    const activeRole = profile?.active_role || profile?.role;
+
+    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+        return { error: "Unauthorized: Admin only" };
+    }
+
+    if (!profile?.company_id) {
+        return { error: "No company assigned" };
+    }
+
+    // We'll use a custom field 'is_active' - need to add this to profiles table
+    // For now, we can use admin_status field
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                admin_status: active ? 'active' : 'inactive'
+            })
+            .eq('id', employeeId)
+            .eq('company_id', profile.company_id);
+
+        if (error) throw error;
+
+        revalidatePath("/admin/company/employees");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error toggling employee status:", error);
+        return { error: error.message || "Failed to update status" };
+    }
+}
+
+// New action: Delete employee
+export async function deleteEmployee(employeeId: string) {
+    const supabase = await createClient();
+
+    const { data: { user } = {} } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, active_role, company_id')
+        .eq('id', user.id)
+        .single();
+
+    const activeRole = profile?.active_role || profile?.role;
+
+    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+        return { error: "Unauthorized: Admin only" };
+    }
+
+    if (!profile?.company_id) {
+        return { error: "No company assigned" };
+    }
+
+    const supabaseAdmin = createAdminClient();
+
+    try {
+        // Delete from auth.users first
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(employeeId);
+
+        // Even if auth delete fails (user might not exist in auth yet), continue to delete profile
+        if (authError) {
+            console.warn("Auth user delete failed (might not exist yet):", authError.message);
+        }
+
+        // Delete profile
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', employeeId)
+            .eq('company_id', profile.company_id);
+
+        if (profileError) throw profileError;
+
+        revalidatePath("/admin/company/employees");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error deleting employee:", error);
+        return { error: error.message || "Failed to delete employee" };
     }
 }
