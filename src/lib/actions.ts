@@ -774,3 +774,91 @@ export async function deleteEmployee(employeeId: string) {
         return { error: error.message || "Failed to delete employee" };
     }
 }
+
+// New action: Update company branding
+export async function updateCompanyBranding(formData: FormData) {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, active_role, company_id')
+        .eq('id', user.id)
+        .single();
+
+    const activeRole = profile?.active_role || profile?.role;
+
+    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+        return { error: "Unauthorized: Admin only" };
+    }
+
+    if (!profile?.company_id) {
+        return { error: "No company assigned" };
+    }
+
+    const supabaseAdmin = createAdminClient();
+
+    try {
+        const primaryColor = formData.get('primaryColor') as string;
+        const secondaryColor = formData.get('secondaryColor') as string;
+        const font = formData.get('font') as string || 'Inter';
+        const logoFile = formData.get('logo') as File | null;
+
+        let logoUrl: string | undefined;
+
+        // Upload logo if provided
+        if (logoFile && logoFile.size > 0) {
+            const fileExt = logoFile.name.split('.').pop();
+            const fileName = `${profile.company_id}-${Date.now()}.${fileExt}`;
+            const filePath = `company-logos/${fileName}`;
+
+            const { error: uploadError } = await supabaseAdmin.storage
+                .from('public')
+                .upload(filePath, logoFile, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (uploadError) {
+                console.error("Error uploading logo:", uploadError);
+                throw new Error(`Error al subir logo: ${uploadError.message}`);
+            }
+
+            // Get public URL
+            const { data: { publicUrl } } = supabaseAdmin.storage
+                .from('public')
+                .getPublicUrl(filePath);
+
+            logoUrl = publicUrl;
+        }
+
+        // Update company branding
+        const updateData: any = {
+            primary_color: primaryColor,
+            secondary_color: secondaryColor,
+            font: font
+        };
+
+        if (logoUrl) {
+            updateData.logo_url = logoUrl;
+        }
+
+        const { error: updateError } = await supabase
+            .from('companies')
+            .update(updateData)
+            .eq('id', profile.company_id);
+
+        if (updateError) {
+            throw new Error(`Error al actualizar branding: ${updateError.message}`);
+        }
+
+        revalidatePath("/admin/company/settings");
+        revalidatePath("/admin/company");
+        return { success: true, logoUrl };
+    } catch (error: any) {
+        console.error("Error updating company branding:", error);
+        return { error: error.message || "Failed to update branding" };
+    }
+}
