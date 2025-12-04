@@ -555,27 +555,50 @@ export async function inviteEmployee(email: string, fullName: string) {
             return { error: "Este email ya está registrado en el sistema." };
         }
 
-        // 2. Create profile directly (Google Auth will link to this when user logs in)
-        // We create a "pending" profile that will be activated when user signs in with Google
-        const profileId = crypto.randomUUID();
+        // 2. Create user in auth.users first (this generates the ID)
+        // We create with email_confirm: false so they need to verify via Google login
+        const { data: authUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
+            email: email,
+            email_confirm: false, // User must login with Google to confirm
+            user_metadata: {
+                full_name: fullName,
+                company_id: companyId,
+                role: 'employee'
+            }
+        });
 
+        if (createAuthError) {
+            console.error("Error creating auth user:", createAuthError);
+            throw new Error(`Error al crear usuario: ${createAuthError.message}`);
+        }
+
+        if (!authUser.user) {
+            throw new Error("No se pudo crear el usuario en auth");
+        }
+
+        // 3. Create profile with the same ID from auth.users
+        // This should be handled by the trigger, but we'll ensure it exists
         const { error: profileError } = await supabaseAdmin
             .from('profiles')
-            .insert({
-                id: profileId,
+            .upsert({
+                id: authUser.user.id, // Use the ID from auth.users
                 email: email,
                 full_name: fullName,
                 role: 'employee',
                 company_id: companyId,
                 active_role: 'employee',
-                roles: ['employee']
+                roles: ['employee'],
+                admin_status: 'invited'
             });
 
         if (profileError) {
+            console.error("Error creating profile:", profileError);
+            // Try to clean up the auth user if profile creation fails
+            await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
             throw new Error(`Error al crear perfil: ${profileError.message}`);
         }
 
-        // 3. Optionally try to send invitation email (non-blocking)
+        // 4. Optionally try to send invitation email (non-blocking)
         let emailSent = false;
         try {
             const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
