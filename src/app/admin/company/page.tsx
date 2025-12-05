@@ -31,30 +31,39 @@ export default async function CompanyAdminDashboard() {
 
     const companyId = profile.company_id;
 
-    // 1. Fetch Employees Count
+    // 1. Fetch Employees Count (only employees, not admins)
     const { count: employeesCount } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
         .eq("company_id", companyId)
-        .eq("role", "employee");
+        .or("role.eq.employee,active_role.eq.employee");
 
     // 2. Fetch Results for Company
-    // First get all employee IDs from the company
+    // First get all employee IDs from the company (only employees)
     const { data: companyEmployees } = await supabase
         .from("profiles")
         .select("id")
-        .eq("company_id", companyId);
+        .eq("company_id", companyId)
+        .or("role.eq.employee,active_role.eq.employee");
 
     const employeeIds = companyEmployees?.map(e => e.id) || [];
 
-    // Then fetch results for those employees
+    // Then fetch results for those employees with count
     const { data: results, count: resultsCount } = await supabase
         .from("results")
-        .select("global_score, domain_scores, user_id")
+        .select("global_score, domain_scores, user_id", { count: "exact" })
         .in("user_id", employeeIds);
 
     const totalEmployees = employeesCount || 0;
     const totalResults = resultsCount || 0;
+
+    console.log("Dashboard Debug:", {
+        companyId,
+        totalEmployees,
+        totalResults,
+        employeeIds: employeeIds.length,
+        resultsData: results?.length
+    });
 
     // EMPTY STATE CHECK
     if (totalEmployees === 0) {

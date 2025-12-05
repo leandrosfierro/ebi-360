@@ -55,15 +55,16 @@ export default function ReportsPage() {
 
         const companyId = profile?.company_id;
 
-        // Get user IDs for this company
+        // Get employee IDs for this company (only employees, not admins)
         const { data: companyProfiles } = await supabase
             .from('profiles')
             .select('id')
-            .eq('company_id', companyId);
+            .eq('company_id', companyId)
+            .or('role.eq.employee,active_role.eq.employee');
 
         const userIds = companyProfiles?.map((p: any) => p.id) || [];
 
-        // Fetch all results for this company
+        // Fetch all results for this company's employees
         const { data: allResults } = await supabase
             .from('results')
             .select(`
@@ -74,12 +75,12 @@ export default function ReportsPage() {
             `)
             .in('user_id', userIds);
 
-        // Calculate metrics
+        // Calculate metrics - count only employees
         const totalEmployees = await supabase
             .from('profiles')
             .select('id', { count: 'exact', head: true })
             .eq('company_id', companyId)
-            .eq('role', 'employee');
+            .or('role.eq.employee,active_role.eq.employee');
 
         const empCount = totalEmployees.count || 0;
         const completedCount = allResults?.length || 0;
