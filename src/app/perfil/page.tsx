@@ -173,17 +173,24 @@ export default function ProfilePage() {
                         ) : (
                             <div className="flex flex-col items-center">
                                 <span className="mt-1 rounded-full bg-white/20 px-3 py-0.5 text-xs font-medium text-white">
-                                    {userRole === 'super_admin' ? 'Super Admin' :
-                                        userRole === 'company_admin' ? 'Admin Empresa' : 'Usuario'}
+                                    {activeRole === 'super_admin' ? 'Super Admin' :
+                                        activeRole === 'company_admin' ? 'Admin Empresa' :
+                                            userRole === 'super_admin' ? 'Super Admin' :
+                                                userRole === 'company_admin' ? 'Admin Empresa' : 'Usuario'}
                                 </span>
-                                {(userRole === 'super_admin' || userRole === 'company_admin') && (
-                                    <a
-                                        href={userRole === 'super_admin' ? "/admin/super" : "/admin/company"}
-                                        className="mt-3 flex items-center gap-2 text-sm font-medium text-white underline underline-offset-4 hover:text-white/80"
-                                    >
-                                        Ir al Panel Admin <ExternalLink className="h-3 w-3" />
-                                    </a>
-                                )}
+                                {((activeRole === 'super_admin' || activeRole === 'company_admin') ||
+                                    (userRole === 'super_admin' || userRole === 'company_admin')) && (
+                                        <a
+                                            href={
+                                                (activeRole === 'super_admin' || (!activeRole && userRole === 'super_admin'))
+                                                    ? "/admin/super"
+                                                    : "/admin/company"
+                                            }
+                                            className="mt-3 flex items-center gap-2 text-sm font-medium text-white underline underline-offset-4 hover:text-white/80"
+                                        >
+                                            Ir al Panel Admin <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    )}
                             </div>
                         )}
                     </div>

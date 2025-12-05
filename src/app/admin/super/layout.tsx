@@ -27,6 +27,12 @@ export default async function AdminLayout({
                     <p className="text-xs text-gray-500">Admin Panel</p>
                 </div>
                 <nav className="mt-6 px-4 space-y-2">
+                    <Link href="/" className="flex items-center gap-3 rounded-lg px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 border-b border-gray-200 mb-3 pb-3">
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span>Volver al Home</span>
+                    </Link>
                     <Link href="/admin/super" className="flex items-center gap-3 rounded-lg px-4 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700">
                         <LayoutDashboard className="h-5 w-5" />
                         <span>Dashboard</span>
