@@ -3,12 +3,21 @@
 import { Download } from "lucide-react";
 import { useState } from "react";
 
+interface CompanyBranding {
+    name: string;
+    logo_url?: string;
+    primary_color?: string;
+    secondary_color?: string;
+    font?: string;
+}
+
 interface ExportButtonProps {
     globalScore: number;
     scores: Record<string, number>;
+    companyBranding?: CompanyBranding | null;
 }
 
-export function ExportButton({ globalScore, scores }: ExportButtonProps) {
+export function ExportButton({ globalScore, scores, companyBranding }: ExportButtonProps) {
     const [exporting, setExporting] = useState(false);
 
     const handleExport = async () => {
@@ -28,11 +37,25 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             const contentWidth = pageWidth - (margin * 2);
             let yPosition = margin;
 
-            // Colors
-            const primaryColor: [number, number, number] = [46, 16, 101]; // #2e1065
-            const accentColor: [number, number, number] = [59, 130, 246]; // #3b82f6
+            // Helper function to convert hex to RGB
+            const hexToRgb = (hex: string): [number, number, number] => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result
+                    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+                    : [46, 16, 101];
+            };
+
+            // Use company colors or defaults
+            const primaryColor = companyBranding?.primary_color
+                ? hexToRgb(companyBranding.primary_color)
+                : [46, 16, 101];
+            const accentColor = companyBranding?.secondary_color
+                ? hexToRgb(companyBranding.secondary_color)
+                : [59, 130, 246];
             const textColor: [number, number, number] = [51, 51, 51];
             const lightGray: [number, number, number] = [240, 240, 240];
+
+            const companyName = companyBranding?.name || "EBI 360";
 
             // Helper function to add text with word wrap
             const addWrappedText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
@@ -51,7 +74,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             pdf.setFontSize(24);
             pdf.setTextColor(255, 255, 255);
             pdf.setFont("helvetica", "bold");
-            pdf.text("BIENESTAR 360°", pageWidth / 2, 25, { align: "center" });
+            pdf.text(companyName.toUpperCase(), pageWidth / 2, 25, { align: "center" });
 
             pdf.setFontSize(12);
             pdf.setFont("helvetica", "normal");
@@ -201,7 +224,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(14);
             pdf.setFont("helvetica", "bold");
-            pdf.text("Acerca de Bienestar 360°", pageWidth / 2, 13, { align: "center" });
+            pdf.text(`Acerca de ${companyName}`, pageWidth / 2, 13, { align: "center" });
 
             yPosition = 40;
 
@@ -209,7 +232,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             pdf.setTextColor(textColor[0], textColor[1], textColor[2]);
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "normal");
-            const about = "Bienestar 360° es la primera plataforma de diagnóstico integral diseñada específicamente para la realidad de LATAM. Combinamos rigor científico con tecnología accesible para medir, analizar y mejorar el bienestar de personas y equipos.";
+            const about = `${companyName} utiliza la plataforma EBI 360, la primera solución de diagnóstico integral diseñada específicamente para la realidad de LATAM. Combinamos rigor científico con tecnología accesible para medir, analizar y mejorar el bienestar de personas y equipos.`;
             yPosition = addWrappedText(about, margin, yPosition, contentWidth, 5);
 
             yPosition += 10;
@@ -217,7 +240,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             // Features
             pdf.setFontSize(12);
             pdf.setFont("helvetica", "bold");
-            pdf.text("¿Por qué Bienestar 360°?", margin, yPosition);
+            pdf.text("¿Por qué EBI 360?", margin, yPosition);
             yPosition += 8;
 
             const features = [
@@ -244,7 +267,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(12);
             pdf.setFont("helvetica", "bold");
-            pdf.text("Descubre más sobre Bienestar 360°", pageWidth / 2, yPosition + 12, { align: "center" });
+            pdf.text("Descubre más sobre EBI 360", pageWidth / 2, yPosition + 12, { align: "center" });
 
             pdf.setFontSize(10);
             pdf.setFont("helvetica", "normal");
@@ -260,7 +283,7 @@ export function ExportButton({ globalScore, scores }: ExportButtonProps) {
 
             // Save PDF
             console.log("Saving professional PDF...");
-            pdf.save(`Bienestar-360-Informe-${new Date().toISOString().split("T")[0]}.pdf`);
+            pdf.save(`${companyName.replace(/\s+/g, '-')}-Informe-${new Date().toISOString().split("T")[0]}.pdf`);
         } catch (error) {
             console.error("Error exporting PDF:", error);
             alert(`Error al exportar: ${(error as Error).message}`);
