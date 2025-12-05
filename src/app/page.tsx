@@ -2,29 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // If user is authenticated and is an admin, redirect to their panel
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, active_role')
-      .eq('id', user.id)
-      .single();
-
-    const activeRole = profile?.active_role || profile?.role;
-
-    if (activeRole === 'super_admin') {
-      redirect('/admin/super');
-    } else if (activeRole === 'company_admin') {
-      redirect('/admin/company');
-    }
-    // If employee, continue to show the home page
-  }
+  // No automatic redirects - let users choose where to go from the home page
+  // Admins can access their panels via the profile page
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-mockup">
