@@ -845,10 +845,18 @@ export async function updateCompanyBranding(formData: FormData) {
             updateData.logo_url = logoUrl;
         }
 
-        const { error: updateError } = await supabase
+        console.log("Updating company branding:", {
+            company_id: profile.company_id,
+            updateData
+        });
+
+        const { data: updatedCompany, error: updateError } = await supabase
             .from('companies')
             .update(updateData)
-            .eq('id', profile.company_id);
+            .eq('id', profile.company_id)
+            .select();
+
+        console.log("Update result:", { updatedCompany, updateError });
 
         if (updateError) {
             throw new Error(`Error al actualizar branding: ${updateError.message}`);
