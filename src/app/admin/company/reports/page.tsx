@@ -30,6 +30,7 @@ export default function ReportsPage() {
     const [atRiskCount, setAtRiskCount] = useState(0);
     const [completedSurveys, setCompletedSurveys] = useState(0);
     const [employeesCount, setEmployeesCount] = useState(0);
+    const [uniqueParticipants, setUniqueParticipants] = useState(0);
     const [domainChartData, setDomainChartData] = useState<any[]>([]);
     const [trendData, setTrendData] = useState<any[]>([]);
 
@@ -83,11 +84,22 @@ export default function ReportsPage() {
             .or('role.eq.employee,active_role.eq.employee');
 
         const empCount = totalEmployees.count || 0;
-        const completedCount = allResults?.length || 0;
-        const partRate = empCount > 0 ? Math.round((completedCount / empCount) * 100) : 0;
+
+        // Count UNIQUE users who completed surveys (not total surveys)
+        const uniqueUsersWithResults = allResults
+            ? new Set(allResults.map((r: any) => r.user_id)).size
+            : 0;
+
+        const totalSurveysCompleted = allResults?.length || 0;
+
+        // Participation rate based on unique users, capped at 100%
+        const partRate = empCount > 0
+            ? Math.min(100, Math.round((uniqueUsersWithResults / empCount) * 100))
+            : 0;
 
         setEmployeesCount(empCount);
-        setCompletedSurveys(completedCount);
+        setCompletedSurveys(totalSurveysCompleted);
+        setUniqueParticipants(uniqueUsersWithResults);
         setParticipationRate(partRate);
 
         // Calculate average global score
@@ -191,7 +203,7 @@ export default function ReportsPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{participationRate}%</div>
                         <p className="text-xs text-muted-foreground">
-                            {completedSurveys} de {employeesCount} colaboradores
+                            {uniqueParticipants} de {employeesCount} colaboradores ({completedSurveys} encuestas)
                         </p>
                     </CardContent>
                 </Card>

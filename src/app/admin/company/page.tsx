@@ -120,7 +120,15 @@ export default async function CompanyAdminDashboard() {
     }
 
     // CALCULATE METRICS
-    const participationRate = Math.round((totalResults / totalEmployees) * 100);
+    // Count unique users who completed surveys
+    const uniqueUsersWithResults = results
+        ? new Set(results.map(r => r.user_id)).size
+        : 0;
+
+    // Participation rate based on unique users, capped at 100%
+    const participationRate = totalEmployees > 0
+        ? Math.min(100, Math.round((uniqueUsersWithResults / totalEmployees) * 100))
+        : 0;
 
     // Average Global Score
     const averageScore = results?.length
@@ -129,7 +137,7 @@ export default async function CompanyAdminDashboard() {
 
     // Risk Calculation (Score < 5)
     const riskCount = results?.filter(r => Number(r.global_score) < 5).length || 0;
-    const riskPercentage = Math.round((riskCount / totalResults) * 100);
+    const riskPercentage = totalResults > 0 ? Math.round((riskCount / totalResults) * 100) : 0;
 
     // Domain Averages
     const domains = ["Físico", "Emocional", "Social", "Profesional", "Intelectual", "Financiero"];
@@ -163,7 +171,7 @@ export default async function CompanyAdminDashboard() {
                 <DashboardStats
                     title="Participación"
                     value={`${participationRate}%`}
-                    description={`${totalResults} encuestas completadas`}
+                    description={`${uniqueUsersWithResults} de ${totalEmployees} colaboradores (${totalResults} encuestas)`}
                     icon={FileCheck}
                 />
                 <DashboardStats
