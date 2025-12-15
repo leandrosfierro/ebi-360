@@ -298,6 +298,105 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
     }
 }
 
+// New action: Invite Super Admin
+export async function inviteSuperAdmin(email: string, fullName: string) {
+    const supabase = await createClient();
+
+    // Verify current user is super admin
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, active_role')
+        .eq('id', user.id)
+        .single();
+
+    const activeRole = profile?.active_role || profile?.role;
+    if (activeRole !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    // Validate that SERVICE_ROLE_KEY is configured
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+        return { error: "Server configuration error: Missing service role key. Please contact support." };
+    }
+
+    // Use Admin Client for privileged operations
+    const supabaseAdmin = createAdminClient();
+
+    try {
+        // Check if user already exists
+        const { data: existingUser, error: checkError } = await supabaseAdmin
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+            console.error("Error checking existing user:", checkError);
+            throw new Error(`Database error: ${checkError.message}`);
+        }
+
+        if (existingUser) {
+            // Update existing user to super admin
+            const { error: updateError } = await supabaseAdmin
+                .from('profiles')
+                .update({
+                    role: 'super_admin',
+                    active_role: 'super_admin',
+                    company_id: null  // Super admins don't belong to a company
+                })
+                .eq('id', existingUser.id);
+
+            if (updateError) {
+                console.error("Error updating user:", updateError);
+                throw new Error(`Failed to update user: ${updateError.message}`);
+            }
+        } else {
+            // Invite new super admin user
+            const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+                email,
+                {
+                    data: {
+                        full_name: fullName,
+                        role: 'super_admin',
+                        active_role: 'super_admin',
+                        admin_status: 'invited',
+                        company_id: null
+                    },
+                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+                }
+            );
+
+            if (inviteError) {
+                console.error("Invite error details:", inviteError);
+
+                // Provide user-friendly error messages
+                if (inviteError.message?.includes('User already registered')) {
+                    throw new Error("Este email ya está registrado en el sistema");
+                } else if (inviteError.message?.includes('rate limit')) {
+                    throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
+                } else if (inviteError.message?.includes('SMTP')) {
+                    throw new Error("Error de configuración de email. Verifica la configuración SMTP en Supabase.");
+                }
+
+                throw new Error(inviteError.message || "Failed to send invitation");
+            }
+
+            console.log("Super admin invitation sent successfully to:", email);
+        }
+
+        revalidatePath("/admin/super/admins");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error inviting super admin:", error);
+        return { error: error.message || "Failed to invite super admin" };
+    }
+}
+
+
 export async function updateCompany(companyId: string, formData: FormData) {
     const supabase = await createClient();
 
