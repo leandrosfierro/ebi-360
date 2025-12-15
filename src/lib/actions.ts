@@ -247,6 +247,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                 .from('profiles')
                 .update({
                     role: 'company_admin',
+                    active_role: 'company_admin',
                     company_id: companyId
                 })
                 .eq('id', existingUser.id);
@@ -264,6 +265,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                         full_name: fullName,
                         company_id: companyId,
                         role: 'company_admin',
+                        active_role: 'company_admin',
                         admin_status: 'invited',
                     },
                     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
