@@ -248,6 +248,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                 .update({
                     role: 'company_admin',
                     active_role: 'company_admin',
+                    roles: ['company_admin'],
                     company_id: companyId
                 })
                 .eq('id', existingUser.id);
@@ -346,6 +347,7 @@ export async function inviteSuperAdmin(email: string, fullName: string) {
                 .update({
                     role: 'super_admin',
                     active_role: 'super_admin',
+                    roles: ['super_admin', 'company_admin'],
                     company_id: null  // Super admins don't belong to a company
                 })
                 .eq('id', existingUser.id);
