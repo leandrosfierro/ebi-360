@@ -11,16 +11,28 @@ export async function GET(request: Request) {
         const supabase = await createClient();
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
-            // Update user status to active on successful login
+            // Get user and create/update profile
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
+                // Get metadata from user (set during invitation)
+                const metadata = user.user_metadata || {};
+
+                // UPSERT profile - create if doesn't exist, update if exists
                 await supabase
                     .from('profiles')
-                    .update({
+                    .upsert({
+                        id: user.id,
+                        email: user.email!,
+                        full_name: metadata.full_name || metadata.name || '',
+                        role: metadata.role || 'employee',
+                        active_role: metadata.active_role || metadata.role || 'employee',
+                        company_id: metadata.company_id || null,
                         admin_status: 'active',
                         last_active_at: new Date().toISOString()
-                    })
-                    .eq('id', user.id);
+                    }, {
+                        onConflict: 'id',
+                        ignoreDuplicates: false
+                    });
             }
 
             const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
