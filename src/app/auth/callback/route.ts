@@ -17,6 +17,15 @@ export async function GET(request: Request) {
                 // Get metadata from user (set during invitation)
                 const metadata = user.user_metadata || {};
 
+                // Determine role from metadata
+                const userRole = metadata.role || 'employee';
+
+                // Create roles array - super_admins get both roles
+                let rolesArray: string[] = [userRole];
+                if (userRole === 'super_admin') {
+                    rolesArray = ['super_admin', 'company_admin'];
+                }
+
                 // UPSERT profile - create if doesn't exist, update if exists
                 await supabase
                     .from('profiles')
@@ -24,8 +33,9 @@ export async function GET(request: Request) {
                         id: user.id,
                         email: user.email!,
                         full_name: metadata.full_name || metadata.name || '',
-                        role: metadata.role || 'employee',
-                        active_role: metadata.active_role || metadata.role || 'employee',
+                        role: userRole,
+                        active_role: metadata.active_role || userRole,
+                        roles: rolesArray,
                         company_id: metadata.company_id || null,
                         admin_status: 'active',
                         last_active_at: new Date().toISOString()
