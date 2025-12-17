@@ -56,8 +56,6 @@ export default async function CompanyAdminDashboard() {
         }
     }
 
-    const companyId = profile.company_id;
-
     // 1. Fetch Employees Count (only employees, not admins)
     const { count: employeesCount } = await supabase
         .from("profiles")
