@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { Loader2, Save, Send } from "lucide-react";
-import { formatDate } from "@/lib/utils"; // Assuming utils exists, otherwise I'll mock or format inline
+
 
 interface EmailManagerProps {
     initialTemplates: EmailTemplate[];
@@ -161,8 +161,8 @@ export function EmailManager({ initialTemplates, initialLogs }: EmailManagerProp
                                                     </td>
                                                     <td className="p-3">
                                                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${log.status === 'sent'
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-red-100 text-red-800'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-red-100 text-red-800'
                                                             }`}>
                                                             {log.status === 'sent' ? 'Enviado' : 'Fallido'}
                                                         </span>
