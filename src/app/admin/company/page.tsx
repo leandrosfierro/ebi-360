@@ -14,19 +14,46 @@ export default async function CompanyAdminDashboard() {
     }
 
     // Get company_id from profile
+    // Get company_id/role from profile
     const { data: profile } = await supabase
         .from("profiles")
-        .select("company_id")
+        .select("company_id, role, active_role")
         .eq("id", user.id)
         .single();
 
-    if (!profile?.company_id) {
-        return (
-            <div className="p-8 text-center">
-                <h2 className="text-xl font-bold text-red-600">Error de Configuración</h2>
-                <p className="text-gray-500">No tienes una empresa asignada. Contacta al soporte.</p>
-            </div>
-        );
+    // Allow Super Admin to pass even without company_id (View Mode)
+    const isSuperAdmin = profile?.active_role === 'super_admin' || profile?.role === 'super_admin';
+    let companyId = profile?.company_id;
+
+    if (!companyId) {
+        if (isSuperAdmin) {
+            // If Super Admin has no company selected, try to fetch the first active company to show data
+            // Alternatively, show a "Select Company" screen.
+            const { data: firstCompany } = await supabase
+                .from('companies')
+                .select('id')
+                .eq('active', true)
+                .limit(1)
+                .single();
+
+            if (firstCompany) {
+                companyId = firstCompany.id;
+            } else {
+                return (
+                    <div className="p-8 text-center">
+                        <h2 className="text-xl font-bold text-gray-800">Vista Global (Sin Empresas)</h2>
+                        <p className="text-gray-500">Eres Super Admin, pero no hay empresas activas para mostrar en este dashboard.</p>
+                    </div>
+                );
+            }
+        } else {
+            return (
+                <div className="p-8 text-center">
+                    <h2 className="text-xl font-bold text-red-600">Error de Configuración</h2>
+                    <p className="text-gray-500">No tienes una empresa asignada. Contacta al soporte.</p>
+                </div>
+            );
+        }
     }
 
     const companyId = profile.company_id;
