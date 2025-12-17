@@ -29,68 +29,46 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-    // issues with users being randomly logged out.
-
+    // Check auth user
     const {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Protected routes logic
-    if (request.nextUrl.pathname.startsWith('/admin')) {
-        // 1. Check if user is authenticated
+    // 1. Routes that REQUIRE authentication
+    if (request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/perfil') || request.nextUrl.pathname.startsWith('/diagnostico')) {
         if (!user) {
             const url = request.nextUrl.clone()
-            url.pathname = '/login'
+            url.pathname = '/login' // Make sure this route exists or matches your auth entry
             url.searchParams.set('next', request.nextUrl.pathname)
             return NextResponse.redirect(url)
         }
+    }
 
-        // 2. Check user role (use active_role for multi-role support)
+    // 2. Admin Routes - Role Check
+    if (request.nextUrl.pathname.startsWith('/admin') && user) {
+        // Fetch profile to check role
         const { data: profile } = await supabase
             .from('profiles')
-            .select('active_role, roles')
+            .select('active_role, role')
             .eq('id', user.id)
             .single()
 
-        const activeRole = profile?.active_role
+        // If we can't read profile, something is wrong, allow safe fail or redirect?
+        // Let's assume if no profile, they are just an employee/user
+        const activeRole = profile?.active_role || profile?.role || 'employee'
 
-        // Super Admin protection
+        // Super Admin area
         if (request.nextUrl.pathname.startsWith('/admin/super')) {
             if (activeRole !== 'super_admin') {
-                // Redirect unauthorized users to their appropriate dashboard or home
-                const url = request.nextUrl.clone()
-                if (activeRole === 'company_admin') {
-                    url.pathname = '/admin/company'
-                } else {
-                    url.pathname = '/perfil'
-                }
-                return NextResponse.redirect(url)
+                return NextResponse.redirect(new URL('/perfil', request.url))
             }
         }
 
-        // Company Admin protection
+        // Company Admin area
         if (request.nextUrl.pathname.startsWith('/admin/company')) {
             if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
-                const url = request.nextUrl.clone()
-                url.pathname = '/perfil'
-                return NextResponse.redirect(url)
+                return NextResponse.redirect(new URL('/perfil', request.url))
             }
-        }
-    } else if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        !request.nextUrl.pathname.startsWith('/') // Allow landing page
-    ) {
-        // Optional: Protect other routes if needed, but for now we allow public access to home
-        // If you want to protect /diagnostico or /perfil, add them here
-        if (request.nextUrl.pathname.startsWith('/perfil')) {
-            const url = request.nextUrl.clone()
-            url.pathname = '/login'
-            url.searchParams.set('next', request.nextUrl.pathname)
-            return NextResponse.redirect(url)
         }
     }
 
