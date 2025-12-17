@@ -22,21 +22,24 @@ export function RoleCard({ title, description, icon, role, active, href }: RoleC
 
     const handleSwitch = async () => {
         if (active) {
-            // Already active, just navigate
             router.push(href);
             return;
         }
 
         setIsLoading(true);
-        const result = await switchRole(role);
+        try {
+            const result = await switchRole(role);
 
-        if (result.error) {
-            alert(`Error: ${result.error}`);
+            if (result.error) {
+                alert(`Error: ${result.error}`);
+                setIsLoading(false);
+            } else {
+                // Success
+                window.location.href = href; // Force full reload to ensure server state is fresh
+            }
+        } catch (error) {
+            console.error("Switch error:", error);
             setIsLoading(false);
-        } else {
-            // Success, navigate to the panel
-            router.push(href);
-            router.refresh();
         }
     };
 
@@ -67,8 +70,8 @@ export function RoleCard({ title, description, icon, role, active, href }: RoleC
                             onClick={handleSwitch}
                             disabled={isLoading}
                             className={`mt-4 ${active
-                                    ? 'bg-purple-600 hover:bg-purple-700'
-                                    : 'bg-gray-900 hover:bg-gray-800'
+                                ? 'bg-purple-600 hover:bg-purple-700'
+                                : 'bg-gray-900 hover:bg-gray-800'
                                 }`}
                         >
                             {isLoading ? (
