@@ -1,60 +1,59 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function forceRoleUpdate() {
-    console.log("Forcing permission update...");
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        return { error: "No user found" };
-    }
+    console.log("Forcing permission update (ADMIN MODE)...");
 
     try {
-        // 1. Fetch RAW profile
-        const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+        // 1. Authenticate user normally first
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-        console.log("Raw Profile Scan:", profile, error);
-
-        if (!profile) return { error: "Profile missing" };
-
-        const roles = profile.roles || [];
-        // If roles is empty or employee, we try to auto-promote based on email (Desperate measure)
-        if (user.email === 'leandro.fierro@bs360.com.ar') {
-            console.log("Target user found. Forcing Super Admin privileges.");
-            await supabase
-                .from('profiles')
-                .update({
-                    role: 'super_admin',
-                    active_role: 'super_admin',
-                    roles: ['super_admin', 'company_admin', 'employee']
-                })
-                .eq('id', user.id);
-
-            revalidatePath('/');
-            revalidatePath('/perfil');
-            return {
-                success: true,
-                message: "Permisos de Super Admin Forzados. Recarga la página."
-            };
+        if (authError || !user) {
+            console.error("Auth Error:", authError);
+            return { success: false, error: "No estás autenticado. Inicia sesión primero." };
         }
+
+        console.log("User identified:", user.email);
+
+        // Security check: Hardcoded safety to only allow YOUR email
+        if (user.email !== 'leandro.fierro@bs360.com.ar') {
+            return { success: false, error: "Usuario no autorizado para esta operación de debug." };
+        }
+
+        // 2. Use ADMIN client to bypass all RLS policies
+        const adminClient = createAdminClient();
+
+        console.log("Updating profile via Admin Client...");
+
+        const { error: updateError } = await adminClient
+            .from('profiles')
+            .update({
+                role: 'super_admin',
+                active_role: 'super_admin',
+                roles: ['super_admin', 'company_admin', 'employee'],
+                admin_status: 'active'
+            })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error("Update Error:", updateError);
+            return { success: false, error: "Database Update Failed: " + updateError.message };
+        }
+
+        console.log("Update successful. Revalidating...");
+
+        revalidatePath('/', 'layout'); // Revalidate everything
 
         return {
             success: true,
-            data: {
-                role: profile.role,
-                active_role: profile.active_role,
-                roles: profile.roles
-            }
+            message: "¡ÉXITO! Permisos forzados nivel Dios (Admin Key). Recargando..."
         };
 
     } catch (e: any) {
-        return { error: e.message };
+        console.error("Critical Exception:", e);
+        return { success: false, error: "Excepción Crítica: " + e.message };
     }
 }
