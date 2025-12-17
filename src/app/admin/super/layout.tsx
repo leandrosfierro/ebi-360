@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { LayoutDashboard, Users, Building2, Settings, LogOut, Shield, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -25,10 +26,15 @@ export default async function AdminLayout({
             <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                 <div className="p-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-600 to-blue-500 shadow-lg flex items-center justify-center text-white font-bold text-lg">
-                            E
+                        <div className="relative h-10 w-40">
+                            <Image
+                                src="/logo-bs360.png"
+                                alt="Bienestar 360"
+                                fill
+                                className="object-contain object-left"
+                                priority
+                            />
                         </div>
-                        <h1 className="text-2xl font-bold tracking-tight">EBI 360</h1>
                     </div>
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-widest ml-1">Super Admin Dashboard</p>
                 </div>

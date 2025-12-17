@@ -22,7 +22,7 @@ export default async function Home() {
         <div className="mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-white/20 shadow-glass backdrop-blur-md animate-fadeIn">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-lg">
             <Image
-              src="/logo.png"
+              src="/logo-bs360.png"
               alt="EBI 360 Logo"
               width={80}
               height={80}

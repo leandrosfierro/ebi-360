@@ -16,7 +16,15 @@ export function AppleDashboard({ user }: { user: any }) {
             <header className="px-6 pt-12 pb-2 flex justify-between items-center">
                 <div>
                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest pl-1">Bienvenido</span>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Bienestar 360°</h1>
+                    <div className="relative h-8 w-32 mt-1">
+                        <Image
+                            src="/logo-bs360.png"
+                            alt="Bienestar 360"
+                            fill
+                            className="object-contain object-left"
+                            priority
+                        />
+                    </div>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden border-2 border-white shadow-sm">
                     {user?.user_metadata?.avatar_url ? (
