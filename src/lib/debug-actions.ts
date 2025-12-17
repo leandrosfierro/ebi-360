@@ -5,38 +5,41 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from "next/cache";
 
 export async function forceRoleUpdate() {
-    console.log("Starting Debug Action...");
+    console.log("Starting Safe Debug Action...");
+
+    // 1. Safe Env Check (Try-Catch to prevent any crash)
+    let serviceKey;
+    let supabaseUrl;
 
     try {
-        // 1. Check Env Vars first (Safely)
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    } catch (e) {
+        return { success: false, error: "Error leyendo variables de entorno." };
+    }
 
-        if (!serviceKey) {
-            console.error("FATAL: SUPABASE_SERVICE_ROLE_KEY is missing.");
-            return {
-                success: false,
-                error: "ERROR CRÍTICO: Falta la variable 'SUPABASE_SERVICE_ROLE_KEY' en la configuración de Vercel. Por favor agrégala en Project Settings > Environment Variables."
-            };
-        }
+    // 2. Clear handling of missing key
+    if (!serviceKey) {
+        return {
+            success: false,
+            error: "FALTA CONFIGURACIÓN: Ve a Vercel > Settings > Env Vars y agrega 'SUPABASE_SERVICE_ROLE_KEY'. Cópiala de tu archivo .env.local."
+        };
+    }
 
-        if (!supabaseUrl) {
-            return { success: false, error: "Falta NEXT_PUBLIC_SUPABASE_URL" };
-        }
+    if (!supabaseUrl) {
+        return { success: false, error: "Falta NEXT_PUBLIC_SUPABASE_URL en Vercel." };
+    }
 
-        // 2. Authenticate user
+    try {
+        // 3. Authenticate user
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {
-            return { success: false, error: "No estás autenticado." };
+            return { success: false, error: "No estás autenticado. Recarga y logueate." };
         }
 
-        if (user.email !== 'leandro.fierro@bs360.com.ar') {
-            return { success: false, error: "Usuario no autorizado." };
-        }
-
-        // 3. Manual Admin Client creation (to avoid import issues)
+        // 4. Create Admin Client
         const adminClient = createSupabaseClient(supabaseUrl, serviceKey, {
             auth: {
                 autoRefreshToken: false,
@@ -44,7 +47,7 @@ export async function forceRoleUpdate() {
             }
         });
 
-        // 4. Update
+        // 5. Force Update
         const { error: updateError } = await adminClient
             .from('profiles')
             .update({
@@ -56,17 +59,18 @@ export async function forceRoleUpdate() {
             .eq('id', user.id);
 
         if (updateError) {
-            return { success: false, error: "DB Error: " + updateError.message };
+            return { success: false, error: "Error de Base de Datos: " + updateError.message };
         }
 
         revalidatePath('/', 'layout');
 
         return {
             success: true,
-            message: "¡ÉXITO TOTAL! Permisos actualizados. Recargando..."
+            message: "¡Rol actualizado correctamente! La página se recargará."
         };
 
     } catch (e: any) {
-        return { success: false, error: "Excepción: " + e.message };
+        console.error("Debug Action Execption:", e);
+        return { success: false, error: "Error inesperado: " + e.message };
     }
 }
