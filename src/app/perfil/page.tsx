@@ -249,40 +249,50 @@ export default function ProfilePage() {
                             </p>
                         </div>
 
-                        <div className="space-y-3">
-                            {userRoles.includes('super_admin') && (
-                                <RoleCard
-                                    title="Super Administrador"
-                                    description="Gestión global de todas las empresas"
-                                    icon={<Settings className="h-6 w-6" />}
-                                    role="super_admin"
-                                    active={activeRole === 'super_admin'}
-                                    href="/admin/super"
-                                />
-                            )}
+                        {/* Check global super admin status */}
+                        {(() => {
+                            const isSuperAdminUniversal = userRoles.includes('super_admin');
 
-                            {userRoles.includes('company_admin') && (
-                                <RoleCard
-                                    title="Administrador de Empresa"
-                                    description={companyName ? `Gestión de ${companyName}` : "Gestión de empresa"}
-                                    icon={<User className="h-6 w-6" />}
-                                    role="company_admin"
-                                    active={activeRole === 'company_admin'}
-                                    href="/admin/company"
-                                />
-                            )}
+                            return (
+                                <div className="space-y-3">
+                                    {userRoles.includes('super_admin') && (
+                                        <RoleCard
+                                            title="Super Administrador"
+                                            description="Gestión global de todas las empresas"
+                                            icon={<Settings className="h-6 w-6" />}
+                                            role="super_admin"
+                                            active={activeRole === 'super_admin'}
+                                            href="/admin/super"
+                                            bypassSwitch={isSuperAdminUniversal}
+                                        />
+                                    )}
 
-                            {userRoles.includes('employee') && (
-                                <RoleCard
-                                    title="Empleado"
-                                    description="Realizar diagnósticos y ver resultados"
-                                    icon={<TrendingUp className="h-6 w-6" />}
-                                    role="employee"
-                                    active={activeRole === 'employee'}
-                                    href="/diagnostico"
-                                />
-                            )}
-                        </div>
+                                    {userRoles.includes('company_admin') && (
+                                        <RoleCard
+                                            title="Administrador de Empresa"
+                                            description={companyName ? `Gestión de ${companyName}` : "Gestión de empresa"}
+                                            icon={<User className="h-6 w-6" />}
+                                            role="company_admin"
+                                            active={activeRole === 'company_admin'}
+                                            href="/admin/company"
+                                            bypassSwitch={isSuperAdminUniversal}
+                                        />
+                                    )}
+
+                                    {userRoles.includes('employee') && (
+                                        <RoleCard
+                                            title="Empleado"
+                                            description="Realizar diagnósticos y ver resultados"
+                                            icon={<TrendingUp className="h-6 w-6" />}
+                                            role="employee"
+                                            active={activeRole === 'employee'}
+                                            href="/diagnostico"
+                                            bypassSwitch={isSuperAdminUniversal}
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                 )}
 

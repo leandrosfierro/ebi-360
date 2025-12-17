@@ -14,15 +14,18 @@ interface RoleCardProps {
     role: 'super_admin' | 'company_admin' | 'employee';
     active: boolean;
     href: string;
+    bypassSwitch?: boolean;
 }
 
-export function RoleCard({ title, description, icon, role, active, href }: RoleCardProps) {
+export function RoleCard({ title, description, icon, role, active, href, bypassSwitch }: RoleCardProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSwitch = async () => {
-        if (active) {
-            router.push(href);
+        if (active || bypassSwitch) {
+            // Direct navigation
+            const targetUrl = href.includes('?') ? `${href}&t=${Date.now()}` : `${href}?t=${Date.now()}`;
+            window.location.href = targetUrl;
             return;
         }
 
@@ -78,7 +81,7 @@ export function RoleCard({ title, description, icon, role, active, href }: RoleC
                         >
                             {isLoading ? (
                                 "Cambiando..."
-                            ) : active ? (
+                            ) : (active || bypassSwitch) ? (
                                 <>
                                     Ir al Panel
                                     <ArrowRight className="ml-2 h-4 w-4" />
