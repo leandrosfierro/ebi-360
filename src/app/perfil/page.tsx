@@ -155,10 +155,21 @@ export default function ProfilePage() {
     return (
         <div className="relative flex min-h-screen flex-col bg-mesh-gradient text-foreground" suppressHydrationWarning>
             <div className="px-6 py-8 pb-32">
-                <header className="mb-8">
+                <header className="mb-8 flex justify-between items-center">
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">
                         Mi Perfil
                     </h1>
+                    <button
+                        onClick={async () => {
+                            const { forceRoleUpdate } = await import('@/lib/debug-actions');
+                            const res = await forceRoleUpdate();
+                            alert(JSON.stringify(res, null, 2));
+                            window.location.reload();
+                        }}
+                        className="bg-red-50 text-red-600 text-[10px] px-2 py-1 rounded border border-red-200 hover:bg-red-100"
+                    >
+                        DEBUG: Forzar Permisos
+                    </button>
                 </header>
 
                 {/* Profile Card */}
