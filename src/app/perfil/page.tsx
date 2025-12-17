@@ -132,19 +132,23 @@ export default function ProfilePage() {
         }
     };
 
-    const handleClearData = async () => {
-        if (confirm("¿Estás seguro de que quieres cerrar sesión y borrar datos locales?")) {
+    const handleSignOut = async () => {
+        // Optional: Simple confirmation or just sign out. 
+        // For better UX, we can just sign out without popup, or a gentle one.
+        // Given user request, we'll remove the scary "delete data" part.
+
+        try {
             const supabase = createClient();
             await supabase.auth.signOut();
 
+            // Clear local session artifacts silently
             localStorage.removeItem("ebi_answers");
             localStorage.removeItem("ebi_user_name");
-            setDiagnosticCount(0);
-            setLastDiagnostic("-");
-            setUserName("Usuario");
-            setIsAuthenticated(false);
-            setUserRole(null);
-            window.location.reload();
+
+            // Redirect to home or login
+            window.location.href = "/login";
+        } catch (error) {
+            console.error("Error signing out:", error);
         }
     };
 
@@ -321,7 +325,7 @@ export default function ProfilePage() {
                     </div>
 
                     <button
-                        onClick={handleClearData}
+                        onClick={handleSignOut}
                         className="flex w-full items-center justify-between rounded-2xl bg-white p-4 shadow-sm border border-gray-200 transition-all hover:bg-red-50 active:scale-[0.99]"
                     >
                         <div className="flex items-center space-x-3">
