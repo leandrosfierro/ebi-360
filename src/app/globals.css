@@ -1,47 +1,79 @@
 @import "tailwindcss";
 
 :root {
-  /* Apple-like Neutral Palette */
-  --background: #f2f2f7; /* iOS System Gray 6 */
-  --foreground: #1c1c1e; /* iOS Label Color */
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --card-border: rgba(255, 255, 255, 0.4);
-  
-  /* Brand Colors from Mockup */
-  --primary: #7e22ce;
+  /* Brand Palette from Manual */
+  --color-primary-dark: #1f568d;
+  --color-primary-medium: #2175d8;
+  --color-primary-light: #dbdfe7;
+
+  --color-secondary-purple: #624a98;
+  --color-secondary-cyan: #00b7ed;
+  --color-secondary-teal: #05ddb3;
+
+  /* Usage Mapping */
+  --primary: var(--color-primary-medium);
   --primary-foreground: #ffffff;
-  --secondary: #f2f2f7;
+
+  --secondary: var(--color-primary-light);
   --secondary-foreground: #1c1c1e;
-  
-  /* Status Colors */
-  --success: #34c759; /* iOS Green */
-  --warning: #ffcc00; /* iOS Yellow */
-  --danger: #ff3b30; /* iOS Red */
-  --info: #007aff; /* iOS Blue */
+
+  /* Backgrounds */
+  --background: #f8f9fa;
+  /* Very light cool gray/white */
+  --foreground: #1c1c1e;
+
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(255, 255, 255, 0.6);
+
+  /* Status Colors (Mapped to Brand or Standard) */
+  --success: var(--color-secondary-teal);
+  --warning: #ffcc00;
+  --danger: #ff3b30;
+  --info: var(--color-secondary-cyan);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card-bg: var(--card-bg);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-brand-dark: var(--color-primary-dark);
+  --color-brand-blue: var(--color-primary-medium);
+  --color-brand-gray: var(--color-primary-light);
+  --color-brand-purple: var(--color-secondary-purple);
+  --color-brand-cyan: var(--color-secondary-cyan);
+  --color-brand-teal: var(--color-secondary-teal);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
+
   /* Custom Animations */
   --animate-float: float 6s ease-in-out infinite;
-  
+
   @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+    0% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+
+    100% {
+      transform: translateY(0px);
+    }
   }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
+    --background: #0f172a;
+    /* Dark Blue-Gray */
     --foreground: #ffffff;
-    --card-bg: rgba(28, 28, 30, 0.75);
+    --card-bg: rgba(30, 41, 59, 0.7);
     --card-border: rgba(255, 255, 255, 0.1);
   }
 }
@@ -55,35 +87,40 @@ body {
 }
 
 /* 
-  APPLE-STYLE GLASSMORPHISM SYSTEM 
+  BRAND GRADIENTS & GLASSMORPHISM 
 */
 
-/* The main mesh gradient background */
+/* The main mesh gradient background - Updated with Brand Colors */
 .bg-mesh-gradient {
-  background-color: #f3f4f6;
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(31, 86, 141, 0.15) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(33, 117, 216, 0.15) 0, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(0, 183, 237, 0.1) 0, transparent 50%);
   background-size: 100% 100%;
   background-attachment: fixed;
 }
-/* A lighter version for the mockup */
-.bg-ios-mesh {
-    background: 
-        radial-gradient(circle at 15% 50%, rgba(126, 34, 206, 0.15), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%),
-        radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.05), transparent 50%);
-    background-color: #F2F2F7; /* Fallback */
+
+/* Vibrant Mesh for Landing/Authentication */
+.bg-gradient-mockup {
+  background-color: #f8f9fa;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(98, 74, 152, 0.15), transparent 40%),
+    /* Purple */
+    radial-gradient(circle at 85% 30%, rgba(33, 117, 216, 0.15), transparent 40%),
+    /* Medium Blue */
+    radial-gradient(circle at 50% 80%, rgba(5, 221, 179, 0.1), transparent 50%);
+  /* Teal */
+  background-attachment: fixed;
 }
 
-.dark .bg-ios-mesh {
-    background: 
-        radial-gradient(circle at 15% 50%, rgba(126, 34, 206, 0.25), transparent 40%),
-        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.25), transparent 40%);
-    background-color: #000000;
+.dark .bg-mesh-gradient,
+.dark .bg-gradient-mockup {
+  background-color: #0f172a;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(31, 86, 141, 0.4) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(98, 74, 152, 0.3) 0, transparent 50%);
 }
-
 
 /* Glass Card Utility */
 .glass-card {
@@ -91,43 +128,78 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  box-shadow: 0 8px 32px 0 rgba(31, 86, 141, 0.05);
+  /* Shadow using Dark Blue */
 }
 
 .glass-panel {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .dark .glass-panel {
-    background: rgba(30, 30, 30, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Floating Navigation Bar */
 .glass-nav {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .dark .glass-nav {
-    background: rgba(28, 28, 30, 0.8);
-    border-top: 0.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Typography Details */
-h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.025em; /* Tighter tracking for display text like Apple */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.025em;
+  color: var(--color-primary-dark);
+  /* Use Dark Blue for headings by default */
 }
 
-/* Smooth transitions */
-* {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-    transition-duration: 200ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Utilities */
+.text-brand-blue {
+  color: var(--color-primary-medium);
+}
+
+.text-brand-dark {
+  color: var(--color-primary-dark);
+}
+
+.text-brand-purple {
+  color: var(--color-secondary-purple);
+}
+
+.bg-brand-blue {
+  background-color: var(--color-primary-medium);
+}
