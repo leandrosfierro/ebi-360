@@ -10,7 +10,16 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
-    return <AppleDashboard user={user} />;
+    // Fetch latest diagnostic result
+    const { data: latestResult } = await supabase
+      .from('results')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    return <AppleDashboard user={user} diagnosticData={latestResult} />;
   }
 
   // Landing Page for non-authenticated users
