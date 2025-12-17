@@ -5,6 +5,7 @@ import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } fro
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
+import { forceRoleUpdate } from "@/lib/debug-actions";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -161,14 +162,21 @@ export default function ProfilePage() {
                     </h1>
                     <button
                         onClick={async () => {
-                            const { forceRoleUpdate } = await import('@/lib/debug-actions');
-                            const res = await forceRoleUpdate();
-                            alert(JSON.stringify(res, null, 2));
-                            window.location.reload();
+                            try {
+                                alert("Iniciando reparación...");
+                                const res = await forceRoleUpdate();
+                                console.log("Debug Response:", res);
+                                alert(JSON.stringify(res, null, 2));
+                                if (res.success) {
+                                    window.location.reload();
+                                }
+                            } catch (e: any) {
+                                alert("Error crítico: " + e.message);
+                            }
                         }}
-                        className="bg-red-50 text-red-600 text-[10px] px-2 py-1 rounded border border-red-200 hover:bg-red-100"
+                        className="bg-red-50 text-red-600 text-[10px] px-2 py-1 rounded border border-red-200 hover:bg-red-100 cursor-pointer z-50 pointer-events-auto"
                     >
-                        DEBUG: Forzar Permisos
+                        DEBUG: Forzar Permisos (Click Aquí)
                     </button>
                 </header>
 
