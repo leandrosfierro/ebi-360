@@ -2,6 +2,7 @@
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { resend } from "@/lib/resend";
 
 export async function saveDiagnosticResult(
     globalScore: number,
@@ -9,6 +10,7 @@ export async function saveDiagnosticResult(
     answers: Record<string, number>
 ) {
     const supabase = await createClient();
+
     const {
         data: { user },
     } = await supabase.auth.getUser();
@@ -259,36 +261,122 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
             }
         } else {
             // 2. Invite new user
-            const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-                email,
-                {
+            // 2.1 Generate Invite Link using Supabase (without sending email)
+            const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+                type: 'invite',
+                email: email,
+                options: {
+                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
                     data: {
                         full_name: fullName,
                         company_id: companyId,
                         role: 'company_admin',
                         active_role: 'company_admin',
                         admin_status: 'invited',
-                    },
-                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+                    }
                 }
-            );
+            });
 
-            if (inviteError) {
-                console.error("Invite error details:", inviteError);
-
-                // Provide user-friendly error messages
-                if (inviteError.message?.includes('User already registered')) {
-                    throw new Error("Este email ya está registrado en el sistema");
-                } else if (inviteError.message?.includes('rate limit')) {
-                    throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
-                } else if (inviteError.message?.includes('SMTP')) {
-                    throw new Error("Error de configuración de email. Verifica la configuración SMTP en Supabase.");
-                }
-
-                throw new Error(inviteError.message || "Failed to send invitation");
+            if (linkError) {
+                console.error("Error generating link:", linkError);
+                throw new Error("No se pudo generar el enlace de invitación");
             }
 
-            console.log("Invitation sent successfully to:", email);
+            const { user: newUser, properties } = linkData;
+            const inviteLink = properties.action_link;
+
+            // 2.2 Upsert profile (user is created by generateLink if not exists)
+            const { error: profileError } = await supabaseAdmin
+                .from('profiles')
+                .upsert({
+                    id: newUser.id,
+                    email: email,
+                    full_name: fullName,
+                    role: 'company_admin',
+                    active_role: 'company_admin',
+                    roles: ['company_admin'],
+                    company_id: companyId,
+                    admin_status: 'invited',
+                });
+
+            if (profileError) {
+                console.error("Error creating profile:", profileError);
+                throw new Error(`Error al crear perfil: ${profileError.message}`);
+            }
+
+            // 3. Prepare Email Content
+            // 3.1 Fetch template
+            const { data: template } = await supabaseAdmin
+                .from('email_templates')
+                .select('*')
+                .eq('type', 'invite_company_admin')
+                .single();
+
+            // Default fallback if no template found
+            const defaultSubject = 'Invitación a Administrar Empresa en EBI 360';
+            let subject = template?.subject || defaultSubject;
+            let htmlContent = template?.body_html || `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h1 style="color: #7e22ce;">Bienvenido a EBI 360</h1>
+                    <p>Hola <strong>{{full_name}}</strong>,</p>
+                    <p>Has sido invitado a unirte a EBI 360 para administrar tu empresa.</p>
+                    <p>Para comenzar, por favor acepta la invitación haciendo clic en el siguiente botón:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{{invite_link}}" style="background-color: #7e22ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                            Aceptar Invitación
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            // 3.2 Replace variables
+            htmlContent = htmlContent
+                .replace(/{{full_name}}/g, fullName)
+                .replace(/{{invite_link}}/g, inviteLink);
+
+            // 3.3 Send Email via Resend
+            try {
+                // If RESEND_API_KEY is not set, this will fail. We should catch it.
+                if (!process.env.RESEND_API_KEY) {
+                    console.warn("RESEND_API_KEY is not set. Email not sent.");
+                }
+
+                const { error: emailError } = await resend.emails.send({
+                    from: 'EBI 360 <onboarding@resend.dev>', // Update this when domain is verified
+                    to: email,
+                    subject: subject,
+                    html: htmlContent
+                });
+
+                // 4. Log Email
+                await supabaseAdmin.from('email_logs').insert({
+                    to_email: email,
+                    template_type: 'invite_company_admin',
+                    status: emailError ? 'failed' : 'sent',
+                    error_message: emailError?.message,
+                    metadata: { company_id: companyId },
+                    sent_by: user.id
+                });
+
+                if (emailError) {
+                    console.error("Resend API Error:", emailError);
+                    console.warn("Email failed to send via Resend.");
+                } else {
+                    console.log("Invitation sent via Resend to:", email);
+                }
+
+            } catch (emailError: any) {
+                console.warn("Resend exception:", emailError);
+                // Log exception
+                await supabaseAdmin.from('email_logs').insert({
+                    to_email: email,
+                    template_type: 'invite_company_admin',
+                    status: 'failed',
+                    error_message: emailError.message || String(emailError),
+                    metadata: { company_id: companyId },
+                    sent_by: user.id
+                });
+            }
         }
 
         revalidatePath("/admin/super/companies");
@@ -358,36 +446,122 @@ export async function inviteSuperAdmin(email: string, fullName: string) {
             }
         } else {
             // Invite new super admin user
-            const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-                email,
-                {
+            // 1. Generate Invite Link using Supabase (without sending email)
+            const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+                type: 'invite',
+                email: email,
+                options: {
+                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
                     data: {
                         full_name: fullName,
                         role: 'super_admin',
                         active_role: 'super_admin',
                         admin_status: 'invited',
                         company_id: null
-                    },
-                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+                    }
                 }
-            );
+            });
 
-            if (inviteError) {
-                console.error("Invite error details:", inviteError);
-
-                // Provide user-friendly error messages
-                if (inviteError.message?.includes('User already registered')) {
-                    throw new Error("Este email ya está registrado en el sistema");
-                } else if (inviteError.message?.includes('rate limit')) {
-                    throw new Error("Límite de invitaciones alcanzado. Intenta más tarde.");
-                } else if (inviteError.message?.includes('SMTP')) {
-                    throw new Error("Error de configuración de email. Verifica la configuración SMTP en Supabase.");
-                }
-
-                throw new Error(inviteError.message || "Failed to send invitation");
+            if (linkError) {
+                console.error("Error generating link:", linkError);
+                throw new Error("No se pudo generar el enlace de invitación");
             }
 
-            console.log("Super admin invitation sent successfully to:", email);
+            const { user: newUser, properties } = linkData;
+            const inviteLink = properties.action_link;
+
+            // 2. Upsert profile (user is created by generateLink if not exists)
+            const { error: profileError } = await supabaseAdmin
+                .from('profiles')
+                .upsert({
+                    id: newUser.id,
+                    email: email,
+                    full_name: fullName,
+                    role: 'super_admin',
+                    active_role: 'super_admin',
+                    roles: ['super_admin', 'company_admin'],
+                    admin_status: 'invited',
+                    company_id: null
+                });
+
+            if (profileError) {
+                console.error("Error creating profile:", profileError);
+                throw new Error(`Error al crear perfil: ${profileError.message}`);
+            }
+
+            // 3. Prepare Email Content
+            // 3.1 Fetch template
+            const { data: template } = await supabaseAdmin
+                .from('email_templates')
+                .select('*')
+                .eq('type', 'invite_super_admin')
+                .single();
+
+            // Default fallback if no template found
+            const defaultSubject = 'Invitación a EBI 360';
+            let subject = template?.subject || defaultSubject;
+            let htmlContent = template?.body_html || `
+             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                 <h1 style="color: #7e22ce;">Bienvenido a EBI 360</h1>
+                 <p>Hola <strong>{{full_name}}</strong>,</p>
+                 <p>Has sido invitado a unirte a EBI 360 con permisos de <strong>Super Administrador</strong>.</p>
+                 <p>Para comenzar, por favor acepta la invitación haciendo clic en el siguiente botón:</p>
+                 <div style="text-align: center; margin: 30px 0;">
+                     <a href="{{invite_link}}" style="background-color: #7e22ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                         Aceptar Invitación
+                     </a>
+                 </div>
+             </div>
+            `;
+
+            // 3.2 Replace variables
+            htmlContent = htmlContent
+                .replace(/{{full_name}}/g, fullName)
+                .replace(/{{invite_link}}/g, inviteLink);
+
+            // 3.3 Send Email via Resend
+            try {
+                // If RESEND_API_KEY is not set, this will fail. We should catch it.
+                if (!process.env.RESEND_API_KEY) {
+                    console.warn("RESEND_API_KEY is not set. Email not sent.");
+                }
+
+                const { error: emailError } = await resend.emails.send({
+                    from: 'EBI 360 <onboarding@resend.dev>', // Update this when domain is verified
+                    to: email,
+                    subject: subject,
+                    html: htmlContent
+                });
+
+                // 4. Log Email
+                await supabaseAdmin.from('email_logs').insert({
+                    to_email: email,
+                    template_type: 'invite_super_admin',
+                    status: emailError ? 'failed' : 'sent',
+                    error_message: emailError?.message,
+                    metadata: { role: 'super_admin' },
+                    sent_by: user.id
+                });
+
+                if (emailError) {
+                    console.error("Resend API Error:", emailError);
+                    console.warn("Email failed to send via Resend.");
+                } else {
+                    console.log("Invitation sent via Resend to:", email);
+                }
+
+            } catch (emailError: any) {
+                console.warn("Resend exception:", emailError);
+                // Log exception
+                await supabaseAdmin.from('email_logs').insert({
+                    to_email: email,
+                    template_type: 'invite_super_admin',
+                    status: 'failed',
+                    error_message: emailError.message || String(emailError),
+                    metadata: { role: 'super_admin' },
+                    sent_by: user.id
+                });
+            }
         }
 
         revalidatePath("/admin/super/admins");

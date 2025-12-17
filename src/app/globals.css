@@ -1,36 +1,133 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Apple-like Neutral Palette */
+  --background: #f2f2f7; /* iOS System Gray 6 */
+  --foreground: #1c1c1e; /* iOS Label Color */
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(255, 255, 255, 0.4);
+  
+  /* Brand Colors from Mockup */
+  --primary: #7e22ce;
+  --primary-foreground: #ffffff;
+  --secondary: #f2f2f7;
+  --secondary-foreground: #1c1c1e;
+  
+  /* Status Colors */
+  --success: #34c759; /* iOS Green */
+  --warning: #ffcc00; /* iOS Yellow */
+  --danger: #ff3b30; /* iOS Red */
+  --info: #007aff; /* iOS Blue */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Custom Animations */
+  --animate-float: float 6s ease-in-out infinite;
+  
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #000000;
+    --foreground: #ffffff;
+    --card-bg: rgba(28, 28, 30, 0.75);
+    --card-border: rgba(255, 255, 255, 0.1);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom gradient for mockup design */
-.bg-gradient-mockup {
-  background: linear-gradient(180deg, #2e1065 0%, #4c1d95 40%, #831843 100%);
+/* 
+  APPLE-STYLE GLASSMORPHISM SYSTEM 
+*/
+
+/* The main mesh gradient background */
+.bg-mesh-gradient {
+  background-color: #f3f4f6;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+  background-size: 100% 100%;
+  background-attachment: fixed;
+}
+/* A lighter version for the mockup */
+.bg-ios-mesh {
+    background: 
+        radial-gradient(circle at 15% 50%, rgba(126, 34, 206, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%),
+        radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.05), transparent 50%);
+    background-color: #F2F2F7; /* Fallback */
 }
 
-.bg-gradient-purple-pink {
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+.dark .bg-ios-mesh {
+    background: 
+        radial-gradient(circle at 15% 50%, rgba(126, 34, 206, 0.25), transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.25), transparent 40%);
+    background-color: #000000;
+}
+
+
+/* Glass Card Utility */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-panel {
+    background: rgba(30, 30, 30, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Floating Navigation Bar */
+.glass-nav {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-nav {
+    background: rgba(28, 28, 30, 0.8);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Typography Details */
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em; /* Tighter tracking for display text like Apple */
+}
+
+/* Smooth transitions */
+* {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 

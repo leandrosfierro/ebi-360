@@ -16,32 +16,32 @@ export function BottomNav() {
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-white/10 pb-safe pt-2 shadow-glass backdrop-blur-lg">
-            <div className="mx-auto flex max-w-md items-center justify-around px-4 pb-2">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-6">
+            <nav className="glass-nav rounded-full px-2 py-3 shadow-2xl flex items-center justify-around border border-white/20">
                 {links.map(({ href, label, icon: Icon }) => {
                     const isActive = pathname === href;
                     return (
                         <Link
                             key={href}
                             href={href}
+                            aria-label={label}
                             className={cn(
-                                "flex flex-col items-center justify-center space-y-1 text-xs font-medium transition-all",
+                                "relative flex items-center justify-center h-12 w-12 rounded-full transition-all duration-300",
                                 isActive
-                                    ? "text-white scale-110"
-                                    : "text-white/60 hover:text-white/90"
+                                    ? "bg-foreground text-background shadow-lg scale-110 -translate-y-2"
+                                    : "text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
                             )}
                         >
-                            <div className={cn(
-                                "rounded-full p-2 transition-all",
-                                isActive && "bg-white/20"
-                            )}>
-                                <Icon className="h-5 w-5" />
-                            </div>
-                            <span>{label}</span>
+                            <Icon className="h-6 w-6" />
+                            {isActive && (
+                                <span className="absolute -bottom-8 text-[10px] font-medium text-gray-500 animate-fadeIn opacity-0 transition-opacity duration-300">
+                                    {/* Optional label if needed, currently hidden */}
+                                </span>
+                            )}
                         </Link>
                     );
                 })}
-            </div>
-        </nav>
+            </nav>
+        </div>
     );
 }
