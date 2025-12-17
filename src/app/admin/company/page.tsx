@@ -17,16 +17,20 @@ export default async function CompanyAdminDashboard() {
     // Get company_id/role from profile
     const { data: profile } = await supabase
         .from("profiles")
-        .select("company_id, role, active_role")
+        .select("company_id, role, active_role, roles")
         .eq("id", user.id)
         .single();
 
     // Allow Super Admin to pass even without company_id (View Mode)
-    const isSuperAdmin = profile?.active_role === 'super_admin' || profile?.role === 'super_admin';
+    // Check if 'super_admin' exists in the roles array OR if it's the current role
+    const hasSuperAdminPrivileges = profile?.roles?.includes('super_admin') ||
+        profile?.role === 'super_admin' ||
+        profile?.active_role === 'super_admin';
+
     let companyId = profile?.company_id;
 
     if (!companyId) {
-        if (isSuperAdmin) {
+        if (hasSuperAdminPrivileges) {
             // If Super Admin has no company selected, try to fetch the first active company to show data
             // Alternatively, show a "Select Company" screen.
             const { data: firstCompany } = await supabase
