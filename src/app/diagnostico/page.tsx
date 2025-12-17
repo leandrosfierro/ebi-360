@@ -89,25 +89,25 @@ export default function DiagnosticPage() {
 
     return (
         <div
-            className="flex min-h-screen flex-col bg-gradient-mockup"
+            className="flex min-h-screen flex-col bg-mesh-gradient text-foreground"
             suppressHydrationWarning
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-6">
+            <div className="flex items-center justify-between px-6 py-6 pt-12">
                 <button
                     onClick={handleBack}
-                    className="rounded-full bg-white/20 p-3 text-white backdrop-blur-md transition-all hover:bg-white/30 hover:scale-110 active:scale-95"
+                    className="rounded-full bg-white p-3 text-gray-700 shadow-sm transition-all hover:bg-gray-100 hover:scale-110 active:scale-95 border border-gray-200"
                 >
                     <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div className="flex items-center space-x-2">
-                    <span className="rounded-full bg-white/25 px-4 py-2 text-sm font-bold text-white backdrop-blur-md drop-shadow">
+                    <span className="rounded-full bg-white px-4 py-2 text-sm font-bold text-gray-900 shadow-sm border border-gray-100">
                         {currentStep + 1}/{totalSteps}
                     </span>
-                    <span className="text-xs font-semibold text-white/80 drop-shadow">
+                    <span className="text-xs font-semibold text-gray-500">
                         {Math.round(progress)}%
                     </span>
                 </div>
@@ -115,35 +115,33 @@ export default function DiagnosticPage() {
 
             {/* Progress Bar */}
             <div className="mx-6 mb-8">
-                <div className="relative h-3 overflow-hidden rounded-full bg-white/20 backdrop-blur-md shadow-inner">
+                <div className="relative h-2 overflow-hidden rounded-full bg-gray-200">
                     <div
-                        className="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 transition-all duration-500 ease-out shadow-lg"
+                        className="h-full bg-purple-600 transition-all duration-500 ease-out rounded-full"
                         style={{ width: `${progress}%` }}
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
-                    </div>
+                    />
                 </div>
             </div>
 
             {/* Question Card */}
-            <div className="flex flex-1 flex-col justify-center px-6">
+            <div className="flex flex-1 flex-col justify-center px-6 pb-32">
                 <div
                     className={cn(
-                        "mb-8 rounded-3xl bg-white/15 p-8 shadow-glass backdrop-blur-md border border-white/20 transition-all duration-300",
+                        "mb-8 rounded-[24px] bg-white p-8 shadow-sm border border-gray-100 transition-all duration-300",
                         slideDirection === "left" && "translate-x-full opacity-0",
                         slideDirection === "right" && "-translate-x-full opacity-0"
                     )}
                 >
-                    <span className="mb-4 inline-block rounded-full bg-white/25 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm drop-shadow">
+                    <span className="mb-4 inline-block rounded-full bg-purple-100 px-4 py-1 text-xs font-bold uppercase tracking-wider text-purple-700">
                         {currentQuestion.domain}
                     </span>
-                    <h2 className="text-2xl font-bold leading-tight text-white drop-shadow-lg">
+                    <h2 className="text-2xl font-bold leading-tight text-gray-900">
                         {currentQuestion.text}
                     </h2>
                 </div>
 
                 {/* Options */}
-                <div className="space-y-3 pb-24">
+                <div className="space-y-3">
                     {[
                         { value: 1, label: "Muy en desacuerdo", emoji: "😔" },
                         { value: 2, label: "En desacuerdo", emoji: "😕" },
@@ -157,18 +155,18 @@ export default function DiagnosticPage() {
                                 key={value}
                                 onClick={() => handleAnswer(value)}
                                 className={cn(
-                                    "group flex w-full items-center justify-between rounded-2xl p-5 font-semibold transition-all duration-200",
+                                    "group flex w-full items-center justify-between rounded-2xl p-5 font-medium transition-all duration-200 border",
                                     isSelected
-                                        ? "bg-white text-purple-700 shadow-glass-lg scale-[1.02] ring-2 ring-white/50"
-                                        : "bg-white/15 text-white backdrop-blur-md hover:bg-white/25 hover:scale-[1.01] active:scale-[0.99] border border-white/20"
+                                        ? "bg-purple-50 border-purple-200 text-purple-900 scale-[1.02]"
+                                        : "bg-white border-gray-100 text-gray-700 hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99]"
                                 )}
                             >
                                 <span className="flex items-center space-x-3">
-                                    <span className="text-2xl">{emoji}</span>
-                                    <span className={isSelected ? "" : "drop-shadow"}>{label}</span>
+                                    <span className="text-2xl grayscale group-hover:grayscale-0 transition-all">{emoji}</span>
+                                    <span>{label}</span>
                                 </span>
                                 {isSelected && (
-                                    <Check className="h-5 w-5 text-purple-700" />
+                                    <Check className="h-5 w-5 text-purple-600" />
                                 )}
                             </button>
                         );
@@ -177,8 +175,8 @@ export default function DiagnosticPage() {
 
                 {/* Swipe Hint */}
                 {currentStep === 0 && !answers[currentQuestion.id] && (
-                    <div className="fixed bottom-32 left-0 right-0 flex justify-center">
-                        <div className="rounded-full bg-white/20 px-4 py-2 text-xs text-white backdrop-blur-md">
+                    <div className="fixed bottom-32 left-0 right-0 flex justify-center pointer-events-none">
+                        <div className="rounded-full bg-gray-900/10 px-4 py-2 text-xs text-gray-600 backdrop-blur-sm">
                             💡 Desliza para navegar entre preguntas
                         </div>
                     </div>

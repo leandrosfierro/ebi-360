@@ -149,19 +149,21 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col bg-gradient-mockup" suppressHydrationWarning>
-            <div className="px-6 py-8 pb-24">
-                <h1 className="mb-8 text-2xl font-bold text-white drop-shadow-lg">
-                    Mi Perfil
-                </h1>
+        <div className="relative flex min-h-screen flex-col bg-mesh-gradient text-foreground" suppressHydrationWarning>
+            <div className="px-6 py-8 pb-32">
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                        Mi Perfil
+                    </h1>
+                </header>
 
                 {/* Profile Card */}
-                <div className="mb-6 rounded-3xl bg-white/15 p-8 shadow-glass backdrop-blur-md border border-white/20 animate-fadeIn">
+                <div className="mb-6 rounded-[24px] glass-card p-8 animate-fadeIn">
                     <div className="mb-6 flex flex-col items-center">
-                        <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg">
-                            <User className="h-12 w-12 text-white" />
+                        <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100 shadow-sm border border-white">
+                            <User className="h-10 w-10 text-purple-600" />
                         </div>
-                        <h2 className="text-2xl font-bold text-white drop-shadow">{userName}</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">{userName}</h2>
 
                         {!isAuthenticated ? (
                             <a
@@ -172,7 +174,7 @@ export default function ProfilePage() {
                             </a>
                         ) : (
                             <div className="flex flex-col items-center">
-                                <span className="mt-1 rounded-full bg-white/20 px-3 py-0.5 text-xs font-medium text-white">
+                                <span className="mt-1 rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
                                     {activeRole === 'super_admin' ? 'Super Admin' :
                                         activeRole === 'company_admin' ? 'Admin Empresa' :
                                             userRole === 'super_admin' ? 'Super Admin' :
@@ -186,7 +188,7 @@ export default function ProfilePage() {
                                                     ? "/admin/super"
                                                     : "/admin/company"
                                             }
-                                            className="mt-3 flex items-center gap-2 text-sm font-medium text-white underline underline-offset-4 hover:text-white/80"
+                                            className="mt-3 flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors"
                                         >
                                             Ir al Panel Admin <ExternalLink className="h-3 w-3" />
                                         </a>
@@ -197,17 +199,17 @@ export default function ProfilePage() {
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
-                            <TrendingUp className="mx-auto mb-2 h-6 w-6 text-white" />
-                            <p className="text-2xl font-bold text-white drop-shadow">{diagnosticCount}</p>
-                            <p className="text-xs text-white/80">Diagnósticos</p>
+                        <div className="rounded-2xl bg-gray-50 p-4 text-center border border-gray-100">
+                            <TrendingUp className="mx-auto mb-2 h-6 w-6 text-purple-500" />
+                            <p className="text-2xl font-bold text-gray-900">{diagnosticCount}</p>
+                            <p className="text-xs text-gray-500">Diagnósticos</p>
                         </div>
-                        <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
-                            <Calendar className="mx-auto mb-2 h-6 w-6 text-white" />
-                            <p className="text-sm font-bold text-white drop-shadow">
+                        <div className="rounded-2xl bg-gray-50 p-4 text-center border border-gray-100">
+                            <Calendar className="mx-auto mb-2 h-6 w-6 text-blue-500" />
+                            <p className="text-sm font-bold text-gray-900">
                                 {mounted ? (lastDiagnostic !== "-" ? lastDiagnostic.split(" ")[0] : "-") : "-"}
                             </p>
-                            <p className="text-xs text-white/80">Último</p>
+                            <p className="text-xs text-gray-500">Último</p>
                         </div>
                     </div>
                 </div>
@@ -215,11 +217,11 @@ export default function ProfilePage() {
                 {/* Role Selection - Only show if user has multiple roles */}
                 {isAuthenticated && userRoles.length > 1 && (
                     <div className="mb-6 space-y-4 animate-fadeIn" style={{ animationDelay: "0.05s" }}>
-                        <div className="mb-3">
-                            <h3 className="text-lg font-semibold text-white drop-shadow">
+                        <div className="mb-3 px-1">
+                            <h3 className="text-lg font-semibold text-gray-900">
                                 Mis Roles de Acceso
                             </h3>
-                            <p className="text-sm text-white/70">
+                            <p className="text-sm text-gray-500">
                                 Selecciona el rol con el que deseas trabajar
                             </p>
                         </div>
@@ -264,9 +266,9 @@ export default function ProfilePage() {
                 {/* Achievements Section */}
                 {achievements.length > 0 && (
                     <div className="mb-6 animate-fadeIn" style={{ animationDelay: "0.05s" }}>
-                        <div className="mb-3 flex items-center space-x-2">
-                            <Award className="h-5 w-5 text-yellow-400" />
-                            <h3 className="text-lg font-semibold text-white drop-shadow">
+                        <div className="mb-3 flex items-center space-x-2 px-1">
+                            <Award className="h-5 w-5 text-amber-500" />
+                            <h3 className="text-lg font-semibold text-gray-900">
                                 Logros
                             </h3>
                         </div>
@@ -274,24 +276,24 @@ export default function ProfilePage() {
                             {achievements.map((achievement) => (
                                 <div
                                     key={achievement.id}
-                                    className={`rounded-2xl p-4 text-center transition-all ${achievement.unlocked
-                                        ? "bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border-2 border-yellow-400/50 scale-100"
-                                        : "bg-white/5 border border-white/10 opacity-50 grayscale"
+                                    className={`rounded-2xl p-4 text-center transition-all border ${achievement.unlocked
+                                        ? "bg-amber-50 border-amber-200"
+                                        : "bg-gray-100 border-gray-200 grayscale opacity-60"
                                         }`}
                                 >
                                     <div className="text-3xl mb-2">{achievement.icon}</div>
-                                    <p className="text-xs font-bold text-white drop-shadow line-clamp-1">
+                                    <p className="text-xs font-bold text-gray-800 line-clamp-1">
                                         {achievement.title}
                                     </p>
                                     {achievement.unlocked && (
-                                        <p className="text-[10px] text-white/70 mt-1 line-clamp-2">
+                                        <p className="text-[10px] text-gray-600 mt-1 line-clamp-2">
                                             {achievement.description}
                                         </p>
                                     )}
                                 </div>
                             ))}
                         </div>
-                        <p className="mt-3 text-center text-xs text-white/60">
+                        <p className="mt-3 text-center text-xs text-gray-500">
                             {achievements.filter(a => a.unlocked).length} de {achievements.length} desbloqueados
                         </p>
                     </div>
@@ -299,32 +301,32 @@ export default function ProfilePage() {
 
                 {/* Settings Section */}
                 <div className="mb-6 space-y-3 animate-fadeIn" style={{ animationDelay: "0.1s" }}>
-                    <h3 className="mb-3 text-lg font-semibold text-white drop-shadow">
+                    <h3 className="mb-3 px-1 text-lg font-semibold text-gray-900">
                         Configuración
                     </h3>
 
-                    <div className="flex w-full items-center justify-between rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20 transition-all hover:bg-white/20">
+                    <div className="flex w-full items-center justify-between rounded-2xl bg-white p-4 shadow-sm border border-gray-200">
                         <div className="flex items-center space-x-3">
-                            <Settings className="h-5 w-5 text-white" />
-                            <span className="font-semibold text-white drop-shadow">Notificaciones</span>
+                            <Settings className="h-5 w-5 text-gray-600" />
+                            <span className="font-medium text-gray-900">Notificaciones</span>
                         </div>
                         <button
                             onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                            className={`relative h-6 w-11 rounded-full transition-colors ${notificationsEnabled ? 'bg-green-400' : 'bg-white/20'}`}
+                            className={`relative h-6 w-11 rounded-full transition-colors ${notificationsEnabled ? 'bg-green-500' : 'bg-gray-200'}`}
                         >
                             <span
-                                className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+                                className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}`}
                             />
                         </button>
                     </div>
 
                     <button
                         onClick={handleClearData}
-                        className="flex w-full items-center justify-between rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20 transition-all hover:bg-red-500/30 active:scale-[0.99]"
+                        className="flex w-full items-center justify-between rounded-2xl bg-white p-4 shadow-sm border border-gray-200 transition-all hover:bg-red-50 active:scale-[0.99]"
                     >
                         <div className="flex items-center space-x-3">
-                            <LogOut className="h-5 w-5 text-white" />
-                            <span className="font-semibold text-white drop-shadow">Cerrar Sesión</span>
+                            <LogOut className="h-5 w-5 text-red-500" />
+                            <span className="font-medium text-gray-900">Cerrar Sesión</span>
                         </div>
                     </button>
                 </div>
@@ -334,20 +336,20 @@ export default function ProfilePage() {
                     href="https://bs360.com.ar"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded-2xl bg-white/10 p-6 backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 active:scale-98"
+                    className="block rounded-2xl bg-gray-50 p-6 border border-gray-200 transition-all active:scale-98"
                 >
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="mb-2 font-semibold text-white drop-shadow">
+                            <h3 className="mb-2 font-semibold text-gray-900">
                                 Acerca de EBI 360
                             </h3>
-                            <p className="text-sm text-white/80">
+                            <p className="text-sm text-gray-500">
                                 Plataforma de diagnóstico integral para LATAM.
                             </p>
                         </div>
-                        <ExternalLink className="h-5 w-5 text-white/60" />
+                        <ExternalLink className="h-5 w-5 text-gray-400" />
                     </div>
-                    <p className="mt-4 text-xs text-white/60">
+                    <p className="mt-4 text-xs text-gray-400">
                         Versión 1.0.0
                     </p>
                 </a>

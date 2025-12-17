@@ -141,10 +141,10 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
     };
 
     if (loading) return (
-        <div className="flex min-h-screen flex-col bg-gradient-mockup px-6 py-8 pb-24">
+        <div className="flex min-h-screen flex-col bg-mesh-gradient px-6 py-8 pb-32">
             <div className="mb-8 animate-pulse">
-                <div className="h-8 w-48 bg-white/20 rounded-lg mb-2"></div>
-                <div className="h-4 w-32 bg-white/10 rounded"></div>
+                <div className="h-8 w-48 bg-gray-200 rounded-lg mb-2"></div>
+                <div className="h-4 w-32 bg-gray-100 rounded"></div>
             </div>
 
             {/* Skeleton for circular progress */}
@@ -181,17 +181,19 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-mockup px-6 py-8 pb-24">
+        <div className="min-h-screen bg-mesh-gradient px-6 py-8 pb-32">
             <div id="results-container" className="animate-fadeIn">
-                <h1 className="mb-2 text-2xl font-bold text-white drop-shadow-lg">
-                    Índice General de Bienestar
-                </h1>
-                <p className="mb-8 text-white/90 drop-shadow">
-                    Tu resultado completo
-                </p>
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                        Índice General de Bienestar
+                    </h1>
+                    <p className="text-gray-500 mt-1">
+                        Tu resultado completo
+                    </p>
+                </header>
 
                 {/* Circular Progress */}
-                <div className="mb-8 flex flex-col items-center rounded-3xl bg-white/15 p-8 shadow-glass backdrop-blur-md border border-white/20 animate-fadeIn" style={{ animationDelay: "0.1s" }}>
+                <div className="mb-8 flex flex-col items-center rounded-[24px] glass-card p-8 animate-fadeIn" style={{ animationDelay: "0.1s" }}>
                     <div className="relative h-48 w-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -205,17 +207,17 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
                                     endAngle={-270}
                                     dataKey="value"
                                 >
-                                    <Cell fill="#10B981" />
-                                    <Cell fill="rgba(255,255,255,0.2)" />
+                                    <Cell fill="#8B5CF6" /> {/* Purple */}
+                                    <Cell fill="#F3F4F6" /> {/* Light gray track */}
                                 </Pie>
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-4xl font-bold text-white drop-shadow-lg">{globalScore}</span>
-                            <span className="text-sm text-white/80">/10</span>
+                            <span className="text-5xl font-bold text-gray-900">{globalScore}</span>
+                            <span className="text-sm text-gray-500 font-medium">/10</span>
                         </div>
                     </div>
-                    <p className="mt-4 text-lg font-semibold text-white drop-shadow">
+                    <p className="mt-4 text-lg font-semibold text-gray-900">
                         {globalScore >= 8
                             ? "Óptimo"
                             : globalScore >= 5
@@ -225,19 +227,19 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
                 </div>
 
                 {/* Domain Icons Row */}
-                <div className="mb-8 flex justify-around rounded-2xl bg-white/15 p-4 backdrop-blur-md border border-white/20 animate-fadeIn" style={{ animationDelay: "0.2s" }}>
+                <div className="mb-8 flex justify-around rounded-[24px] bg-white p-6 shadow-sm border border-gray-100 animate-fadeIn" style={{ animationDelay: "0.2s" }}>
                     {domains.map((d) => {
                         const Icon = domainIcons[d];
                         const score = scores[d] || 0;
                         return (
-                            <div key={d} className="flex flex-col items-center">
+                            <div key={d} className="flex flex-col items-center gap-1">
                                 <div
-                                    className="mb-1 flex h-12 w-12 items-center justify-center rounded-full shadow-lg"
-                                    style={{ backgroundColor: domainColors[d] }}
+                                    className="mb-1 flex h-10 w-10 items-center justify-center rounded-full shadow-sm"
+                                    style={{ backgroundColor: `${domainColors[d]}15` }} // 10% opacity hex
                                 >
-                                    <Icon className="h-6 w-6 text-white" />
+                                    <Icon className="h-5 w-5" style={{ color: domainColors[d] }} />
                                 </div>
-                                <span className="text-xs font-bold text-white drop-shadow">{score.toFixed(1)}</span>
+                                <span className="text-xs font-bold text-gray-700">{score.toFixed(1)}</span>
                             </div>
                         );
                     })}
@@ -245,7 +247,7 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
 
                 {/* Domain Breakdown */}
                 <div className="space-y-3 animate-fadeIn" style={{ animationDelay: "0.3s" }}>
-                    <h3 className="mb-4 text-lg font-semibold text-white drop-shadow">
+                    <h3 className="mb-4 text-lg font-semibold text-gray-900 px-1">
                         Desglose por Dominio
                     </h3>
                     {domains.map((d) => {
@@ -254,26 +256,26 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
                         return (
                             <div
                                 key={d}
-                                className="rounded-2xl bg-white/15 p-4 shadow-glass backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-[1.01]"
+                                className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100 transition-all hover:bg-gray-50"
                             >
-                                <div className="mb-2 flex items-center justify-between">
-                                    <h3 className="font-semibold text-white drop-shadow">{d}</h3>
+                                <div className="mb-3 flex items-center justify-between">
+                                    <h3 className="font-semibold text-gray-900">{d}</h3>
                                     <span
                                         className={cn(
-                                            "rounded-full px-3 py-1 text-xs font-bold shadow",
+                                            "rounded-full px-3 py-1 text-xs font-bold",
                                             score >= 8
-                                                ? "bg-green-500 text-white"
+                                                ? "bg-green-100 text-green-700"
                                                 : score >= 5
-                                                    ? "bg-yellow-500 text-white"
-                                                    : "bg-red-500 text-white"
+                                                    ? "bg-yellow-100 text-yellow-700"
+                                                    : "bg-red-100 text-red-700"
                                         )}
                                     >
                                         {score.toFixed(1)}/10
                                     </span>
                                 </div>
-                                <div className="h-2 w-full overflow-hidden rounded-full bg-white/20">
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
                                     <div
-                                        className="h-full rounded-full transition-all shadow"
+                                        className="h-full rounded-full transition-all"
                                         style={{
                                             width: `${(score / 10) * 100}%`,
                                             backgroundColor: domainColors[d]
@@ -283,15 +285,15 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
 
                                 {/* Recommendations */}
                                 {recommendation && (
-                                    <div className="mt-3 rounded-xl bg-white/5 p-3 border border-white/10">
+                                    <div className="mt-4 rounded-xl bg-blue-50/50 p-4 border border-blue-100">
                                         <div className="flex items-center space-x-2 mb-2">
-                                            <Lightbulb className="h-4 w-4 text-yellow-400" />
-                                            <p className="text-xs font-bold text-white">{recommendation.title}</p>
+                                            <Lightbulb className="h-4 w-4 text-blue-500" />
+                                            <p className="text-xs font-bold text-gray-900">{recommendation.title}</p>
                                         </div>
-                                        <ul className="space-y-1">
+                                        <ul className="space-y-2">
                                             {recommendation.suggestions.slice(0, 2).map((suggestion, idx) => (
-                                                <li key={idx} className="text-xs text-white/80 flex items-start">
-                                                    <span className="mr-2">•</span>
+                                                <li key={idx} className="text-xs text-gray-600 flex items-start leading-relaxed">
+                                                    <span className="mr-2 text-blue-400">•</span>
                                                     <span>{suggestion}</span>
                                                 </li>
                                             ))}
@@ -305,7 +307,7 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-8 space-y-3">
+            <div className="mt-8 space-y-3 pb-8">
                 <div className="grid grid-cols-2 gap-3">
                     <ExportButton
                         globalScore={globalScore}
@@ -314,21 +316,21 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
                     />
                     <button
                         onClick={handleShare}
-                        className="flex items-center justify-center space-x-2 rounded-2xl bg-white/15 px-6 py-4 font-semibold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/25 hover:scale-[1.02] active:scale-[0.99]"
+                        className="flex items-center justify-center space-x-2 rounded-xl bg-white px-6 py-4 font-medium text-gray-900 shadow-sm border border-gray-200 transition-all hover:bg-gray-50 active:scale-[0.99]"
                     >
-                        <Share2 className="h-5 w-5" />
+                        <Share2 className="h-5 w-5 text-gray-500" />
                         <span>Compartir</span>
                     </button>
                 </div>
-            </div>
 
-            <button
-                onClick={handleReset}
-                className="mt-4 flex w-full items-center justify-center rounded-2xl bg-white/15 p-4 font-semibold text-white backdrop-blur-md transition-all hover:bg-white/25 border border-white/20 drop-shadow"
-            >
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Reiniciar Diagnóstico
-            </button>
+                <button
+                    onClick={handleReset}
+                    className="flex w-full items-center justify-center rounded-xl bg-gray-100 p-4 font-medium text-gray-600 transition-all hover:bg-gray-200"
+                >
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    Reiniciar Diagnóstico
+                </button>
+            </div>
         </div>
     );
 }
