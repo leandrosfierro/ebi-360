@@ -49,24 +49,25 @@ export async function updateSession(request: NextRequest) {
         // Fetch profile to check role
         const { data: profile } = await supabase
             .from('profiles')
-            .select('active_role, role')
+            .select('active_role, role, roles')
             .eq('id', user.id)
             .single()
 
-        // If we can't read profile, something is wrong, allow safe fail or redirect?
-        // Let's assume if no profile, they are just an employee/user
         const activeRole = profile?.active_role || profile?.role || 'employee'
+        // Universal Pass: If user has 'super_admin' in their roles list, let them pass ANY admin check
+        const isSuperAdmin = profile?.roles?.includes('super_admin') || profile?.role === 'super_admin';
 
         // Super Admin area
         if (request.nextUrl.pathname.startsWith('/admin/super')) {
-            if (activeRole !== 'super_admin') {
+            if (activeRole !== 'super_admin' && !isSuperAdmin) {
                 return NextResponse.redirect(new URL('/perfil', request.url))
             }
         }
 
         // Company Admin area
         if (request.nextUrl.pathname.startsWith('/admin/company')) {
-            if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+            // Allow if active_role is company_admin OR if they are a super_admin (even if acting as company_admin)
+            if (activeRole !== 'company_admin' && activeRole !== 'super_admin' && !isSuperAdmin) {
                 return NextResponse.redirect(new URL('/perfil', request.url))
             }
         }
