@@ -203,3 +203,17 @@ h6 {
 .bg-brand-blue {
   background-color: var(--color-primary-medium);
 }
+
+/* 
+  Logo Color Filter
+  Transforms white/light pixels to Brand Medium Blue (#2175d8)
+  Target Color: #2175d8
+*/
+.logo-color-filter {
+  filter: invert(36%) sepia(76%) saturate(1529%) hue-rotate(200deg) brightness(94%) contrast(92%);
+}
+
+.dark .logo-color-filter {
+  filter: none;
+  /* Keep white in dark mode */
+}

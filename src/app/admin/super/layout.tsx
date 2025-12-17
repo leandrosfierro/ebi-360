@@ -31,7 +31,7 @@ export default async function AdminLayout({
                                 src="/logo-bs360.png"
                                 alt="Bienestar 360"
                                 fill
-                                className="object-contain object-left"
+                                className="object-contain object-left logo-color-filter"
                                 priority
                             />
                         </div>

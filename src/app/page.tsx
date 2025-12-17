@@ -35,7 +35,7 @@ export default async function Home() {
               alt="EBI 360 Logo"
               width={80}
               height={80}
-              className="object-contain"
+              className="object-contain logo-color-filter"
             />
           </div>
         </div>
