@@ -34,8 +34,10 @@ export function RoleCard({ title, description, icon, role, active, href }: RoleC
                 alert(`Error: ${result.error}`);
                 setIsLoading(false);
             } else {
-                // Success
-                window.location.href = href; // Force full reload to ensure server state is fresh
+                // Success - Forced Hard Redirect to bypass stale cache
+                // Adding a dummy param to ensure browser treats it as fresh navigation
+                const targetUrl = href.includes('?') ? `${href}&t=${Date.now()}` : `${href}?t=${Date.now()}`;
+                window.location.href = targetUrl;
             }
         } catch (error) {
             console.error("Switch error:", error);
