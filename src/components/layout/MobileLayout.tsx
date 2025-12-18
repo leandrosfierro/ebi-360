@@ -14,7 +14,8 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
 
     // For admin routes, we want full width and no bottom nav
     const isFullWidth = isAdmin;
-    const shouldShowNav = showNav && !isAdmin;
+    const isDiagnostic = pathname?.startsWith("/diagnostico");
+    const shouldShowNav = showNav && !isAdmin && !isDiagnostic;
 
     return (
         <div className="flex min-h-screen flex-col">
