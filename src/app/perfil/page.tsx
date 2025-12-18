@@ -23,102 +23,84 @@ export default function ProfilePage() {
         setMounted(true);
 
         const fetchData = async () => {
-            const supabase = createClient();
-            // Force refresh session to ensure we have latest roles
-            await supabase.auth.refreshSession();
-            const { data: { user } } = await supabase.auth.getUser();
+            try {
+                const supabase = createClient();
 
-            if (user) {
-                setIsAuthenticated(true);
-                // Fetch from DB with roles - Adding a random param to bust Safari cache
-                const { data: profile } = await supabase
-                    .from("profiles")
-                    .select(`
-                        full_name, 
-                        role, 
-                        roles, 
-                        active_role,
-                        company:companies(name)
-                    `)
-                    .eq("id", user.id)
-                    .single();
+                // 1. Ensure session is fresh
+                const { data: { session } } = await supabase.auth.refreshSession();
+                const user = session?.user;
 
-                if (profile?.role) {
-                    setUserRole(profile.role);
+                if (user) {
+                    setIsAuthenticated(true);
+
+                    // 2. Fetch profile with cache-busting
+                    const { data: profile, error: profileError } = await supabase
+                        .from("profiles")
+                        .select(`
+                            full_name, 
+                            role, 
+                            roles, 
+                            active_role,
+                            company:companies(name)
+                        `)
+                        .eq("id", user.id)
+                        .single();
+
+                    if (profileError) {
+                        console.error("Profile fetch error:", profileError);
+                    }
+
+                    if (profile) {
+                        // Store full state
+                        if (profile.role) setUserRole(profile.role);
+                        if (profile.roles) setUserRoles(profile.roles);
+                        if (profile.active_role) setActiveRole(profile.active_role);
+
+                        if (profile.company && typeof profile.company === 'object' && 'name' in profile.company) {
+                            setCompanyName((profile.company as any).name);
+                        }
+
+                        if (profile.full_name) {
+                            setUserName(profile.full_name);
+                        }
+
+                        // Auto-detect Super Admin status
+                        const isSA = profile.roles?.includes('super_admin') || profile.role === 'super_admin';
+                        if (isSA && profile.role !== 'super_admin') {
+                            console.log("Super Admin detected, but role is mismatched. Refreshing...");
+                        }
+                    }
+
+                    // 3. Fetch results
+                    const { data: results } = await supabase
+                        .from("results")
+                        .select("*")
+                        .eq("user_id", user.id)
+                        .order("created_at", { ascending: false });
+
+                    if (results && results.length > 0) {
+                        setDiagnosticCount(results.length);
+                        const lastDate = new Date(results[0].created_at).toLocaleDateString("es-ES", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                        });
+                        setLastDiagnostic(lastDate);
+
+                        const latest = results[0];
+                        const unlockedAchievements = checkAchievements({
+                            diagnosticCount: results.length,
+                            globalScore: Number(latest.global_score),
+                            scores: latest.domain_scores,
+                        });
+                        setAchievements(unlockedAchievements);
+                    }
+                } else {
+                    const savedName = localStorage.getItem("ebi_user_name");
+                    if (savedName) setUserName(savedName);
                 }
-
-                if (profile?.roles) {
-                    setUserRoles(profile.roles);
-                }
-
-                if (profile?.active_role) {
-                    setActiveRole(profile.active_role);
-                }
-
-                if (profile?.company && typeof profile.company === 'object' && 'name' in profile.company) {
-                    setCompanyName((profile.company as any).name);
-                }
-
-                if (profile?.full_name) {
-                    setUserName(profile.full_name);
-                }
-
-                const { data: results } = await supabase
-                    .from("results")
-                    .select("*")
-                    .eq("user_id", user.id)
-                    .order("created_at", { ascending: false });
-
-                if (results && results.length > 0) {
-                    setDiagnosticCount(results.length);
-                    const lastDate = new Date(results[0].created_at).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    });
-                    setLastDiagnostic(lastDate);
-
-                    // Calculate achievements based on latest result
-                    const latest = results[0];
-                    const unlockedAchievements = checkAchievements({
-                        diagnosticCount: results.length,
-                        globalScore: Number(latest.global_score),
-                        scores: latest.domain_scores,
-                    });
-                    setAchievements(unlockedAchievements);
-                }
-            } else {
-                // Fallback to Local Storage
-                const saved = localStorage.getItem("ebi_answers");
-                if (saved) {
-                    setDiagnosticCount(1);
-                    const date = new Date().toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    });
-                    setLastDiagnostic(date);
-
-                    const answers = JSON.parse(saved);
-                    // Simplified score calculation for achievements (mock for local)
-                    const globalScore = 7.5;
-                    const scores = {
-                        "Físico": 8, "Nutricional": 7, "Emocional": 9,
-                        "Social": 6, "Familiar": 8, "Económico": 7,
-                    };
-
-                    const unlockedAchievements = checkAchievements({
-                        diagnosticCount: 1,
-                        globalScore,
-                        scores,
-                    });
-                    setAchievements(unlockedAchievements);
-                }
-
-                const savedName = localStorage.getItem("ebi_user_name");
-                if (savedName) {
-                    setUserName(savedName);
-                }
+            } catch (err) {
+                console.error("Unexpected error in fetchData:", err);
             }
         };
 
@@ -165,17 +147,27 @@ export default function ProfilePage() {
                     <button
                         onClick={async () => {
                             try {
+                                console.log("Button clicked, calling forceRoleUpdate...");
+                                // Extra feedback for the user
+                                const btn = document.activeElement as HTMLButtonElement;
+                                if (btn) btn.innerText = "🔄 PROCESANDO...";
+
                                 const res = await forceRoleUpdate();
+                                console.log("forceRoleUpdate result:", res);
+
                                 if (res.success) {
+                                    alert("¡ÉXITO! Tu cuenta ahora tiene permisos de Super Admin. La página se recargará.");
                                     window.location.reload();
                                 } else {
-                                    alert(res.error || "Error al actualizar roles");
+                                    alert("OOPS: " + (res.error || "Error desconocido"));
+                                    if (btn) btn.innerText = "🔄 ACTUALIZAR ROLES";
                                 }
-                            } catch (e) {
-                                console.error(e);
+                            } catch (e: any) {
+                                console.error("Error in button click:", e);
+                                alert("ERROR CRÍTICO: " + e.message);
                             }
                         }}
-                        className="bg-white/10 text-white/50 text-[10px] px-2 py-1 rounded border border-white/20 hover:bg-white/20 cursor-pointer z-50 pointer-events-auto uppercase tracking-wider font-semibold"
+                        className="bg-white/20 text-white text-[10px] px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 cursor-pointer z-[9999] pointer-events-auto uppercase tracking-widest font-bold shadow-lg"
                     >
                         🔄 Actualizar Roles
                     </button>
@@ -188,7 +180,6 @@ export default function ProfilePage() {
                             <User className="h-10 w-10 text-purple-600" />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900">{userName}</h2>
-
                         {!isAuthenticated ? (
                             <a
                                 href="/login"
@@ -198,23 +189,25 @@ export default function ProfilePage() {
                             </a>
                         ) : (
                             <div className="flex flex-col items-center">
-                                <span className="mt-1 rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
-                                    {activeRole === 'super_admin' ? 'Super Admin' :
-                                        activeRole === 'company_admin' ? 'Admin Empresa' :
-                                            userRole === 'super_admin' ? 'Super Admin' :
-                                                userRole === 'company_admin' ? 'Admin Empresa' : 'Usuario'}
+                                <span className="mt-1 rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700 shadow-sm">
+                                    {userRoles.includes('super_admin') || activeRole === 'super_admin' || userRole === 'super_admin'
+                                        ? 'Super Admin'
+                                        : userRoles.includes('company_admin') || activeRole === 'company_admin' || userRole === 'company_admin'
+                                            ? 'Admin Empresa'
+                                            : 'Usuario'}
                                 </span>
-                                {((activeRole === 'super_admin' || activeRole === 'company_admin') ||
-                                    (userRole === 'super_admin' || userRole === 'company_admin')) && (
+                                {(userRoles.includes('super_admin') || userRoles.includes('company_admin') ||
+                                    activeRole === 'super_admin' || activeRole === 'company_admin' ||
+                                    userRole === 'super_admin' || userRole === 'company_admin') && (
                                         <a
                                             href={
-                                                (activeRole === 'super_admin' || (!activeRole && userRole === 'super_admin'))
+                                                (userRoles.includes('super_admin') || activeRole === 'super_admin' || userRole === 'super_admin')
                                                     ? "/admin/super"
                                                     : "/admin/company"
                                             }
-                                            className="mt-3 flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors"
+                                            className="mt-4 flex items-center gap-2 rounded-xl bg-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-purple-700 hover:scale-[1.03] active:scale-[0.98]"
                                         >
-                                            Ir al Panel Admin <ExternalLink className="h-3 w-3" />
+                                            Ir al Panel de Control <ExternalLink className="h-4 w-4" />
                                         </a>
                                     )}
                             </div>
