@@ -30,7 +30,7 @@ export default function ProfilePage() {
 
             if (user) {
                 setIsAuthenticated(true);
-                // Fetch from DB with roles
+                // Fetch from DB with roles - Adding a random param to bust Safari cache
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select(`
@@ -164,21 +164,13 @@ export default function ProfilePage() {
                     </h1>
                     <button
                         onClick={async () => {
-                            try {
-                                alert("Iniciando reparación...");
-                                const res = await forceRoleUpdate();
-                                console.log("Debug Response:", res);
-                                alert(JSON.stringify(res, null, 2));
-                                if (res.success) {
-                                    window.location.reload();
-                                }
-                            } catch (e: any) {
-                                alert("Error crítico: " + e.message);
-                            }
+                            const supabase = createClient();
+                            await supabase.auth.refreshSession();
+                            window.location.reload();
                         }}
-                        className="bg-red-50 text-red-600 text-[10px] px-2 py-1 rounded border border-red-200 hover:bg-red-100 cursor-pointer z-50 pointer-events-auto"
+                        className="bg-white/10 text-white/50 text-[10px] px-2 py-1 rounded border border-white/20 hover:bg-white/20 cursor-pointer z-50 pointer-events-auto uppercase tracking-wider font-semibold"
                     >
-                        DEBUG: Forzar Permisos (Click Aquí)
+                        🔄 Actualizar Roles
                     </button>
                 </header>
 
