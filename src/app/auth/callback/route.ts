@@ -51,19 +51,14 @@ export async function GET(request: Request) {
                     });
             }
 
-            const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
-            const isLocalEnv = process.env.NODE_ENV === "development";
-            if (isLocalEnv) {
-                // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-                return NextResponse.redirect(`${origin}${next}`);
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`);
-            } else {
-                return NextResponse.redirect(`${origin}${next}`);
-            }
+            // Robust redirect
+            const redirectUrl = new URL(next === '/' ? '/perfil' : next, request.url);
+            return NextResponse.redirect(redirectUrl);
         }
     }
 
-    // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+    // fallback to login with error param instead of non-existent page
+    const errorUrl = new URL('/login', request.url);
+    errorUrl.searchParams.set('error', 'auth_failed');
+    return NextResponse.redirect(errorUrl);
 }
