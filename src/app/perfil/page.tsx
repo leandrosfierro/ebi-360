@@ -145,26 +145,30 @@ export default function ProfilePage() {
                         Mi Perfil
                     </h1>
                     <button
-                        onClick={async () => {
+                        onClick={async (e) => {
+                            const btn = e.currentTarget;
+                            const originalText = btn.innerText;
                             try {
                                 console.log("Button clicked, calling forceRoleUpdate...");
-                                // Extra feedback for the user
-                                const btn = document.activeElement as HTMLButtonElement;
-                                if (btn) btn.innerText = "🔄 PROCESANDO...";
+                                btn.innerText = "🔄 PROCESANDO...";
+                                btn.disabled = true;
 
                                 const res = await forceRoleUpdate();
                                 console.log("forceRoleUpdate result:", res);
 
                                 if (res.success) {
-                                    alert("¡ÉXITO! Tu cuenta ahora tiene permisos de Super Admin. La página se recargará.");
+                                    alert(res.message || "¡ÉXITO! Tu cuenta ahora tiene permisos de Super Admin. La página se recargará.");
                                     window.location.reload();
                                 } else {
-                                    alert("OOPS: " + (res.error || "Error desconocido"));
-                                    if (btn) btn.innerText = "🔄 ACTUALIZAR ROLES";
+                                    alert("UPS: " + (res.error || "Error desconocido"));
+                                    btn.innerText = originalText;
+                                    btn.disabled = false;
                                 }
-                            } catch (e: any) {
-                                console.error("Error in button click:", e);
-                                alert("ERROR CRÍTICO: " + e.message);
+                            } catch (error: any) {
+                                console.error("Error in button click:", error);
+                                alert("ERROR DE CONEXIÓN: No se pudo completar la acción. Por favor intenta de nuevo.");
+                                btn.innerText = originalText;
+                                btn.disabled = false;
                             }
                         }}
                         className="bg-white/20 text-white text-[10px] px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 cursor-pointer z-[9999] pointer-events-auto uppercase tracking-widest font-bold shadow-lg"

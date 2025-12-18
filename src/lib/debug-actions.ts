@@ -5,41 +5,30 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from "next/cache";
 
 export async function forceRoleUpdate() {
-    console.log("Starting Safe Debug Action...");
-
-    // 1. Safe Env Check (Try-Catch to prevent any crash)
-    let serviceKey;
-    let supabaseUrl;
+    console.log(">>> [DEBUG ACTION] Starting forceRoleUpdate...");
 
     try {
-        serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    } catch (e) {
-        return { success: false, error: "Error leyendo variables de entorno." };
-    }
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-    // 2. Clear handling of missing key
-    if (!serviceKey) {
-        return {
-            success: false,
-            error: "FALTA CONFIGURACIÓN: Ve a Vercel > Settings > Env Vars y agrega 'SUPABASE_SERVICE_ROLE_KEY'. Cópiala de tu archivo .env.local."
-        };
-    }
+        if (!serviceKey || !supabaseUrl) {
+            console.error(">>> [DEBUG ACTION] Missing environment variables");
+            return { success: false, error: "Faltan variables de entorno (Service Key o URL)" };
+        }
 
-    if (!supabaseUrl) {
-        return { success: false, error: "Falta NEXT_PUBLIC_SUPABASE_URL en Vercel." };
-    }
-
-    try {
-        // 3. Authenticate user
+        // 1. Authenticate user using the standard server client
+        console.log(">>> [DEBUG ACTION] Authenticating user...");
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {
-            return { success: false, error: "No estás autenticado. Recarga y logueate." };
+            console.error(">>> [DEBUG ACTION] Auth error:", authError);
+            return { success: false, error: "No autenticado: " + (authError?.message || "Usuario nulo") };
         }
 
-        // 4. Create Admin Client
+        console.log(">>> [DEBUG ACTION] User found:", user.id);
+
+        // 2. Create Admin Client
         const adminClient = createSupabaseClient(supabaseUrl, serviceKey, {
             auth: {
                 autoRefreshToken: false,
@@ -47,30 +36,50 @@ export async function forceRoleUpdate() {
             }
         });
 
-        // 5. Force Update
-        const { error: updateError } = await adminClient
-            .from('profiles')
-            .update({
+        // 3. Force Update/Upsert
+        console.log(">>> [DEBUG ACTION] Updating profile for:", user.id);
+        const { data: existing } = await adminClient.from('profiles').select('id').eq('id', user.id).single();
+
+        let result;
+        if (!existing) {
+            console.log(">>> [DEBUG ACTION] Profile not found, performing INSERT...");
+            result = await adminClient.from('profiles').insert({
+                id: user.id,
+                email: user.email,
+                role: 'super_admin',
+                active_role: 'super_admin',
+                roles: ['super_admin', 'company_admin', 'employee'],
+                admin_status: 'active',
+                full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Administrador'
+            });
+        } else {
+            console.log(">>> [DEBUG ACTION] Profile found, performing UPDATE...");
+            result = await adminClient.from('profiles').update({
                 role: 'super_admin',
                 active_role: 'super_admin',
                 roles: ['super_admin', 'company_admin', 'employee'],
                 admin_status: 'active'
-            })
-            .eq('id', user.id);
-
-        if (updateError) {
-            return { success: false, error: "Error de Base de Datos: " + updateError.message };
+            }).eq('id', user.id);
         }
 
-        revalidatePath('/', 'layout');
+        if (result.error) {
+            console.error(">>> [DEBUG ACTION] DB Error:", result.error);
+            return { success: false, error: "Error DB: " + result.error.message };
+        }
 
+        console.log(">>> [DEBUG ACTION] Success! Profile updated.");
+
+        // Return success without revalidatePath to avoid immediate render conflicts
         return {
             success: true,
-            message: "¡Rol actualizado correctamente! La página se recargará."
+            message: "Permisos de Super Admin concedidos."
         };
 
     } catch (e: any) {
-        console.error("Debug Action Execption:", e);
-        return { success: false, error: "Error inesperado: " + e.message };
+        console.error(">>> [DEBUG ACTION] FATAL EXCEPTION:", e);
+        return {
+            success: false,
+            error: "Excepción fatal en el servidor: " + (e.message || "Error desconocido")
+        };
     }
 }
