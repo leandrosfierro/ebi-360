@@ -164,9 +164,16 @@ export default function ProfilePage() {
                     </h1>
                     <button
                         onClick={async () => {
-                            const supabase = createClient();
-                            await supabase.auth.refreshSession();
-                            window.location.reload();
+                            try {
+                                const res = await forceRoleUpdate();
+                                if (res.success) {
+                                    window.location.reload();
+                                } else {
+                                    alert(res.error || "Error al actualizar roles");
+                                }
+                            } catch (e) {
+                                console.error(e);
+                            }
                         }}
                         className="bg-white/10 text-white/50 text-[10px] px-2 py-1 rounded border border-white/20 hover:bg-white/20 cursor-pointer z-50 pointer-events-auto uppercase tracking-wider font-semibold"
                     >

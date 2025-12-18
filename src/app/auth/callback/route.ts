@@ -14,29 +14,35 @@ export async function GET(request: Request) {
             // Get user and create/update profile
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                // Get metadata from user (set during invitation)
                 const metadata = user.user_metadata || {};
 
-                // Determine role from metadata
-                const userRole = metadata.role || 'employee';
+                // Check if profile already exists to preserve roles
+                const { data: existingProfile } = await supabase
+                    .from('profiles')
+                    .select('full_name, role, roles, active_role, company_id')
+                    .eq('id', user.id)
+                    .single();
 
-                // Create roles array - super_admins get both roles
-                let rolesArray: string[] = [userRole];
-                if (userRole === 'super_admin') {
-                    rolesArray = ['super_admin', 'company_admin'];
+                // Determine final values, favoring existing ones if the new ones are defaults
+                const finalRole = existingProfile?.role || metadata.role || 'employee';
+                const finalActiveRole = existingProfile?.active_role || metadata.active_role || finalRole;
+
+                let finalRolesArray = existingProfile?.roles || [finalRole];
+                if (finalRole === 'super_admin' && !finalRolesArray.includes('company_admin')) {
+                    finalRolesArray = ['super_admin', 'company_admin'];
                 }
 
-                // UPSERT profile - create if doesn't exist, update if exists
+                // UPSERT profile - create if doesn't exist, update if exists (preserving roles)
                 await supabase
                     .from('profiles')
                     .upsert({
                         id: user.id,
                         email: user.email!,
-                        full_name: metadata.full_name || metadata.name || '',
-                        role: userRole,
-                        active_role: metadata.active_role || userRole,
-                        roles: rolesArray,
-                        company_id: metadata.company_id || null,
+                        full_name: metadata.full_name || metadata.name || existingProfile?.full_name || '',
+                        role: finalRole,
+                        active_role: finalActiveRole,
+                        roles: finalRolesArray,
+                        company_id: metadata.company_id || existingProfile?.company_id || null,
                         admin_status: 'active',
                         last_active_at: new Date().toISOString()
                     }, {
