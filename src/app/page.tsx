@@ -49,37 +49,11 @@ export default async function Home() {
           La primera plataforma de diagnóstico integral diseñada para la realidad de LATAM.
         </p>
 
-        {/* Feature Cards */}
-        <div className="mb-12 w-full max-w-sm space-y-4">
-          <div className="animate-fadeIn" style={{ animationDelay: "0.3s" }}>
-            <FeatureCard
-              icon="✨"
-              text="Diagnóstico de 6 dimensiones"
-              iconColor="text-brand-purple bg-purple-50"
-            />
-          </div>
-          <div className="animate-fadeIn" style={{ animationDelay: "0.4s" }}>
-            <FeatureCard
-              icon="⚡"
-              text="Resultados inmediatos"
-              iconColor="text-brand-blue bg-blue-50"
-            />
-          </div>
-          <div className="animate-fadeIn" style={{ animationDelay: "0.5s" }}>
-            <FeatureCard
-              icon="🎯"
-              text="Recomendaciones personalizadas"
-              iconColor="text-brand-cyan bg-cyan-50"
-            />
-          </div>
-        </div>
-
-        {/* Login Form */}
-        <form action="/auth/login" method="post" className="w-full max-w-sm">
+        {/* Login Form - PRIORITY 1 */}
+        <form action="/auth/login" method="post" className="w-full max-w-sm animate-fadeIn" style={{ animationDelay: "0.3s" }}>
           <button
             type="submit"
-            className="group flex w-full items-center justify-center rounded-2xl bg-brand-blue px-8 py-5 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-blue-600 active:scale-95 animate-fadeIn"
-            style={{ animationDelay: "0.6s" }}
+            className="group flex w-full items-center justify-center rounded-2xl bg-brand-blue px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-blue-600 active:scale-95"
           >
             <div className="mr-3 rounded-full bg-white p-1">
               <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -92,18 +66,50 @@ export default async function Home() {
             Ingresar con Google
           </button>
         </form>
-      </div>
-    </div>
-  );
-}
 
-function FeatureCard({ icon, text, iconColor }: { icon: string; text: string; iconColor: string }) {
-  return (
-    <div className="flex items-center space-x-4 rounded-2xl bg-white p-4 shadow-sm border border-gray-100 transition-all hover:scale-[1.02] hover:shadow-md">
-      <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-2xl ${iconColor}`}>
-        {icon}
+        {/* New Compact Visual Diagram - PRIORITY 2 */}
+        <div className="mt-12 w-full max-w-sm animate-fadeIn" style={{ animationDelay: "0.5s" }}>
+          <div className="rounded-3xl bg-white/60 backdrop-blur-md p-6 shadow-sm border border-white/50">
+            <p className="mb-6 text-center text-xs font-semibold uppercase tracking-widest text-gray-500">¿Cómo funciona?</p>
+            <div className="flex justify-between items-start relative">
+
+              {/* Connector Line */}
+              <div className="absolute top-5 left-10 right-10 h-0.5 bg-gradient-to-r from-purple-200 via-blue-200 to-cyan-200 -z-10" />
+
+              {/* Step 1 */}
+              <div className="flex flex-col items-center w-1/3">
+                <div className="relative mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-4 ring-purple-50 text-purple-600">
+                  <span className="text-lg">✨</span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-800 text-center leading-tight">
+                  Diagnóstico<br />Integral
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex flex-col items-center w-1/3">
+                <div className="relative mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-4 ring-blue-50 text-blue-600">
+                  <span className="text-lg">⚡</span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-800 text-center leading-tight">
+                  Resultados<br />Inmediatos
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex flex-col items-center w-1/3">
+                <div className="relative mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-4 ring-cyan-50 text-cyan-600">
+                  <span className="text-lg">🎯</span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-800 text-center leading-tight">
+                  Plan<br />Personalizado
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <span className="flex-1 font-semibold text-gray-800">{text}</span>
     </div>
   );
 }
