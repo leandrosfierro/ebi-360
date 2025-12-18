@@ -1147,3 +1147,80 @@ export async function updateCompanyBranding(formData: FormData) {
         return { error: error.message || "Failed to update branding" };
     }
 }
+
+export async function getUserProfile() {
+    try {
+        const supabase = await createClient();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+            return { error: "User not authenticated" };
+        }
+
+        const { data: profile, error } = await supabase
+            .from("profiles")
+            .select(`
+                id,
+                full_name, 
+                role, 
+                roles, 
+                active_role,
+                company:companies(name)
+            `)
+            .eq("id", user.id)
+            .single();
+
+        if (error) {
+            return { error: "Failed to fetch profile" };
+        }
+
+        return { profile, user };
+    } catch (e) {
+        return { error: "Unexpected error" };
+    }
+}
+
+export async function forceRoleUpdate() {
+    console.log(">>> [ACTION] Starting forceRoleUpdate...");
+
+    try {
+        // 1. Auth check
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return { success: false, error: "No autenticado" };
+        }
+
+        // 2. Use Admin Client to bypass RLS
+        const admin = createAdminClient();
+
+        // 3. Upsert
+        const { error } = await admin
+            .from('profiles')
+            .upsert({
+                id: user.id,
+                email: user.email,
+                role: 'super_admin',
+                active_role: 'super_admin',
+                roles: ['super_admin', 'company_admin', 'employee'],
+                admin_status: 'active',
+                full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Administrador',
+                last_active_at: new Date().toISOString()
+            }, {
+                onConflict: 'id'
+            });
+
+        if (error) {
+            console.error(">>> [ACTION] DB Error:", error);
+            return { success: false, error: "Error DB: " + error.message };
+        }
+
+        revalidatePath('/perfil');
+        return { success: true, message: "PERMISOS CONCEDIDOS: Ahora eres Super Admin." };
+
+    } catch (e: any) {
+        console.error(">>> [ACTION] Fatal exception:", e);
+        return { success: false, error: "Error fatal: " + e.message };
+    }
+}

@@ -5,7 +5,7 @@ import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } fro
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
-import { forceRoleUpdate } from "@/lib/debug-actions";
+import { forceRoleUpdate } from "@/lib/actions";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -166,7 +166,7 @@ export default function ProfilePage() {
                                 }
                             } catch (error: any) {
                                 console.error("Error in button click:", error);
-                                alert("ERROR DE CONEXIÓN: No se pudo completar la acción. Por favor intenta de nuevo.");
+                                alert("ERROR TÉCNICO: " + (error.message || "Error de red o servidor") + ". Por favor, intenta recargar la página.");
                                 btn.innerText = originalText;
                                 btn.disabled = false;
                             }
