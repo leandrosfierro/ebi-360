@@ -24,6 +24,8 @@ export default function ProfilePage() {
 
         const fetchData = async () => {
             const supabase = createClient();
+            // Force refresh session to ensure we have latest roles
+            await supabase.auth.refreshSession();
             const { data: { user } } = await supabase.auth.getUser();
 
             if (user) {
