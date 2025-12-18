@@ -1184,19 +1184,35 @@ export async function forceRoleUpdate() {
     console.log(">>> [ACTION] Starting forceRoleUpdate...");
 
     try {
-        // 1. Auth check
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        // 1. Env check explicitly here
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-        if (!user) {
-            return { success: false, error: "No autenticado" };
+        if (!serviceKey || !supabaseUrl) {
+            console.error(">>> [ACTION] Missing environment variables");
+            return {
+                success: false,
+                error: "CONFIGURACIÓN INCOMPLETA: Falta la Service Role Key o URL en el servidor."
+            };
         }
 
-        // 2. Use Admin Client to bypass RLS
+        // 2. Auth check
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            console.error(">>> [ACTION] Auth check failed:", authError);
+            return { success: false, error: "AUTENTICACIÓN FALLIDA: Por favor reconéctate." };
+        }
+
+        console.log(">>> [ACTION] Targeting user:", user.id);
+
+        // 3. Create Admin Client
         const admin = createAdminClient();
 
-        // 3. Upsert
-        const { error } = await admin
+        // 4. Force Upsert
+        console.log(">>> [ACTION] Executing DB Upsert...");
+        const { error: upsertError } = await admin
             .from('profiles')
             .upsert({
                 id: user.id,
@@ -1211,16 +1227,22 @@ export async function forceRoleUpdate() {
                 onConflict: 'id'
             });
 
-        if (error) {
-            console.error(">>> [ACTION] DB Error:", error);
-            return { success: false, error: "Error DB: " + error.message };
+        if (upsertError) {
+            console.error(">>> [ACTION] DB Error:", upsertError);
+            return { success: false, error: "ERROR DE BASE DE DATOS: " + upsertError.message };
         }
 
-        revalidatePath('/perfil');
-        return { success: true, message: "PERMISOS CONCEDIDOS: Ahora eres Super Admin." };
+        console.log(">>> [ACTION] SUCCESS!");
+        return {
+            success: true,
+            message: "PERMISOS DE SUPER ADMIN ACTIVADOS. Recargando página..."
+        };
 
     } catch (e: any) {
-        console.error(">>> [ACTION] Fatal exception:", e);
-        return { success: false, error: "Error fatal: " + e.message };
+        console.error(">>> [ACTION] FATAL EXCEPTION:", e);
+        return {
+            success: false,
+            error: "EXCEPCIÓN EN EL SERVIDOR: " + (e.message || "Error desconocido")
+        };
     }
 }
