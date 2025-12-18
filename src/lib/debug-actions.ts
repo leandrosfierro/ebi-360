@@ -2,33 +2,39 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { revalidatePath } from "next/cache";
 
 export async function forceRoleUpdate() {
     console.log(">>> [DEBUG ACTION] Starting forceRoleUpdate...");
 
     try {
+        // 1. Check Env Vars
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
         if (!serviceKey || !supabaseUrl) {
             console.error(">>> [DEBUG ACTION] Missing environment variables");
-            return { success: false, error: "Faltan variables de entorno (Service Key o URL)" };
+            return {
+                success: false,
+                error: "CONFIGURACIÓN INCOMPLETA: Falta SUPABASE_SERVICE_ROLE_KEY en el servidor."
+            };
         }
 
-        // 1. Authenticate user using the standard server client
+        // 2. Authenticate user
         console.log(">>> [DEBUG ACTION] Authenticating user...");
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {
             console.error(">>> [DEBUG ACTION] Auth error:", authError);
-            return { success: false, error: "No autenticado: " + (authError?.message || "Usuario nulo") };
+            return {
+                success: false,
+                error: "SESIÓN INVÁLIDA: Por favor cierra sesión y vuelve a entrar."
+            };
         }
 
-        console.log(">>> [DEBUG ACTION] User found:", user.id);
+        console.log(">>> [DEBUG ACTION] Targeting user:", user.id);
 
-        // 2. Create Admin Client
+        // 3. Create Admin Client
         const adminClient = createSupabaseClient(supabaseUrl, serviceKey, {
             auth: {
                 autoRefreshToken: false,
@@ -36,50 +42,40 @@ export async function forceRoleUpdate() {
             }
         });
 
-        // 3. Force Update/Upsert
-        console.log(">>> [DEBUG ACTION] Updating profile for:", user.id);
-        const { data: existing } = await adminClient.from('profiles').select('id').eq('id', user.id).single();
-
-        let result;
-        if (!existing) {
-            console.log(">>> [DEBUG ACTION] Profile not found, performing INSERT...");
-            result = await adminClient.from('profiles').insert({
+        // 4. Force Upsert
+        console.log(">>> [DEBUG ACTION] Executing Upsert...");
+        const { error: upsertError } = await adminClient
+            .from('profiles')
+            .upsert({
                 id: user.id,
                 email: user.email,
                 role: 'super_admin',
                 active_role: 'super_admin',
                 roles: ['super_admin', 'company_admin', 'employee'],
                 admin_status: 'active',
-                full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Administrador'
+                full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Administrador',
+                last_active_at: new Date().toISOString()
+            }, {
+                onConflict: 'id'
             });
-        } else {
-            console.log(">>> [DEBUG ACTION] Profile found, performing UPDATE...");
-            result = await adminClient.from('profiles').update({
-                role: 'super_admin',
-                active_role: 'super_admin',
-                roles: ['super_admin', 'company_admin', 'employee'],
-                admin_status: 'active'
-            }).eq('id', user.id);
+
+        if (upsertError) {
+            console.error(">>> [DEBUG ACTION] DB Upsert Error:", upsertError);
+            return { success: false, error: "ERROR DB: " + upsertError.message };
         }
 
-        if (result.error) {
-            console.error(">>> [DEBUG ACTION] DB Error:", result.error);
-            return { success: false, error: "Error DB: " + result.error.message };
-        }
-
-        console.log(">>> [DEBUG ACTION] Success! Profile updated.");
-
-        // Return success without revalidatePath to avoid immediate render conflicts
+        console.log(">>> [DEBUG ACTION] SUCCESS");
         return {
             success: true,
-            message: "Permisos de Super Admin concedidos."
+            message: "¡ÉXITO! Ahora tienes permisos de Super Admin."
         };
 
     } catch (e: any) {
-        console.error(">>> [DEBUG ACTION] FATAL EXCEPTION:", e);
+        console.error(">>> [DEBUG ACTION] FATAL CRASH:", e);
+        // We return an object instead of throwing
         return {
             success: false,
-            error: "Excepción fatal en el servidor: " + (e.message || "Error desconocido")
+            error: "FALLO CRÍTICO EN SERVIDOR: " + (e.message || "Error desconocido")
         };
     }
 }
