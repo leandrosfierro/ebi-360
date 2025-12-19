@@ -70,12 +70,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f172a;
-    /* Dark Blue-Gray */
-    --foreground: #ffffff;
+    --background: #0b1120;
+    --foreground: #f8fafc;
     --card-bg: rgba(30, 41, 59, 0.7);
-    --card-border: rgba(255, 255, 255, 0.1);
+    --card-border: rgba(255, 255, 255, 0.08);
   }
+}
+
+.dark {
+  --background: #0b1120;
+  --foreground: #f8fafc;
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --card-border: rgba(255, 255, 255, 0.08);
 }
 
 body {
@@ -167,7 +173,15 @@ h5,
 h6 {
   letter-spacing: -0.025em;
   color: var(--color-primary-dark);
-  /* Use Dark Blue for headings by default */
+}
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #f8f9fa;
 }
 
 /* Animations */
