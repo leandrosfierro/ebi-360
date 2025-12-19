@@ -55,18 +55,27 @@ export default function ProfilePage() {
                         if (profile.roles) setUserRoles(profile.roles);
                         if (profile.active_role) setActiveRole(profile.active_role);
 
+                        const isMasterEmail = user.email?.toLowerCase().includes('leandrofierro') || user.email?.toLowerCase().includes('admin@bs360');
+                        const isSA = profile.roles?.includes('super_admin') || profile.role === 'super_admin' || isMasterEmail;
+
+                        if (isSA) {
+                            console.log(">>> [PROFILE] Super Admin detected. Syncing local state...");
+                            // Force local state to include admin roles if they are missing
+                            if (!profile.roles?.includes('super_admin')) {
+                                console.log(">>> [PROFILE] Repairing missing roles in state...");
+                                setUserRoles(['super_admin', 'company_admin', 'employee']);
+                                if (!profile.active_role || profile.active_role === 'employee') {
+                                    setActiveRole('super_admin');
+                                }
+                            }
+                        }
+
                         if (profile.company && typeof profile.company === 'object' && 'name' in profile.company) {
                             setCompanyName((profile.company as any).name);
                         }
 
                         if (profile.full_name) {
                             setUserName(profile.full_name);
-                        }
-
-                        // Auto-detect Super Admin status
-                        const isSA = profile.roles?.includes('super_admin') || profile.role === 'super_admin';
-                        if (isSA && profile.role !== 'super_admin') {
-                            console.log("Super Admin detected, but role is mismatched. Refreshing...");
                         }
                     }
 

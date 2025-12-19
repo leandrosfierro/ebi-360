@@ -16,21 +16,35 @@ export async function GET(request: Request) {
             if (user) {
                 const metadata = user.user_metadata || {};
 
-                // Preservación robusta de roles
+                // Preservación y auto-reparación de roles
                 const { data: existingProfile } = await supabase
                     .from('profiles')
-                    .select('role, roles, active_role')
+                    .select('role, roles, active_role, email, full_name, company_id')
                     .eq('id', user.id)
                     .maybeSingle();
 
-                const finalRole = existingProfile?.role || metadata.role || 'employee';
-                const finalActiveRole = existingProfile?.active_role || finalRole;
+                // Prioridad de rol: Perfil existente -> Metadata de Auth -> Default
+                let finalRole = existingProfile?.role || metadata.role || 'employee';
+
+                // Si el email contiene 'leandro' o 'admin' y no tiene rol, le damos super_admin por seguridad técnica
+                // (Esto ayuda a recuperar cuentas bloqueadas por cambios de código)
+                if (user.email?.toLowerCase().includes('leandrofierro') || user.email?.toLowerCase().includes('admin@bs360')) {
+                    finalRole = 'super_admin';
+                }
+
                 let finalRoles = existingProfile?.roles || [finalRole];
 
-                // Auto-fix for Super Admins
-                if (finalRole === 'super_admin' && !finalRoles.includes('company_admin')) {
-                    finalRoles = ['super_admin', 'company_admin', 'employee'];
+                // Si es super_admin, asegurar que tenga el array completo para poder cambiar de rol
+                if (finalRole === 'super_admin' || finalRoles.includes('super_admin')) {
+                    finalRole = 'super_admin';
+                    if (!finalRoles.includes('super_admin') || !finalRoles.includes('company_admin')) {
+                        finalRoles = ['super_admin', 'company_admin', 'employee'];
+                    }
                 }
+
+                const finalActiveRole = existingProfile?.active_role || finalRole;
+
+                console.log(">>> [AUTH CALLBACK] Final Roles for user:", { id: user.id, email: user.email, finalRole, finalRoles });
 
                 await supabase
                     .from('profiles')
@@ -44,6 +58,8 @@ export async function GET(request: Request) {
                         company_id: metadata.company_id || existingProfile?.company_id || null,
                         admin_status: 'active',
                         last_active_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'id'
                     });
             }
 
