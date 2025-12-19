@@ -5,7 +5,7 @@ import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } fro
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
-import { forceRoleUpdate } from "@/lib/actions";
+import { forceRoleUpdate } from "@/lib/force-action";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
