@@ -55,7 +55,11 @@ export default function ProfilePage() {
                         if (profile.roles) setUserRoles(profile.roles);
                         if (profile.active_role) setActiveRole(profile.active_role);
 
-                        const isMasterEmail = user.email?.toLowerCase().includes('leandrofierro') || user.email?.toLowerCase().includes('admin@bs360');
+                        const userEmail = user.email?.toLowerCase() || '';
+                        const isMasterEmail = userEmail.includes('leandro.fierro') ||
+                            userEmail.includes('leandrofierro') ||
+                            userEmail.includes('admin@bs360');
+
                         const isSA = profile.roles?.includes('super_admin') || profile.role === 'super_admin' || isMasterEmail;
 
                         if (isSA) {

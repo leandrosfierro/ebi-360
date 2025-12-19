@@ -26,16 +26,20 @@ export async function GET(request: Request) {
                 // Prioridad de rol: Perfil existente -> Metadata de Auth -> Default
                 let finalRole = existingProfile?.role || metadata.role || 'employee';
 
-                // Si el email contiene 'leandro' o 'admin' y no tiene rol, le damos super_admin por seguridad técnica
-                // (Esto ayuda a recuperar cuentas bloqueadas por cambios de código)
-                if (user.email?.toLowerCase().includes('leandrofierro') || user.email?.toLowerCase().includes('admin@bs360')) {
+                // Si el email es Leandro Fierro o admin de BS360, forzar super_admin
+                const userEmail = user.email?.toLowerCase() || '';
+                const isMaster = userEmail.includes('leandro.fierro') ||
+                    userEmail.includes('leandrofierro') ||
+                    userEmail.includes('admin@bs360');
+
+                if (isMaster) {
                     finalRole = 'super_admin';
                 }
 
                 let finalRoles = existingProfile?.roles || [finalRole];
 
-                // Si es super_admin, asegurar que tenga el array completo para poder cambiar de rol
-                if (finalRole === 'super_admin' || finalRoles.includes('super_admin')) {
+                // Si es super_admin (por email o por DB), asegurar que tenga el array completo
+                if (finalRole === 'super_admin' || finalRoles.includes('super_admin') || isMaster) {
                     finalRole = 'super_admin';
                     if (!finalRoles.includes('super_admin') || !finalRoles.includes('company_admin')) {
                         finalRoles = ['super_admin', 'company_admin', 'employee'];

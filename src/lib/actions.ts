@@ -708,7 +708,12 @@ export async function switchRole(newRole: 'super_admin' | 'company_admin' | 'emp
         let userRolesList = profile.roles || [];
 
         // Auto-fix for Master Admins if roles are missing
-        if ((user.email?.toLowerCase().includes('leandrofierro') || user.email?.toLowerCase().includes('admin@bs360')) && !userRolesList.includes('super_admin')) {
+        const userEmail = user.email?.toLowerCase() || '';
+        const isMaster = userEmail.includes('leandro.fierro') ||
+            userEmail.includes('leandrofierro') ||
+            userEmail.includes('admin@bs360');
+
+        if (isMaster && !userRolesList.includes('super_admin')) {
             userRolesList = ['super_admin', 'company_admin', 'employee'];
             // Sync this back to DB immediately
             await supabase.from('profiles').update({ roles: userRolesList, role: 'super_admin' }).eq('id', user.id);
