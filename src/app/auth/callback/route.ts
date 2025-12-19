@@ -16,23 +16,22 @@ export async function GET(request: Request) {
             if (user) {
                 const metadata = user.user_metadata || {};
 
-                // Check if profile already exists to preserve roles
+                // Preservación robusta de roles
                 const { data: existingProfile } = await supabase
                     .from('profiles')
-                    .select('full_name, role, roles, active_role, company_id')
+                    .select('role, roles, active_role')
                     .eq('id', user.id)
-                    .single();
+                    .maybeSingle();
 
-                // Determine final values, favoring existing ones if the new ones are defaults
                 const finalRole = existingProfile?.role || metadata.role || 'employee';
-                const finalActiveRole = existingProfile?.active_role || metadata.active_role || finalRole;
+                const finalActiveRole = existingProfile?.active_role || finalRole;
+                let finalRoles = existingProfile?.roles || [finalRole];
 
-                let finalRolesArray = existingProfile?.roles || [finalRole];
-                if (finalRole === 'super_admin' && !finalRolesArray.includes('company_admin')) {
-                    finalRolesArray = ['super_admin', 'company_admin'];
+                // Auto-fix for Super Admins
+                if (finalRole === 'super_admin' && !finalRoles.includes('company_admin')) {
+                    finalRoles = ['super_admin', 'company_admin', 'employee'];
                 }
 
-                // UPSERT profile - create if doesn't exist, update if exists (preserving roles)
                 await supabase
                     .from('profiles')
                     .upsert({
@@ -41,13 +40,10 @@ export async function GET(request: Request) {
                         full_name: metadata.full_name || metadata.name || existingProfile?.full_name || '',
                         role: finalRole,
                         active_role: finalActiveRole,
-                        roles: finalRolesArray,
+                        roles: finalRoles,
                         company_id: metadata.company_id || existingProfile?.company_id || null,
                         admin_status: 'active',
                         last_active_at: new Date().toISOString()
-                    }, {
-                        onConflict: 'id',
-                        ignoreDuplicates: false
                     });
             }
 

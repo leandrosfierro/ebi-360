@@ -5,7 +5,6 @@ import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } fro
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
-import { forceRoleUpdate } from "@/lib/force-action";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -144,37 +143,6 @@ export default function ProfilePage() {
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">
                         Mi Perfil
                     </h1>
-                    <button
-                        onClick={async (e) => {
-                            const btn = e.currentTarget;
-                            const originalText = btn.innerText;
-                            try {
-                                console.log("Button clicked, calling forceRoleUpdate...");
-                                btn.innerText = "🔄 PROCESANDO...";
-                                btn.disabled = true;
-
-                                const res = await forceRoleUpdate();
-                                console.log("forceRoleUpdate result:", res);
-
-                                if (res.success) {
-                                    alert(res.message || "¡ÉXITO! Tu cuenta ahora tiene permisos de Super Admin. La página se recargará.");
-                                    window.location.reload();
-                                } else {
-                                    alert("UPS: " + (res.error || "Error desconocido"));
-                                    btn.innerText = originalText;
-                                    btn.disabled = false;
-                                }
-                            } catch (error: any) {
-                                console.error("Error in button click:", error);
-                                alert("ERROR TÉCNICO: " + (error.message || "Error de red o servidor") + ". Por favor, intenta recargar la página.");
-                                btn.innerText = originalText;
-                                btn.disabled = false;
-                            }
-                        }}
-                        className="bg-white/20 text-white text-[10px] px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 cursor-pointer z-[9999] pointer-events-auto uppercase tracking-widest font-bold shadow-lg"
-                    >
-                        🔄 Actualizar Roles
-                    </button>
                 </header>
 
                 {/* Profile Card */}

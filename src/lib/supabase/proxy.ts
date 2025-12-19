@@ -51,7 +51,7 @@ export async function updateSession(request: NextRequest) {
             .from('profiles')
             .select('active_role, role, roles')
             .eq('id', user.id)
-            .single()
+            .maybeSingle()
 
         const activeRole = profile?.active_role || profile?.role || 'employee'
         // Universal Pass: If user has 'super_admin' in their roles list, let them pass ANY admin check
