@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, Mail, Ban, CheckCircle, RefreshCw } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Mail, Ban, CheckCircle, RefreshCw, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditCompanyDialog } from "./EditCompanyDialog";
 import { DeleteCompanyAlert } from "./DeleteCompanyAlert";
+import { ManageSurveysDialog } from "./surveys/ManageSurveysDialog";
 import { updateAdminStatus, resendAdminInvitation } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 
@@ -34,6 +35,7 @@ interface CompanyActionsMenuProps {
 export function CompanyActionsMenu({ company, admin }: CompanyActionsMenuProps) {
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showSurveysDialog, setShowSurveysDialog] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -77,6 +79,10 @@ export function CompanyActionsMenu({ company, admin }: CompanyActionsMenuProps) 
                     <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         Editar Empresa
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowSurveysDialog(true)}>
+                        <ClipboardCheck className="mr-2 h-4 w-4" />
+                        Gestionar Encuestas
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-red-600 focus:text-red-600">
@@ -132,6 +138,13 @@ export function CompanyActionsMenu({ company, admin }: CompanyActionsMenuProps) 
                 companyName={company.name}
                 open={showDeleteDialog}
                 onOpenChange={setShowDeleteDialog}
+            />
+
+            <ManageSurveysDialog
+                companyId={company.id}
+                companyName={company.name}
+                open={showSurveysDialog}
+                onOpenChange={setShowSurveysDialog}
             />
         </>
     );

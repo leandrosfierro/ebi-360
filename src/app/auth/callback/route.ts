@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES, DEFAULT_ROLES } from "@/config/super-admins";
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
@@ -24,31 +25,37 @@ export async function GET(request: Request) {
                     .maybeSingle();
 
                 // Prioridad de rol: Perfil existente -> Metadata de Auth -> Default
-                let finalRole = existingProfile?.role || metadata.role || 'employee';
+                let finalRole = existingProfile?.role || metadata.role || DEFAULT_ROLES.EMPLOYEE;
 
-                // Si el email es Leandro Fierro o admin de BS360, forzar super_admin
-                const userEmail = user.email?.toLowerCase() || '';
-                const isMaster = userEmail.includes('leandro.fierro') ||
-                    userEmail.includes('leandrofierro') ||
-                    userEmail.includes('admin@bs360');
+                // Verificar si el email es de un super admin autorizado
+                const userEmail = user.email || '';
+                const isMaster = isSuperAdminEmail(userEmail);
 
                 if (isMaster) {
-                    finalRole = 'super_admin';
+                    finalRole = DEFAULT_ROLES.SUPER_ADMIN;
                 }
 
                 let finalRoles = existingProfile?.roles || [finalRole];
 
                 // Si es super_admin (por email o por DB), asegurar que tenga el array completo
-                if (finalRole === 'super_admin' || finalRoles.includes('super_admin') || isMaster) {
-                    finalRole = 'super_admin';
-                    if (!finalRoles.includes('super_admin') || !finalRoles.includes('company_admin')) {
-                        finalRoles = ['super_admin', 'company_admin', 'employee'];
+                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN || finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN) || isMaster) {
+                    finalRole = DEFAULT_ROLES.SUPER_ADMIN;
+                    if (!finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN) || !finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN)) {
+                        finalRoles = [...SUPER_ADMIN_FULL_ROLES];
                     }
                 }
 
                 const finalActiveRole = existingProfile?.active_role || finalRole;
 
-                console.log(">>> [AUTH CALLBACK] Final Roles for user:", { id: user.id, email: user.email, finalRole, finalRoles });
+                // Debug logging only in development
+                if (process.env.NODE_ENV === 'development') {
+                    console.log("[AUTH CALLBACK] Final Roles for user:", {
+                        id: user.id,
+                        email: user.email,
+                        finalRole,
+                        finalRoles
+                    });
+                }
 
                 await supabase
                     .from('profiles')

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Users, FileText, TrendingUp } from "lucide-react";
+import { Building2, Users, FileText, TrendingUp, Activity } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -10,6 +10,7 @@ export default async function SuperAdminDashboard() {
     const { count: companiesCount } = await supabase.from("companies").select("*", { count: "exact", head: true });
     const { count: usersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
     const { count: resultsCount } = await supabase.from("results").select("*", { count: "exact", head: true });
+    const { count: surveysCount } = await supabase.from("surveys").select("*", { count: "exact", head: true });
 
     // Calculate average global score
     const { data: results } = await supabase.from("results").select("global_score");
@@ -32,7 +33,7 @@ export default async function SuperAdminDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-foreground/80">Empresas Activas</CardTitle>
@@ -55,18 +56,28 @@ export default async function SuperAdminDashboard() {
                 </Card>
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-foreground/80">Encuestas Completadas</CardTitle>
+                        <CardTitle className="text-sm font-medium text-foreground/80">Encuestas</CardTitle>
                         <FileText className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
+                        <div className="text-3xl font-bold text-foreground">{surveysCount || 0}</div>
+                        <p className="text-xs text-muted-foreground mt-1">Sistemas disponibles</p>
+                    </CardContent>
+                </Card>
+                <Card className="glass-card">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-foreground/80">Completadas</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                    </CardHeader>
+                    <CardContent>
                         <div className="text-3xl font-bold text-foreground">{resultsCount || 0}</div>
-                        <p className="text-xs text-muted-foreground mt-1">Total históricas</p>
+                        <p className="text-xs text-muted-foreground mt-1">Respuestas totales</p>
                     </CardContent>
                 </Card>
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-foreground/80">Promedio Global</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <Activity className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold text-foreground">{averageScore}</div>

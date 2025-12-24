@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Usuario EBI 360</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            background: linear-gradient(135deg, #6366f1 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .cover {
+            background: #6366f1;
+            background: linear-gradient(135deg, #6366f1 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .cover-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #6366f1;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .cover h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+        }
+        
+        .cover .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .cover .version {
+            font-size: 1rem;
+            opacity: 0.85;
+            margin-top: 2rem;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 4rem 3rem;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #111827;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        h1 { 
+            font-size: 2.5rem; 
+            border-bottom: 4px solid #6366f1; 
+            padding-bottom: 0.75rem;
+            margin-top: 3rem;
+        }
+        
+        h2 { 
+            font-size: 2rem; 
+            color: #6366f1;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        h2::before {
+            content: '';
+            width: 6px;
+            height: 2rem;
+            background: #6366f1;
+            border-radius: 3px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: #374151;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+        
+        p {
+            margin-bottom: 1.25rem;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #be123c;
+            border: 1px solid #e5e7eb;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #374151;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border: none;
+        }
+        
+        blockquote {
+            border-left: 5px solid #6366f1;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            background: #f9fafb;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #374151;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #6366f1 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .toc {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: #6366f1;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            padding: 0.5rem 0;
+        }
+        
+        .toc a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .toc a:hover {
+            transform: translateX(8px);
+            color: #764ba2;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 5px solid #3b82f6;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 5px solid #10b981;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 5px solid #ef4444;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 3rem;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            border-top: 3px solid #6366f1;
+        }
+        
+        .footer strong {
+            color: #6366f1;
+        }
+        
+        .print-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #6366f1;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            .cover {
+                page-break-after: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            pre, table {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                border-radius: 0;
+            }
+            
+            .cover {
+                padding: 3rem 1.5rem;
+            }
+            
+            .cover h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    
+    <div class="container">
+        <div class="cover">
+            <div class="cover-content">
+                <div class="logo">EBI</div>
+                <h1>Guía de Usuario EBI 360</h1>
+                <p class="subtitle">Para Colaboradores</p>
+                <p class="version">Versión 1.0 • December 2025</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1>📱 Guía de Usuario - EBI 360</h1>
+<h2>Para Colaboradores</h2>
+<br>
+<strong>Versión:</strong> 1.0  
+<strong>Última actualización:</strong> Diciembre 2025  
+<strong>Plataforma:</strong> Web y Móvil
+<br>
+<p>---</p>
+<br>
+<h2>📋 Tabla de Contenidos</h2>
+<br>
+<ol>
+<li><a href="#introducción">Introducción</a></li>
+<li><a href="#primeros-pasos">Primeros Pasos</a></li>
+<li><a href="#panel-principal">Panel Principal</a></li>
+<li><a href="#realizar-diagnóstico">Realizar Diagnóstico</a></li>
+<li><a href="#ver-resultados">Ver Resultados</a></li>
+<li><a href="#perfil-de-usuario">Perfil de Usuario</a></li>
+<li><a href="#preguntas-frecuentes">Preguntas Frecuentes</a></li>
+<li><a href="#soporte">Soporte</a></li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Introducción</h2>
+<br>
+<h3>¿Qué es EBI 360?</h3>
+<br>
+<strong>EBI 360</strong> (Evaluación de Bienestar Integral 360°) es una plataforma diseñada específicamente para la realidad de LATAM que te permite:
+<br>
+<ul>
+<li>✅ Evaluar tu bienestar integral en 6 dimensiones clave</li>
+<li>✅ Obtener resultados inmediatos y personalizados</li>
+<li>✅ Recibir recomendaciones prácticas y accionables</li>
+<li>✅ Hacer seguimiento de tu evolución en el tiempo</li>
+</ul>
+<br>
+<h3>Las 6 Dimensiones del Bienestar</h3>
+<br>
+<ol>
+<li><strong>🏃 Físico</strong> - Salud, ejercicio, alimentación</li>
+<li><strong>💭 Emocional</strong> - Gestión emocional, estrés, equilibrio</li>
+<li><strong>👥 Social</strong> - Relaciones, conexiones, comunidad</li>
+<li><strong>💼 Profesional</strong> - Carrera, desarrollo, satisfacción laboral</li>
+<li><strong>🧠 Intelectual</strong> - Aprendizaje, creatividad, crecimiento</li>
+<li><strong>💰 Financiero</strong> - Estabilidad, planificación, seguridad</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🚀 Primeros Pasos</h2>
+<br>
+<h3>1. Acceso a la Plataforma</h3>
+<br>
+<h4>Desde Computadora</h4>
+<ol>
+<li>Abre tu navegador web (Chrome, Firefox, Safari, Edge)</li>
+<li>Ingresa a la URL proporcionada por tu empresa</li>
+<li>Verás la pantalla de bienvenida con el logo de EBI 360</li>
+</ol>
+<br>
+<h4>Desde Móvil</h4>
+<ol>
+<li>Abre el navegador de tu smartphone</li>
+<li>Ingresa a la URL proporcionada</li>
+<li>La interfaz se adaptará automáticamente a tu pantalla</li>
+</ol>
+<br>
+<h3>2. Iniciar Sesión</h3>
+<br>
+<strong>Método de Autenticación: Google</strong>
+<br>
+<ol>
+<li>En la pantalla de inicio, haz clic en <strong>"Ingresar con Google"</strong></li>
+<li>Selecciona tu cuenta de Google corporativa</li>
+<li>Autoriza el acceso a EBI 360</li>
+<li>Serás redirigido automáticamente a tu panel principal</li>
+</ol>
+<br>
+<p>> <strong>💡 Importante:</strong> Debes usar el email corporativo que tu empresa registró en el sistema.</p>
+<br>
+<h3>3. Primera Configuración</h3>
+<br>
+<p>Al ingresar por primera vez:</p>
+<br>
+<ol>
+<li><strong>Completa tu perfil</strong></li>
+<li>Nombre completo</li>
+<li>Foto de perfil (opcional)</li>
+<li>Información básica</li>
+</ol>
+<br>
+<ol>
+<li><strong>Revisa tu información</strong></li>
+<li>Empresa asignada</li>
+<li>Departamento</li>
+<li>Rol en la organización</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🏠 Panel Principal</h2>
+<br>
+<h3>Vista General</h3>
+<br>
+<p>Al iniciar sesión, verás tu <strong>Dashboard Personal</strong> con:</p>
+<br>
+<h4>Sección Superior</h4>
+<ul>
+<li><strong>Saludo personalizado</strong> con tu nombre</li>
+<li><strong>Fecha y hora actual</strong></li>
+<li><strong>Acceso rápido</strong> a funciones principales</li>
+</ul>
+<br>
+<h4>Tarjeta de Diagnóstico</h4>
+<p>Si <strong>NO has realizado un diagnóstico</strong>:</p>
+<p>``<code></p>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  ✨ Comienza tu Diagnóstico         │</p>
+<p>│                                     │</p>
+<p>│  Descubre tu nivel de bienestar    │</p>
+<p>│  integral en solo 10 minutos        │</p>
+<p>│                                     │</p>
+<p>│  [Iniciar Diagnóstico] →           │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<p>Si <strong>YA realizaste un diagnóstico</strong>:</p>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Tu Último Diagnóstico              │</p>
+<p>│                                     │</p>
+<p>│  Puntuación Global: 7.8/10          │</p>
+<p>│  Fecha: 15 Dic 2025                 │</p>
+<p>│                                     │</p>
+<p>│  [Ver Resultados Completos] →      │</p>
+<p>│  [Realizar Nuevo Diagnóstico]      │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h4>Resumen Visual</h4>
+<ul>
+<li><strong>Gráfico circular</strong> con tu puntuación global</li>
+<li><strong>Barra de progreso</strong> por cada dimensión</li>
+<li><strong>Indicadores de color</strong>:</li>
+<li>🟢 Verde (7-10): Excelente</li>
+<li>🟡 Amarillo (5-6.9): Bueno</li>
+<li>🔴 Rojo (0-4.9): Necesita atención</li>
+</ol>
+<br>
+<h3>Navegación Principal</h3>
+<br>
+<h4>Barra Inferior (Móvil) / Menú Lateral (Desktop)</h4>
+<br>
+<ol>
+<li><strong>🏠 Inicio</strong></li>
+<li>Dashboard principal</li>
+<li>Resumen de tu estado</li>
+</ol>
+<br>
+<ol>
+<li><strong>📊 Diagnóstico</strong></li>
+<li>Realizar nueva evaluación</li>
+<li>Cuestionario interactivo</li>
+</ol>
+<br>
+<ol>
+<li><strong>📈 Resultados</strong></li>
+<li>Ver resultados históricos</li>
+<li>Comparar evolución</li>
+<li>Descargar reportes</li>
+</ol>
+<br>
+<ol>
+<li><strong>👤 Perfil</strong></li>
+<li>Configuración personal</li>
+<li>Información de cuenta</li>
+<li>Cerrar sesión</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Realizar Diagnóstico</h2>
+<br>
+<h3>Preparación</h3>
+<br>
+<strong>Antes de comenzar:</strong>
+<ul>
+<li>⏱️ Reserva 10-15 minutos sin interrupciones</li>
+<li>🧘 Busca un lugar tranquilo</li>
+<li>💭 Responde con honestidad (tus respuestas son confidenciales)</li>
+<li>📱 Asegúrate de tener buena conexión a internet</li>
+</ul>
+<br>
+<h3>Paso a Paso</h3>
+<br>
+<h4>1. Iniciar el Diagnóstico</h4>
+<br>
+<ol>
+<li>Desde el Dashboard, haz clic en <strong>"Iniciar Diagnóstico"</strong></li>
+<li>Lee las instrucciones iniciales</li>
+<li>Haz clic en <strong>"Comenzar"</strong></li>
+</ol>
+<br>
+<h4>2. Responder el Cuestionario</h4>
+<br>
+<strong>Formato de Preguntas:</strong>
+<ul>
+<li>Escala de 1 a 10</li>
+<li>1 = Totalmente en desacuerdo / Nunca</li>
+<li>10 = Totalmente de acuerdo / Siempre</li>
+</ul>
+<br>
+<strong>Estructura:</strong>
+</code>`<code>
+<p>Pregunta 1 de 36</p>
+<br>
+<p>Dimensión: Físico 🏃</p>
+<br>
+<p>"Realizo actividad física regularmente"</p>
+<br>
+<p>1  2  3  4  5  6  7  8  9  10</p>
+<p>○  ○  ○  ○  ○  ○  ○  ○  ○  ○</p>
+<br>
+<p>[← Anterior]  [Siguiente →]</p>
+</code>`<code>
+<br>
+<strong>Consejos para Responder:</strong>
+<ul>
+<li>✅ Sé honesto contigo mismo</li>
+<li>✅ Piensa en tu situación actual (últimas 2-4 semanas)</li>
+<li>✅ No hay respuestas correctas o incorrectas</li>
+<li>✅ Confía en tu primera impresión</li>
+<li>❌ No pienses demasiado cada respuesta</li>
+</ol>
+<br>
+<h4>3. Progreso</h4>
+<br>
+<ul>
+<li><strong>Barra de progreso</strong> en la parte superior</li>
+<li><strong>Contador</strong> de preguntas (ej: "12/36")</li>
+<li><strong>Indicador de dimensión</strong> actual</li>
+<li><strong>Botones de navegación</strong>:</li>
+<li>"Anterior" para revisar</li>
+<li>"Siguiente" para avanzar</li>
+</ol>
+<br>
+<h4>4. Revisión Final</h4>
+<br>
+<p>Antes de enviar:</p>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Resumen de tu Diagnóstico          │</p>
+<p>│                                     │</p>
+<p>│  Preguntas respondidas: 36/36 ✓    │</p>
+<p>│                                     │</p>
+<p>│  ¿Deseas revisar alguna respuesta?  │</p>
+<p>│                                     │</p>
+<p>│  [Revisar]  [Enviar Diagnóstico]   │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h4>5. Envío y Procesamiento</h4>
+<br>
+<ol>
+<li>Haz clic en <strong>"Enviar Diagnóstico"</strong></li>
+<li>El sistema procesará tus respuestas (2-3 segundos)</li>
+<li>Serás redirigido automáticamente a tus resultados</li>
+</ol>
+<br>
+<p>> <strong>🔒 Confidencialidad:</strong> Tus respuestas individuales son privadas. Solo tú y los datos agregados anónimos son visibles para tu empresa.</p>
+<br>
+<p>---</p>
+<br>
+<h2>📈 Ver Resultados</h2>
+<br>
+<h3>Pantalla de Resultados</h3>
+<br>
+<h4>Puntuación Global</h4>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│         Tu Bienestar Global         │</p>
+<p>│                                     │</p>
+<p>│            ┌─────┐                  │</p>
+<p>│            │ 7.8 │                  │</p>
+<p>│            └─────┘                  │</p>
+<p>│             /10                     │</p>
+<p>│                                     │</p>
+<p>│  Estado: Bueno 🟢                   │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h4>Desglose por Dimensiones</h4>
+<br>
+<p>Para cada dimensión verás:</p>
+<br>
+<strong>Ejemplo: Dimensión Física</strong>
+</code>`<code>
+<p>🏃 Físico                    8.2/10 🟢</p>
+<p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
+<p>████████████████████████░░░░░░░░ 82%</p>
+<br>
+<p>Fortalezas:</p>
+<p>✓ Actividad física regular</p>
+<p>✓ Buena calidad de sueño</p>
+<br>
+<p>Áreas de mejora:</p>
+<p>⚠ Alimentación balanceada</p>
+<p>⚠ Hidratación diaria</p>
+<br>
+<p>Recomendaciones:</p>
+<p>• Incorpora más frutas y verduras</p>
+<p>• Bebe al menos 2 litros de agua al día</p>
+<p>• Mantén tu rutina de ejercicio</p>
+</code>`<code>
+<br>
+<h4>Gráfico Radar</h4>
+<br>
+<p>Visualización de las 6 dimensiones:</p>
+</code>`<code>
+<p>        Físico</p>
+<p>          /\</p>
+<p>         /  \</p>
+<p>    Int /    \ Emo</p>
+<p>       /  •   \</p>
+<p>      /________\</p>
+<p>    Pro        Soc</p>
+<p>         Fin</p>
+</code>`<code>
+<br>
+<h3>Interpretación de Resultados</h3>
+<br>
+<h4>Rangos de Puntuación</h4>
+<br>
+<p>| Rango | Color | Significado | Acción |</p>
+<p>|-------|-------|-------------|--------|</p>
+<p>| 8.0 - 10.0 | 🟢 Verde | Excelente | Mantener |</p>
+<p>| 7.0 - 7.9 | 🟢 Verde Claro | Muy Bueno | Optimizar |</p>
+<p>| 5.0 - 6.9 | 🟡 Amarillo | Bueno | Mejorar |</p>
+<p>| 3.0 - 4.9 | 🟠 Naranja | Regular | Atender |</p>
+<p>| 0.0 - 2.9 | 🔴 Rojo | Crítico | Urgente |</p>
+<br>
+<h3>Acciones Disponibles</h3>
+<br>
+<h4>1. Descargar Reporte PDF</h4>
+<br>
+<ol>
+<li>Haz clic en <strong>"Exportar PDF"</strong></li>
+<li>Selecciona el tipo de reporte:</li>
+<li><strong>Ejecutivo</strong> (1 página, resumen)</li>
+<li><strong>Completo</strong> (detallado con recomendaciones)</li>
+<li>El PDF se descargará automáticamente</li>
+</ol>
+<br>
+<strong>Contenido del PDF:</strong>
+<ul>
+<li>Fecha del diagnóstico</li>
+<li>Puntuación global y por dimensión</li>
+<li>Gráficos visuales</li>
+<li>Recomendaciones personalizadas</li>
+<li>Plan de acción sugerido</li>
+</ol>
+<br>
+<h4>2. Compartir Resultados</h4>
+<br>
+<ol>
+<li>Haz clic en <strong>"Compartir"</strong></li>
+<li>Opciones disponibles:</li>
+<li>📧 Email</li>
+<li>💬 WhatsApp</li>
+<li>🔗 Copiar enlace</li>
+<li>📱 Compartir en redes</li>
+</ol>
+<br>
+<p>> <strong>🔒 Privacidad:</strong> Solo se comparte un resumen visual, no tus respuestas individuales.</p>
+<br>
+<h4>3. Ver Evolución</h4>
+<br>
+<p>Si has realizado múltiples diagnósticos:</p>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Tu Evolución en el Tiempo          │</p>
+<p>│                                     │</p>
+<p>│  Diagnóstico 1 (Nov): 7.2           │</p>
+<p>│  Diagnóstico 2 (Dic): 7.8 ↑         │</p>
+<p>│                                     │</p>
+<p>│  Mejora: +0.6 puntos 🎉            │</p>
+<p>│                                     │</p>
+<p>│  [Ver Gráfico de Tendencia]        │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Recomendaciones Personalizadas</h3>
+<br>
+<p>Basadas en tus resultados, recibirás:</p>
+<br>
+<h4>Recomendaciones Inmediatas</h4>
+<ul>
+<li>3-5 acciones que puedes implementar HOY</li>
+<li>Priorizadas por impacto</li>
+<li>Específicas y accionables</li>
+</ul>
+<br>
+<strong>Ejemplo:</strong>
+</code>`<code>
+<p>🎯 Tus Próximos Pasos</p>
+<br>
+<ol>
+<li>🏃 Camina 15 minutos después del almuerzo</li>
+</ol>
+<p>   Impacto: Alto | Dificultad: Baja</p>
+<br>
+<ol>
+<li>💭 Practica 5 minutos de respiración consciente</li>
+</ol>
+<p>   Impacto: Medio | Dificultad: Baja</p>
+<br>
+<ol>
+<li>👥 Programa una llamada con un amigo</li>
+</ol>
+<p>   Impacto: Medio | Dificultad: Baja</p>
+</code>`<code>
+<br>
+<h4>Plan de 30 Días</h4>
+<ul>
+<li>Objetivos semanales</li>
+<li>Hábitos a desarrollar</li>
+<li>Métricas de seguimiento</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>👤 Perfil de Usuario</h2>
+<br>
+<h3>Acceder a tu Perfil</h3>
+<br>
+<ol>
+<li>Haz clic en el ícono de <strong>perfil</strong> (esquina superior derecha)</li>
+<li>O selecciona <strong>"Perfil"</strong> en el menú de navegación</li>
+</ol>
+<br>
+<h3>Información Personal</h3>
+<br>
+<h4>Datos Básicos</h4>
+<ul>
+<li><strong>Nombre completo</strong></li>
+<li><strong>Email corporativo</strong></li>
+<li><strong>Foto de perfil</strong></li>
+<li><strong>Departamento</strong></li>
+<li><strong>Fecha de ingreso</strong></li>
+</ol>
+<br>
+<h4>Editar Perfil</h4>
+<br>
+<ol>
+<li>Haz clic en <strong>"Editar Perfil"</strong></li>
+<li>Modifica los campos permitidos:</li>
+<li>Nombre completo</li>
+<li>Foto de perfil</li>
+<li>Haz clic en <strong>"Guardar Cambios"</strong></li>
+</ol>
+<br>
+<p>> <strong>ℹ️ Nota:</strong> Algunos campos (email, empresa) no son editables por seguridad.</p>
+<br>
+<h3>Configuración de Cuenta</h3>
+<br>
+<h4>Preferencias</h4>
+<br>
+<strong>Notificaciones:</strong>
+<ul>
+<li>✅ Recordatorios de diagnóstico</li>
+<li>✅ Nuevas recomendaciones</li>
+<li>✅ Actualizaciones de la plataforma</li>
+</ul>
+<br>
+<strong>Idioma:</strong>
+<ul>
+<li>🇪🇸 Español (predeterminado)</li>
+</ul>
+<br>
+<strong>Tema:</strong>
+<ul>
+<li>☀️ Claro</li>
+<li>🌙 Oscuro</li>
+<li>🔄 Automático (según sistema)</li>
+</ul>
+<br>
+<h3>Historial de Diagnósticos</h3>
+<br>
+<p>Visualiza todos tus diagnósticos anteriores:</p>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Historial de Diagnósticos          │</p>
+<p>│                                     │</p>
+<p>│  📅 15 Dic 2025 - Puntuación: 7.8   │</p>
+<p>│  📅 15 Nov 2025 - Puntuación: 7.2   │</p>
+<p>│  📅 15 Oct 2025 - Puntuación: 6.9   │</p>
+<p>│                                     │</p>
+<p>│  [Ver Detalles] [Comparar]         │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>``
+<br>
+<h3>Cerrar Sesión</h3>
+<br>
+<ol>
+<li>Ve a tu <strong>Perfil</strong></li>
+<li>Desplázate hasta el final</li>
+<li>Haz clic en <strong>"Cerrar Sesión"</strong></li>
+<li>Confirma la acción</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>❓ Preguntas Frecuentes</h2>
+<br>
+<h3>General</h3>
+<br>
+<strong>P: ¿Con qué frecuencia debo realizar el diagnóstico?</strong>  
+<p>R: Recomendamos hacerlo mensualmente para hacer un seguimiento efectivo de tu evolución.</p>
+<br>
+<strong>P: ¿Mis respuestas son confidenciales?</strong>  
+<p>R: Sí, completamente. Solo tú puedes ver tus respuestas individuales. Tu empresa solo ve datos agregados y anónimos.</p>
+<br>
+<strong>P: ¿Puedo pausar el diagnóstico y continuarlo después?</strong>  
+<p>R: Actualmente no. Debes completarlo en una sola sesión. Por eso recomendamos reservar 10-15 minutos sin interrupciones.</p>
+<br>
+<strong>P: ¿Puedo cambiar mis respuestas después de enviar?</strong>  
+<p>R: No, una vez enviado el diagnóstico no se puede modificar. Pero puedes realizar un nuevo diagnóstico cuando quieras.</p>
+<br>
+<h3>Técnicas</h3>
+<br>
+<strong>P: ¿Qué navegadores son compatibles?</strong>  
+<p>R: Chrome, Firefox, Safari, Edge (versiones recientes). También funciona en navegadores móviles.</p>
+<br>
+<strong>P: ¿Necesito instalar alguna aplicación?</strong>  
+<p>R: No, EBI 360 es una aplicación web. Solo necesitas un navegador.</p>
+<br>
+<strong>P: ¿Funciona sin conexión a internet?</strong>  
+<p>R: No, necesitas conexión a internet para usar la plataforma.</p>
+<br>
+<strong>P: ¿Qué hago si la página no carga?</strong>  
+<p>R: </p>
+<ol>
+<li>Verifica tu conexión a internet</li>
+<li>Actualiza la página (F5 o Ctrl+R)</li>
+<li>Limpia la caché del navegador</li>
+<li>Intenta con otro navegador</li>
+<li>Contacta a soporte si el problema persiste</li>
+</ol>
+<br>
+<h3>Resultados</h3>
+<br>
+<strong>P: ¿Qué significa mi puntuación?</strong>  
+<p>R: Es un promedio de tus respuestas en escala de 0-10. Refleja tu nivel de bienestar en cada dimensión y globalmente.</p>
+<br>
+<strong>P: ¿Cómo se calculan los resultados?</strong>  
+<p>R: Cada dimensión tiene 6 preguntas. El promedio de esas respuestas da la puntuación de la dimensión. El promedio de las 6 dimensiones da tu puntuación global.</p>
+<br>
+<strong>P: ¿Las recomendaciones son personalizadas?</strong>  
+<p>R: Sí, se generan automáticamente basadas en tus puntuaciones más bajas y tus respuestas específicas.</p>
+<br>
+<strong>P: ¿Puedo descargar mis resultados?</strong>  
+<p>R: Sí, puedes exportar un PDF completo con todos tus resultados y recomendaciones.</p>
+<br>
+<h3>Privacidad</h3>
+<br>
+<strong>P: ¿Quién puede ver mis resultados?</strong>  
+<p>R: Solo tú puedes ver tus resultados individuales completos. Tu empresa solo ve estadísticas agregadas y anónimas.</p>
+<br>
+<strong>P: ¿Se comparten mis datos con terceros?</strong>  
+<p>R: No. Tus datos están protegidos y solo se usan dentro de la plataforma para generar tus resultados y estadísticas agregadas.</p>
+<br>
+<strong>P: ¿Puedo eliminar mi cuenta?</strong>  
+<p>R: Contacta al administrador de tu empresa para solicitar la eliminación de tu cuenta.</p>
+<br>
+<p>---</p>
+<br>
+<h2>🆘 Soporte</h2>
+<br>
+<h3>Contacto</h3>
+<br>
+<strong>Soporte Técnico:</strong>
+<ul>
+<li>📧 Email: soporte@ebi360.com</li>
+<li>💬 Chat en vivo: Disponible en la plataforma (esquina inferior derecha)</li>
+<li>⏰ Horario: Lunes a Viernes, 9:00 - 18:00 (GMT-3)</li>
+</ul>
+<br>
+<strong>Administrador de tu Empresa:</strong>
+<ul>
+<li>Contacta al responsable de Recursos Humanos o Bienestar de tu organización</li>
+</ul>
+<br>
+<h3>Recursos Adicionales</h3>
+<br>
+<strong>Centro de Ayuda:</strong>
+<ul>
+<li>Videos tutoriales</li>
+<li>Artículos de ayuda</li>
+<li>Guías paso a paso</li>
+</ul>
+<br>
+<strong>Comunidad:</strong>
+<ul>
+<li>Foro de usuarios</li>
+<li>Mejores prácticas</li>
+<li>Historias de éxito</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>📱 Consejos de Uso</h2>
+<br>
+<h3>Para Mejores Resultados</h3>
+<br>
+<ol>
+<li><strong>Sé Consistente</strong></li>
+<li>Realiza el diagnóstico a la misma hora del mes</li>
+<li>Mantén un registro de tus acciones</li>
+</ol>
+<br>
+<ol>
+<li><strong>Actúa sobre las Recomendaciones</strong></li>
+<li>Elige 1-2 recomendaciones para implementar</li>
+<li>Hazlas parte de tu rutina diaria</li>
+<li>Evalúa tu progreso</li>
+</ol>
+<br>
+<ol>
+<li><strong>Comparte tu Experiencia</strong></li>
+<li>Habla con colegas sobre bienestar</li>
+<li>Forma grupos de apoyo</li>
+<li>Celebra tus logros</li>
+</ol>
+<br>
+<ol>
+<li><strong>Usa los Recursos</strong></li>
+<li>Lee los artículos sugeridos</li>
+<li>Mira los videos educativos</li>
+<li>Participa en actividades de bienestar de tu empresa</li>
+</ol>
+<br>
+<h3>Optimización Móvil</h3>
+<br>
+<strong>En tu Smartphone:</strong>
+<ul>
+<li>Agrega la página a tu pantalla de inicio para acceso rápido</li>
+<li>Activa las notificaciones para recordatorios</li>
+<li>Usa modo horizontal para mejor visualización de gráficos</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Próximos Pasos</h2>
+<br>
+<h3>Después de Leer esta Guía</h3>
+<br>
+<ol>
+<li>✅ Inicia sesión en EBI 360</li>
+<li>✅ Completa tu perfil</li>
+<li>✅ Realiza tu primer diagnóstico</li>
+<li>✅ Revisa tus resultados</li>
+<li>✅ Implementa 1-2 recomendaciones</li>
+<li>✅ Programa tu próximo diagnóstico</li>
+</ol>
+<br>
+<h3>Recuerda</h3>
+<br>
+<p>> <strong>"El bienestar no es un destino, es un viaje continuo de mejora personal y profesional."</strong></p>
+<br>
+<p>¡Bienvenido a EBI 360! Estamos aquí para acompañarte en tu camino hacia un bienestar integral.</p>
+<br>
+<p>---</p>
+<br>
+<strong>Versión del Documento:</strong> 1.0  
+<strong>Última Actualización:</strong> Diciembre 2025  
+<strong>Próxima Revisión:</strong> Marzo 2026
+<br>
+<p>---</p>
+<br>
+<em>© 2025 EBI 360 - Todos los derechos reservados</em>
+<br>
+        </div>
+        
+        <div class="footer">
+            <p><strong>© 2025 EBI 360</strong> - Todos los derechos reservados</p>
+            <p>Documento generado el 22 de December de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        window.addEventListener('beforeprint', () => {
+            document.title = 'Guía de Usuario EBI 360';
+        });
+    </script>
+</body>
+</html>

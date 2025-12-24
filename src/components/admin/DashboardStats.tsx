@@ -19,14 +19,18 @@ export function DashboardStats({
     alert = false,
 }: DashboardStatsProps) {
     return (
-        <Card>
+        <Card className="glass-card border-none shadow-lg hover:shadow-primary/5 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <Icon className={`h-4 w-4 ${alert ? "text-red-500" : "text-muted-foreground"}`} />
+                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{title}</CardTitle>
+                <div className={`p-1.5 rounded-lg ${alert ? "bg-rose-500/10" : "bg-primary/10"}`}>
+                    <Icon className={`h-4 w-4 ${alert ? "text-rose-500" : "text-primary"}`} />
+                </div>
             </CardHeader>
-            <CardContent>
-                <div className={`text-2xl font-bold ${alert ? "text-red-600" : ""}`}>{value}</div>
-                <p className="text-xs text-muted-foreground">{description}</p>
+            <CardContent className="pt-2">
+                <div className={`text-3xl font-black tracking-tight ${alert ? "text-rose-600" : "text-foreground"}`}>
+                    {value}
+                </div>
+                <p className="text-[11px] font-medium text-muted-foreground mt-1 line-clamp-1">{description}</p>
             </CardContent>
         </Card>
     );

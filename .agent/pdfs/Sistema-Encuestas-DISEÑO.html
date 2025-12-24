@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Encuestas Modulares</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .cover {
+            background: #7c3aed;
+            background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .cover-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #7c3aed;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .cover h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+        }
+        
+        .cover .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .cover .version {
+            font-size: 1rem;
+            opacity: 0.85;
+            margin-top: 2rem;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 4rem 3rem;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #111827;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        h1 { 
+            font-size: 2.5rem; 
+            border-bottom: 4px solid #7c3aed; 
+            padding-bottom: 0.75rem;
+            margin-top: 3rem;
+        }
+        
+        h2 { 
+            font-size: 2rem; 
+            color: #7c3aed;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        h2::before {
+            content: '';
+            width: 6px;
+            height: 2rem;
+            background: #7c3aed;
+            border-radius: 3px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: #374151;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+        
+        p {
+            margin-bottom: 1.25rem;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        
+        li.checkbox {
+            list-style: none;
+            margin-left: -1.5rem;
+        }
+        
+        li.checkbox.checked {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #be123c;
+            border: 1px solid #e5e7eb;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #374151;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border: none;
+        }
+        
+        blockquote {
+            border-left: 5px solid #7c3aed;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            background: #f9fafb;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #374151;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .toc {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: #7c3aed;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            padding: 0.5rem 0;
+        }
+        
+        .toc a {
+            color: #7c3aed;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .toc a:hover {
+            transform: translateX(8px);
+            color: #764ba2;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 5px solid #3b82f6;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 5px solid #10b981;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .danger-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 5px solid #ef4444;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 3rem;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            border-top: 3px solid #7c3aed;
+        }
+        
+        .footer strong {
+            color: #7c3aed;
+        }
+        
+        .print-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #7c3aed;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        }
+        
+        .diagram {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            margin: 2rem 0;
+            white-space: pre;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            .cover {
+                page-break-after: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            pre, table, .diagram {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                border-radius: 0;
+            }
+            
+            .cover {
+                padding: 3rem 1.5rem;
+            }
+            
+            .cover h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    
+    <div class="container">
+        <div class="cover">
+            <div class="cover-content">
+                <div class="logo">🏗️</div>
+                <h1>Sistema de Encuestas Modulares</h1>
+                <p class="subtitle">Diseño Técnico Completo</p>
+                <p class="version">Versión 1.0 • December 2025</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1>📊 Sistema Modular de Gestión de Encuestas - EBI 360</h1>
+<h2>Documento de Diseño y Arquitectura</h2>
+<br>
+<strong>Versión:</strong> 1.0  
+<strong>Fecha:</strong> 23 de Diciembre de 2025  
+<strong>Estado:</strong> 🔍 En Revisión
+<br>
+<p>---</p>
+<br>
+<h2>📋 Tabla de Contenidos</h2>
+<br>
+<ol>
+<li><a href="#resumen-ejecutivo">Resumen Ejecutivo</a></li>
+<li><a href="#análisis-de-la-situación-actual">Análisis de la Situación Actual</a></li>
+<li><a href="#objetivos-del-sistema">Objetivos del Sistema</a></li>
+<li><a href="#arquitectura-propuesta">Arquitectura Propuesta</a></li>
+<li><a href="#modelo-de-datos">Modelo de Datos</a></li>
+<li><a href="#flujos-de-trabajo">Flujos de Trabajo</a></li>
+<li><a href="#interfaces-de-usuario">Interfaces de Usuario</a></li>
+<li><a href="#plan-de-implementación">Plan de Implementación</a></li>
+<li><a href="#consideraciones-técnicas">Consideraciones Técnicas</a></li>
+<li><a href="#riesgos-y-mitigaciones">Riesgos y Mitigaciones</a></li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Resumen Ejecutivo</h2>
+<br>
+<h3>Problema Actual</h3>
+<ul>
+<li>Las preguntas de la encuesta EBI están <strong>hardcodeadas</strong> en <code>src/lib/logic.ts</code></li>
+<li>No existe flexibilidad para actualizar encuestas sin modificar código</li>
+<li>No hay soporte para múltiples encuestas por empresa</li>
+<li>No se pueden asignar encuestas específicas por país/normativa</li>
+</ul>
+<br>
+<h3>Solución Propuesta</h3>
+<p>Sistema modular de gestión de encuestas que permite:</p>
+<ul>
+<li>✅ Gestión dinámica de encuestas desde panel de Super Admin</li>
+<li>✅ Carga de encuestas mediante archivos Excel</li>
+<li>✅ Asignación de múltiples encuestas por empresa</li>
+<li>✅ Encuestas base (EBI) + encuestas complementarias (normativas)</li>
+<li>✅ Configuración por país y plan de suscripción</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Análisis de la Situación Actual</h2>
+<br>
+<h3>Estructura Actual</h3>
+<br>
+<p>``<code>typescript</p>
+<p>// src/lib/logic.ts</p>
+<p>export interface Question {</p>
+<p>    id: number;</p>
+<p>    domain: string;</p>
+<p>    construct: string;</p>
+<p>    type: QuestionType; // "RP" | "FO"</p>
+<p>    text: string;</p>
+<p>    weight: number;</p>
+<p>    severity: number;</p>
+<p>    personal_weight: number;</p>
+<p>    org_weight: number;</p>
+<p>}</p>
+<br>
+<p>export const questions: Question[] = [</p>
+<p>    // 36 preguntas hardcodeadas</p>
+<p>];</p>
+</code>`<code>
+<br>
+<h3>Limitaciones Identificadas</h3>
+<br>
+<ol>
+<li><strong>Rigidez</strong></li>
+<ul>
+<li>❌ Cambios requieren modificar código</li>
+<li>❌ Deploy necesario para actualizar encuestas</li>
+<li>❌ No versionado de encuestas</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Escalabilidad</strong></li>
+<ul>
+<li>❌ Una sola encuesta para todos</li>
+<li>❌ No soporta múltiples idiomas</li>
+<li>❌ No permite personalización por empresa</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Gestión</strong></li>
+<ul>
+<li>❌ Sin interfaz administrativa</li>
+<li>❌ No hay historial de cambios</li>
+<li>❌ Difícil auditoría</li>
+</ul>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Objetivos del Sistema</h2>
+<br>
+<h3>Objetivos Principales</h3>
+<br>
+<ol>
+<li><strong>Flexibilidad</strong></li>
+<ul>
+<li>✅ Actualizar encuestas sin modificar código</li>
+<li>✅ Múltiples encuestas activas simultáneamente</li>
+<li>✅ Versionado de encuestas</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Modularidad</strong></li>
+<ul>
+<li>✅ Encuesta base (EBI) obligatoria</li>
+<li>✅ Encuestas complementarias opcionales</li>
+<li>✅ Asignación por empresa/país/plan</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Usabilidad</strong></li>
+<ul>
+<li>✅ Carga mediante Excel (formato familiar)</li>
+<li>✅ Interfaz intuitiva para Super Admins</li>
+<li>✅ Validación automática de datos</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Trazabilidad</strong></li>
+<ul>
+<li>✅ Historial de versiones</li>
+<li>✅ Auditoría de cambios</li>
+<li>✅ Respuestas vinculadas a versión específica</li>
+</ul>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🏗️ Arquitectura Propuesta</h2>
+<br>
+<h3>Componentes del Sistema</h3>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────┐</p>
+<p>│                   SUPER ADMIN PANEL                     │</p>
+<p>│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │</p>
+<p>│  │   Encuestas  │  │  Asignación  │  │   Reportes   │ │</p>
+<p>│  │   Gestión    │  │   Empresas   │  │  Analíticas  │ │</p>
+<p>│  └──────────────┘  └──────────────┘  └──────────────┘ │</p>
+<p>└─────────────────────────────────────────────────────────┘</p>
+<p>                          ↓</p>
+<p>┌─────────────────────────────────────────────────────────┐</p>
+<p>│                    CAPA DE LÓGICA                       │</p>
+<p>│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │</p>
+<p>│  │   Parser     │  │  Validador   │  │  Calculador  │ │</p>
+<p>│  │   Excel      │  │   Datos      │  │  Puntajes    │ │</p>
+<p>│  └──────────────┘  └──────────────┘  └──────────────┘ │</p>
+<p>└─────────────────────────────────────────────────────────┘</p>
+<p>                          ↓</p>
+<p>┌─────────────────────────────────────────────────────────┐</p>
+<p>│                  BASE DE DATOS (Supabase)               │</p>
+<p>│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │</p>
+<p>│  │   surveys    │  │survey_       │  │  company_    │ │</p>
+<p>│  │              │  │questions     │  │  surveys     │ │</p>
+<p>│  └──────────────┘  └──────────────┘  └──────────────┘ │</p>
+<p>│  ┌──────────────┐  ┌──────────────┐                   │</p>
+<p>│  │   results    │  │  responses   │                   │</p>
+<p>│  │              │  │              │                   │</p>
+<p>│  └──────────────┘  └──────────────┘                   │</p>
+<p>└─────────────────────────────────────────────────────────┘</p>
+<p>                          ↓</p>
+<p>┌─────────────────────────────────────────────────────────┐</p>
+<p>│                  COMPANY ADMIN PANEL                    │</p>
+<p>│  ┌──────────────────────────────────────────────────┐  │</p>
+<p>│  │  Encuestas Asignadas a la Empresa                │  │</p>
+<p>│  │  - EBI 360 (Base)                                │  │</p>
+<p>│  │  - NOM-035 (México)                              │  │</p>
+<p>│  │  - Ley Karin (Chile)                             │  │</p>
+<p>│  └──────────────────────────────────────────────────┘  │</p>
+<p>└─────────────────────────────────────────────────────────┘</p>
+<p>                          ↓</p>
+<p>┌─────────────────────────────────────────────────────────┐</p>
+<p>│                   EMPLOYEE INTERFACE                    │</p>
+<p>│  ┌──────────────────────────────────────────────────┐  │</p>
+<p>│  │  Diagnósticos Disponibles                        │  │</p>
+<p>│  │  [Realizar EBI 360]  [Realizar NOM-035]          │  │</p>
+<p>│  └──────────────────────────────────────────────────┘  │</p>
+<p>└─────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>💾 Modelo de Datos</h2>
+<br>
+<h3>Tablas Principales</h3>
+<br>
+<h4>1. </code>surveys<code> (Encuestas)</h4>
+<br>
+</code>`<code>sql
+<p>CREATE TABLE surveys (</p>
+<p>    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),</p>
+<br>
+<p>    -- Información básica</p>
+<p>    code VARCHAR(50) UNIQUE NOT NULL,  -- 'EBI360', 'NOM035', 'LEY_KARIN'</p>
+<p>    name VARCHAR(200) NOT NULL,</p>
+<p>    description TEXT,</p>
+<br>
+<p>    -- Tipo y categoría</p>
+<p>    survey_type VARCHAR(50) NOT NULL,  -- 'base', 'regulatory', 'custom'</p>
+<p>    category VARCHAR(100),              -- 'wellness', 'safety', 'compliance'</p>
+<br>
+<p>    -- Geografía y normativa</p>
+<p>    country_code VARCHAR(3),            -- 'MX', 'CL', 'AR', NULL (global)</p>
+<p>    regulation_name VARCHAR(200),       -- 'NOM-035-STPS-2018'</p>
+<br>
+<p>    -- Versión y estado</p>
+<p>    version VARCHAR(20) NOT NULL,       -- '1.0', '1.1', '2.0'</p>
+<p>    status VARCHAR(20) DEFAULT 'draft', -- 'draft', 'active', 'archived'</p>
+<br>
+<p>    -- Configuración</p>
+<p>    is_base BOOLEAN DEFAULT false,      -- true solo para EBI360</p>
+<p>    is_mandatory BOOLEAN DEFAULT false, -- obligatoria para empresas</p>
+<p>    requires_approval BOOLEAN DEFAULT true,</p>
+<br>
+<p>    -- Algoritmo de cálculo</p>
+<p>    calculation_algorithm JSONB,        -- Configuración del algoritmo</p>
+<p>    scoring_config JSONB,               -- Configuración de puntajes</p>
+<br>
+<p>    -- Metadatos</p>
+<p>    created_by UUID REFERENCES profiles(id),</p>
+<p>    created_at TIMESTAMP DEFAULT NOW(),</p>
+<p>    updated_at TIMESTAMP DEFAULT NOW(),</p>
+<p>    published_at TIMESTAMP,</p>
+<p>    archived_at TIMESTAMP,</p>
+<br>
+<p>    -- Archivo original</p>
+<p>    source_file_url TEXT,               -- URL del Excel original</p>
+<p>    source_file_name VARCHAR(255),</p>
+<br>
+<p>    CONSTRAINT valid_status CHECK (status IN ('draft', 'active', 'archived')),</p>
+<p>    CONSTRAINT valid_type CHECK (survey_type IN ('base', 'regulatory', 'custom'))</p>
+<p>);</p>
+<br>
+<p>-- Índices</p>
+<p>CREATE INDEX idx_surveys_code ON surveys(code);</p>
+<p>CREATE INDEX idx_surveys_status ON surveys(status);</p>
+<p>CREATE INDEX idx_surveys_country ON surveys(country_code);</p>
+<p>CREATE INDEX idx_surveys_type ON surveys(survey_type);</p>
+</code>`<code>
+<br>
+<h4>2. </code>survey_questions<code> (Preguntas de Encuestas)</h4>
+<br>
+</code>`<code>sql
+<p>CREATE TABLE survey_questions (</p>
+<p>    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),</p>
+<p>    survey_id UUID REFERENCES surveys(id) ON DELETE CASCADE,</p>
+<br>
+<p>    -- Identificación</p>
+<p>    question_number INTEGER NOT NULL,   -- Orden en la encuesta</p>
+<p>    question_code VARCHAR(50),          -- Código único opcional</p>
+<br>
+<p>    -- Contenido</p>
+<p>    domain VARCHAR(100) NOT NULL,       -- 'Físico', 'Emocional', etc.</p>
+<p>    construct VARCHAR(200),             -- 'Bienestar corporal básico'</p>
+<p>    question_text TEXT NOT NULL,</p>
+<br>
+<p>    -- Tipo y clasificación</p>
+<p>    question_type VARCHAR(10) NOT NULL, -- 'RP' (Responsabilidad Personal), 'FO' (Factor Organizacional)</p>
+<br>
+<p>    -- Pesos y severidad</p>
+<p>    weight DECIMAL(3,2) DEFAULT 1.0,</p>
+<p>    severity DECIMAL(3,2) DEFAULT 1.0,</p>
+<p>    personal_weight DECIMAL(3,2) DEFAULT 0,</p>
+<p>    org_weight DECIMAL(3,2) DEFAULT 0,</p>
+<br>
+<p>    -- Configuración de respuesta</p>
+<p>    response_type VARCHAR(20) DEFAULT 'scale', -- 'scale', 'multiple_choice', 'text'</p>
+<p>    response_config JSONB,              -- Configuración específica del tipo</p>
+<br>
+<p>    -- Validación</p>
+<p>    is_required BOOLEAN DEFAULT true,</p>
+<p>    validation_rules JSONB,</p>
+<br>
+<p>    -- Orden y agrupación</p>
+<p>    section VARCHAR(100),</p>
+<p>    subsection VARCHAR(100),</p>
+<p>    display_order INTEGER,</p>
+<br>
+<p>    -- Metadatos</p>
+<p>    created_at TIMESTAMP DEFAULT NOW(),</p>
+<p>    updated_at TIMESTAMP DEFAULT NOW(),</p>
+<br>
+<p>    CONSTRAINT valid_question_type CHECK (question_type IN ('RP', 'FO', 'MIXED')),</p>
+<p>    CONSTRAINT valid_response_type CHECK (response_type IN ('scale', 'multiple_choice', 'text', 'boolean'))</p>
+<p>);</p>
+<br>
+<p>-- Índices</p>
+<p>CREATE INDEX idx_survey_questions_survey ON survey_questions(survey_id);</p>
+<p>CREATE INDEX idx_survey_questions_domain ON survey_questions(domain);</p>
+<p>CREATE INDEX idx_survey_questions_order ON survey_questions(survey_id, display_order);</p>
+</code>`<code>
+<br>
+<h4>3. </code>company_surveys<code> (Asignación de Encuestas a Empresas)</h4>
+<br>
+</code>`<code>sql
+<p>CREATE TABLE company_surveys (</p>
+<p>    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),</p>
+<br>
+<p>    -- Relaciones</p>
+<p>    company_id UUID REFERENCES companies(id) ON DELETE CASCADE,</p>
+<p>    survey_id UUID REFERENCES surveys(id) ON DELETE CASCADE,</p>
+<br>
+<p>    -- Configuración</p>
+<p>    is_active BOOLEAN DEFAULT true,</p>
+<p>    is_mandatory BOOLEAN DEFAULT false,  -- Obligatoria para empleados</p>
+<br>
+<p>    -- Programación</p>
+<p>    start_date TIMESTAMP,</p>
+<p>    end_date TIMESTAMP,</p>
+<p>    frequency VARCHAR(20),               -- 'once', 'monthly', 'quarterly', 'yearly'</p>
+<br>
+<p>    -- Permisos</p>
+<p>    assigned_by UUID REFERENCES profiles(id),</p>
+<p>    approved_by UUID REFERENCES profiles(id),</p>
+<br>
+<p>    -- Configuración específica de empresa</p>
+<p>    custom_config JSONB,                 -- Personalizaciones</p>
+<br>
+<p>    -- Metadatos</p>
+<p>    assigned_at TIMESTAMP DEFAULT NOW(),</p>
+<p>    activated_at TIMESTAMP,</p>
+<p>    deactivated_at TIMESTAMP,</p>
+<br>
+<p>    -- Constraint único</p>
+<p>    UNIQUE(company_id, survey_id)</p>
+<p>);</p>
+<br>
+<p>-- Índices</p>
+<p>CREATE INDEX idx_company_surveys_company ON company_surveys(company_id);</p>
+<p>CREATE INDEX idx_company_surveys_active ON company_surveys(company_id, is_active);</p>
+</code>`<code>
+<br>
+<h4>4. Modificación de </code>results<code> (Resultados)</h4>
+<br>
+</code>`<code>sql
+<p>-- Agregar columna para vincular con encuesta específica</p>
+<p>ALTER TABLE results ADD COLUMN survey_id UUID REFERENCES surveys(id);</p>
+<p>ALTER TABLE results ADD COLUMN survey_version VARCHAR(20);</p>
+<br>
+<p>-- Índice</p>
+<p>CREATE INDEX idx_results_survey ON results(survey_id);</p>
+</code>`<code>
+<br>
+<h4>5. </code>survey_responses<code> (Respuestas Individuales)</h4>
+<br>
+</code>`<code>sql
+<p>CREATE TABLE survey_responses (</p>
+<p>    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),</p>
+<br>
+<p>    -- Relaciones</p>
+<p>    result_id UUID REFERENCES results(id) ON DELETE CASCADE,</p>
+<p>    question_id UUID REFERENCES survey_questions(id),</p>
+<br>
+<p>    -- Respuesta</p>
+<p>    response_value DECIMAL(3,1),        -- Para escalas 1-10</p>
+<p>    response_text TEXT,                 -- Para respuestas abiertas</p>
+<p>    response_data JSONB,                -- Para respuestas complejas</p>
+<br>
+<p>    -- Metadatos</p>
+<p>    answered_at TIMESTAMP DEFAULT NOW(),</p>
+<p>    time_spent_seconds INTEGER,</p>
+<br>
+<p>    UNIQUE(result_id, question_id)</p>
+<p>);</p>
+<br>
+<p>-- Índices</p>
+<p>CREATE INDEX idx_survey_responses_result ON survey_responses(result_id);</p>
+<p>CREATE INDEX idx_survey_responses_question ON survey_responses(question_id);</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>📋 Formato de Excel para Carga de Encuestas</h2>
+<br>
+<h3>Estructura del Archivo Excel</h3>
+<br>
+<strong>Nombre de archivo:</strong> </code>[CODIGO_ENCUESTA]_v[VERSION].xlsx<code>  
+<strong>Ejemplo:</strong> </code>NOM035_v1.0.xlsx<code>
+<br>
+<h4>Hoja 1: "Metadata" (Metadatos de la Encuesta)</h4>
+<br>
+<p>| Campo | Valor | Descripción |</p>
+<p>|-------|-------|-------------|</p>
+<p>| Código | NOM035 | Código único |</p>
+<p>| Nombre | NOM-035 STPS 2018 | Nombre completo |</p>
+<p>| Descripción | Encuesta de factores de riesgo psicosocial | Descripción |</p>
+<p>| Tipo | regulatory | base / regulatory / custom |</p>
+<p>| País | MX | Código ISO del país |</p>
+<p>| Normativa | NOM-035-STPS-2018 | Nombre de la normativa |</p>
+<p>| Versión | 1.0 | Versión de la encuesta |</p>
+<p>| Es Base | NO | SI / NO |</p>
+<p>| Es Obligatoria | SI | SI / NO |</p>
+<br>
+<h4>Hoja 2: "Questions" (Preguntas)</h4>
+<br>
+<p>| # | Dominio | Constructo | Tipo | Pregunta | Peso | Severidad | Peso_Personal | Peso_Org |</p>
+<p>|---|---------|------------|------|----------|------|-----------|---------------|----------|</p>
+<p>| 1 | Físico | Bienestar corporal | RP | ¿Dormís lo suficiente? | 0.6 | 0.9 | 1 | 0 |</p>
+<p>| 2 | Físico | Bienestar corporal | FO | ¿Tu jornada permite descanso? | 0.6 | 0.9 | 0 | 1 |</p>
+<p>| ... | ... | ... | ... | ... | ... | ... | ... | ... |</p>
+<br>
+<h4>Hoja 3: "Algorithm" (Algoritmo de Cálculo)</h4>
+<br>
+</code>`<code>json
+<p>{</p>
+<p>  "scoring_method": "weighted_average",</p>
+<p>  "domains": [</p>
+<p>    {</p>
+<p>      "name": "Físico",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [1, 2, 3, 4, 5, 6]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Emocional",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [7, 8, 9, 10, 11, 12]</p>
+<p>    }</p>
+<p>  ],</p>
+<p>  "thresholds": {</p>
+<p>    "low": 0,</p>
+<p>    "medium": 5,</p>
+<p>    "high": 7,</p>
+<p>    "excellent": 9</p>
+<p>  }</p>
+<p>}</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>🔄 Flujos de Trabajo</h2>
+<br>
+<h3>Flujo 1: Crear Nueva Encuesta</h3>
+<br>
+</code>`<code>
+<p>Super Admin</p>
+<p>    ↓</p>
+<p>[Panel de Encuestas] → [Nueva Encuesta]</p>
+<p>    ↓</p>
+<p>[Subir Excel] → Validación Automática</p>
+<p>    ↓</p>
+<p>    ├─ ✅ Válido → [Vista Previa]</p>
+<p>    │                    ↓</p>
+<p>    │              [Confirmar] → Guardar en BD</p>
+<p>    │                    ↓</p>
+<p>    │              Estado: DRAFT</p>
+<p>    │</p>
+<p>    └─ ❌ Inválido → [Mostrar Errores]</p>
+<p>                          ↓</p>
+<p>                    [Corregir y Reintentar]</p>
+</code>`<code>
+<br>
+<h3>Flujo 2: Publicar Encuesta</h3>
+<br>
+</code>`<code>
+<p>Super Admin</p>
+<p>    ↓</p>
+<p>[Encuestas] → [Seleccionar Encuesta DRAFT]</p>
+<p>    ↓</p>
+<p>[Revisar Configuración]</p>
+<p>    ↓</p>
+<p>[Publicar]</p>
+<p>    ↓</p>
+<p>Estado: ACTIVE</p>
+<p>    ↓</p>
+<p>Disponible para Asignación</p>
+</code>`<code>
+<br>
+<h3>Flujo 3: Asignar Encuesta a Empresa</h3>
+<br>
+</code>`<code>
+<p>Super Admin</p>
+<p>    ↓</p>
+<p>[Empresas] → [Seleccionar Empresa]</p>
+<p>    ↓</p>
+<p>[Gestionar Encuestas]</p>
+<p>    ↓</p>
+<p>[Ver Encuestas Disponibles]</p>
+<p>    ↓</p>
+<p>    ├─ Encuestas Base (siempre asignadas)</p>
+<p>    │   └─ EBI 360 ✓</p>
+<p>    │</p>
+<p>    └─ Encuestas Complementarias</p>
+<p>        ├─ Por País</p>
+<p>        │   ├─ NOM-035 (México) □</p>
+<p>        │   ├─ Ley Karin (Chile) □</p>
+<p>        │   └─ Res 1016 (Colombia) □</p>
+<p>        │</p>
+<p>        └─ Personalizadas</p>
+<p>            └─ [Lista de encuestas custom] □</p>
+<p>    ↓</p>
+<p>[Seleccionar Encuestas] → [Configurar]</p>
+<p>    ↓</p>
+<p>    ├─ Obligatoria: SI/NO</p>
+<p>    ├─ Fecha Inicio</p>
+<p>    ├─ Fecha Fin</p>
+<p>    └─ Frecuencia</p>
+<p>    ↓</p>
+<p>[Asignar]</p>
+<p>    ↓</p>
+<p>Encuestas Activas para la Empresa</p>
+</code>`<code>
+<br>
+<h3>Flujo 4: Empleado Realiza Diagnóstico</h3>
+<br>
+</code>`<code>
+<p>Empleado</p>
+<p>    ↓</p>
+<p>[Dashboard] → [Diagnósticos Disponibles]</p>
+<p>    ↓</p>
+<p>    ├─ EBI 360 (Base) [Realizar]</p>
+<p>    ├─ NOM-035 [Realizar]</p>
+<p>    └─ Ley Karin [Realizar]</p>
+<p>    ↓</p>
+<p>[Seleccionar Encuesta]</p>
+<p>    ↓</p>
+<p>[Cargar Preguntas de BD]</p>
+<p>    ↓</p>
+<p>[Responder Cuestionario]</p>
+<p>    ↓</p>
+<p>[Calcular Puntaje según Algoritmo]</p>
+<p>    ↓</p>
+<p>[Guardar Resultado]</p>
+<p>    ↓</p>
+<p>[Mostrar Resultados]</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>🎨 Interfaces de Usuario</h2>
+<br>
+<h3>1. Panel de Super Admin - Gestión de Encuestas</h3>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  Encuestas                                                  │</p>
+<p>│  Gestiona las encuestas disponibles en la plataforma       │</p>
+<p>│                                                             │</p>
+<p>│  [+ Nueva Encuesta]  [Importar desde Excel]  [Exportar]   │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│                                                             │</p>
+<p>│  Filtros: [Todas ▼] [País: Todos ▼] [Estado: Activas ▼]  │</p>
+<p>│                                                             │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│ CÓDIGO    │ NOMBRE           │ TIPO        │ PAÍS │ ESTADO │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│ 🏠 EBI360 │ EBI 360 Base    │ Base        │ --   │ ✅ Activa│</p>
+<p>│           │ v2.0             │             │      │ 1,247 usos│</p>
+<p>│           │ [Editar] [Ver] [Versiones]                      │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│ 🇲🇽 NOM035│ NOM-035 STPS    │ Regulatoria │ MX   │ ✅ Activa│</p>
+<p>│           │ v1.0             │             │      │ 89 usos  │</p>
+<p>│           │ [Editar] [Ver] [Asignar]                        │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│ 🇨🇱 KARIN │ Ley Karin       │ Regulatoria │ CL   │ 📝 Draft │</p>
+<p>│           │ v1.0             │             │      │ 0 usos   │</p>
+<p>│           │ [Editar] [Publicar] [Eliminar]                  │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>2. Formulario de Nueva Encuesta</h3>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  Nueva Encuesta                                             │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│                                                             │</p>
+<p>│  Método de Creación:                                        │</p>
+<p>│  ○ Subir archivo Excel                                      │</p>
+<p>│  ○ Crear manualmente                                        │</p>
+<p>│                                                             │</p>
+<p>│  ┌───────────────────────────────────────────────────┐     │</p>
+<p>│  │  📎 Arrastra tu archivo Excel aquí                │     │</p>
+<p>│  │     o haz clic para seleccionar                   │     │</p>
+<p>│  │                                                    │     │</p>
+<p>│  │  Formato aceptado: .xlsx, .xls                    │     │</p>
+<p>│  │  Tamaño máximo: 5MB                               │     │</p>
+<p>│  └───────────────────────────────────────────────────┘     │</p>
+<p>│                                                             │</p>
+<p>│  📥 Descargar plantilla de ejemplo                          │</p>
+<p>│                                                             │</p>
+<p>│  [Cancelar]  [Subir y Validar]                             │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>3. Vista Previa de Encuesta Importada</h3>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  Vista Previa: NOM-035 STPS 2018                           │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│                                                             │</p>
+<p>│  ✅ Archivo validado correctamente                          │</p>
+<p>│                                                             │</p>
+<p>│  Información General:                                       │</p>
+<p>│  • Código: NOM035                                           │</p>
+<p>│  • Nombre: NOM-035 STPS 2018                               │</p>
+<p>│  • Tipo: Regulatoria                                        │</p>
+<p>│  • País: México (MX)                                        │</p>
+<p>│  • Versión: 1.0                                             │</p>
+<p>│  • Total de preguntas: 72                                   │</p>
+<p>│                                                             │</p>
+<p>│  Dominios detectados:                                       │</p>
+<p>│  • Condiciones del ambiente de trabajo (12 preguntas)      │</p>
+<p>│  • Carga de trabajo (15 preguntas)                         │</p>
+<p>│  • Falta de control (10 preguntas)                         │</p>
+<p>│  • Jornada de trabajo (8 preguntas)                        │</p>
+<p>│  • Interferencia trabajo-familia (6 preguntas)             │</p>
+<p>│  • Liderazgo (12 preguntas)                                │</p>
+<p>│  • Relaciones en el trabajo (9 preguntas)                  │</p>
+<p>│                                                             │</p>
+<p>│  [Ver Preguntas Completas]  [Editar Metadatos]             │</p>
+<p>│                                                             │</p>
+<p>│  [Cancelar]  [Guardar como Borrador]  [Publicar]          │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>4. Asignación de Encuestas a Empresa</h3>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  Encuestas Asignadas: Acme Corporation                     │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│                                                             │</p>
+<p>│  Encuesta Base (Obligatoria)                               │</p>
+<p>│  ┌───────────────────────────────────────────────────┐     │</p>
+<p>│  │ ✅ EBI 360 v2.0                                   │     │</p>
+<p>│  │    Estado: Activa                                 │     │</p>
+<p>│  │    Empleados completados: 45/120 (37%)           │     │</p>
+<p>│  │    [Ver Resultados]                               │     │</p>
+<p>│  └───────────────────────────────────────────────────┘     │</p>
+<p>│                                                             │</p>
+<p>│  Encuestas Complementarias                                 │</p>
+<p>│  ┌───────────────────────────────────────────────────┐     │</p>
+<p>│  │ ✅ NOM-035 STPS 2018 v1.0                        │     │</p>
+<p>│  │    País: México                                   │     │</p>
+<p>│  │    Obligatoria: Sí                                │     │</p>
+<p>│  │    Empleados completados: 38/120 (32%)           │     │</p>
+<p>│  │    [Configurar] [Desactivar]                      │     │</p>
+<p>│  └───────────────────────────────────────────────────┘     │</p>
+<p>│                                                             │</p>
+<p>│  [+ Asignar Nueva Encuesta]                                │</p>
+<p>│                                                             │</p>
+<p>│  Encuestas Disponibles:                                    │</p>
+<p>│  ┌───────────────────────────────────────────────────┐     │</p>
+<p>│  │ □ Ley Karin (Chile)                               │     │</p>
+<p>│  │ □ Resolución 1016 (Colombia)                      │     │</p>
+<p>│  │ □ Encuesta de Clima Laboral Custom                │     │</p>
+<p>│  └───────────────────────────────────────────────────┘     │</p>
+<p>│                                                             │</p>
+<p>│  [Asignar Seleccionadas]                                   │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>5. Vista de Empleado - Diagnósticos Disponibles</h3>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│  Mis Diagnósticos                                           │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│                                                             │</p>
+<p>│  Diagnósticos Pendientes                                   │</p>
+<p>│                                                             │</p>
+<p>│  ┌───────────────────────────────────────────────────┐     │</p>
+<p>│  │ 🏠 EBI 360 - Evaluación de Bienestar Integral    │     │</p>
+<p>│  │    Tiempo estimado: 10-15 minutos                │     │</p>
+<p>│  │    Última realización: 15 Nov 2025               │     │</p>
+<p>│  │    [Realizar Diagnóstico →]                       │     │</p>
+<p>│  └───────────────────────────────────────────────────┘     │</p>
+<p>│                                                             │</p>
+<p>│  ┌───────────────────────────────────────────────────┐     │</p>
+<p>│  │ 🇲🇽 NOM-035 - Factores de Riesgo Psicosocial    │     │</p>
+<p>│  │    Tiempo estimado: 20-25 minutos                │     │</p>
+<p>│  │    ⚠️ Obligatorio - Vence: 31 Dic 2025           │     │</p>
+<p>│  │    [Realizar Diagnóstico →]                       │     │</p>
+<p>│  └───────────────────────────────────────────────────┘     │</p>
+<p>│                                                             │</p>
+<p>│  Diagnósticos Completados                                  │</p>
+<p>│                                                             │</p>
+<p>│  ┌───────────────────────────────────────────────────┐     │</p>
+<p>│  │ ✅ EBI 360 - Completado el 15 Nov 2025           │     │</p>
+<p>│  │    Puntuación: 7.8/10                             │     │</p>
+<p>│  │    [Ver Resultados]                               │     │</p>
+<p>│  └───────────────────────────────────────────────────┘     │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>📅 Plan de Implementación por Etapas</h2>
+<br>
+<h3>Fase 1: Fundamentos (Semana 1-2) 🔵</h3>
+<br>
+<strong>Objetivo:</strong> Crear la base de datos y migración de datos actuales
+<br>
+<strong>Tareas:</strong>
+<ol>
+<li>✅ Crear migraciones SQL para nuevas tablas</li>
+<li>✅ Migrar encuesta EBI actual a BD</li>
+<li>✅ Crear funciones de utilidad para queries</li>
+<li>✅ Tests de integridad de datos</li>
+</ol>
+<br>
+<strong>Entregables:</strong>
+<ul>
+<li>Esquema de BD completo</li>
+<li>Encuesta EBI en BD</li>
+<li>Documentación de tablas</li>
+</ul>
+<br>
+<strong>Criterios de Aceptación:</strong>
+<li class="checkbox">☐ Todas las tablas creadas sin errores
+<li class="checkbox">☐ Encuesta EBI migrada con 36 preguntas
+<li class="checkbox">☐ Queries básicos funcionando
+<li class="checkbox">☐ Tests pasando
+<br>
+<p>---</p>
+<br>
+<h3>Fase 2: Parser de Excel (Semana 3) 🟢</h3>
+<br>
+<strong>Objetivo:</strong> Implementar carga de encuestas desde Excel
+<br>
+<strong>Tareas:</strong>
+<ol>
+<li>✅ Crear librería de parsing de Excel</li>
+<li>✅ Validador de formato</li>
+<li>✅ Transformador de datos</li>
+<li>✅ Manejo de errores</li>
+</ol>
+<br>
+<strong>Entregables:</strong>
+<ul>
+<li>Función </code>parseExcelSurvey(file)<code></li>
+<li>Validaciones completas</li>
+<li>Mensajes de error descriptivos</li>
+</ul>
+<br>
+<strong>Criterios de Aceptación:</strong>
+<li class="checkbox">☐ Parser lee correctamente Excel
+<li class="checkbox">☐ Validaciones detectan errores
+<li class="checkbox">☐ Datos transformados correctamente
+<li class="checkbox">☐ Manejo de errores robusto
+<br>
+<p>---</p>
+<br>
+<h3>Fase 3: Panel de Super Admin - Encuestas (Semana 4-5) 🟡</h3>
+<br>
+<strong>Objetivo:</strong> Interfaz de gestión de encuestas
+<br>
+<strong>Tareas:</strong>
+<ol>
+<li>✅ Página de listado de encuestas</li>
+<li>✅ Formulario de carga de Excel</li>
+<li>✅ Vista previa de encuesta</li>
+<li>✅ Publicación/Archivado</li>
+<li>✅ Versionado</li>
+</ol>
+<br>
+<strong>Entregables:</strong>
+<ul>
+<li></code>/admin/super/surveys<code> completo</li>
+<li>CRUD de encuestas</li>
+<li>Upload de archivos</li>
+</ul>
+<br>
+<strong>Criterios de Aceptación:</strong>
+<li class="checkbox">☐ Super admin puede subir Excel
+<li class="checkbox">☐ Vista previa muestra datos correctos
+<li class="checkbox">☐ Puede publicar/archivar encuestas
+<li class="checkbox">☐ Versionado funciona
+<br>
+<p>---</p>
+<br>
+<h3>Fase 4: Asignación a Empresas (Semana 6) 🟠</h3>
+<br>
+<strong>Objetivo:</strong> Vincular encuestas con empresas
+<br>
+<strong>Tareas:</strong>
+<ol>
+<li>✅ Interfaz de asignación</li>
+<li>✅ Configuración de encuestas por empresa</li>
+<li>✅ Validaciones de compatibilidad</li>
+<li>✅ Activación/Desactivación</li>
+</ol>
+<br>
+<strong>Entregables:</strong>
+<ul>
+<li>Módulo de asignación</li>
+<li>Configuración por empresa</li>
+<li>Validaciones</li>
+</ul>
+<br>
+<strong>Criterios de Aceptación:</strong>
+<li class="checkbox">☐ Super admin puede asignar encuestas
+<li class="checkbox">☐ Configuración se guarda correctamente
+<li class="checkbox">☐ Validaciones previenen conflictos
+<li class="checkbox">☐ Estado se actualiza en tiempo real
+<br>
+<p>---</p>
+<br>
+<h3>Fase 5: Adaptación del Diagnóstico (Semana 7-8) 🔴</h3>
+<br>
+<strong>Objetivo:</strong> Modificar flujo de diagnóstico para usar BD
+<br>
+<strong>Tareas:</strong>
+<ol>
+<li>✅ Refactorizar </code>/diagnostico<code> para cargar de BD</li>
+<li>✅ Selector de encuesta disponible</li>
+<li>✅ Cálculo dinámico de puntajes</li>
+<li>✅ Guardar respuestas vinculadas</li>
+</ol>
+<br>
+<strong>Entregables:</strong>
+<ul>
+<li>Diagnóstico dinámico</li>
+<li>Selector de encuestas</li>
+<li>Cálculo de algoritmos</li>
+</ul>
+<br>
+<strong>Criterios de Aceptación:</strong>
+<li class="checkbox">☐ Empleado ve encuestas asignadas
+<li class="checkbox">☐ Puede completar cualquier encuesta
+<li class="checkbox">☐ Puntajes se calculan correctamente
+<li class="checkbox">☐ Respuestas se guardan con versión
+<br>
+<p>---</p>
+<br>
+<h3>Fase 6: Resultados y Reportes (Semana 9) 🟣</h3>
+<br>
+<strong>Objetivo:</strong> Visualización de resultados multi-encuesta
+<br>
+<strong>Tareas:</strong>
+<ol>
+<li>✅ Dashboard con múltiples encuestas</li>
+<li>✅ Comparación de resultados</li>
+<li>✅ Exportación por encuesta</li>
+<li>✅ Analíticas agregadas</li>
+</ol>
+<br>
+<strong>Entregables:</strong>
+<ul>
+<li>Dashboard multi-encuesta</li>
+<li>Reportes por encuesta</li>
+<li>Comparativas</li>
+</ul>
+<br>
+<strong>Criterios de Aceptación:</strong>
+<li class="checkbox">☐ Resultados se muestran por encuesta
+<li class="checkbox">☐ Comparación funciona
+<li class="checkbox">☐ Exportación incluye todas las encuestas
+<li class="checkbox">☐ Analíticas correctas
+<br>
+<p>---</p>
+<br>
+<h3>Fase 7: Testing y Optimización (Semana 10) ⚫</h3>
+<br>
+<strong>Objetivo:</strong> Asegurar calidad y performance
+<br>
+<strong>Tareas:</strong>
+<ol>
+<li>✅ Tests end-to-end</li>
+<li>✅ Optimización de queries</li>
+<li>✅ Validación de UX</li>
+<li>✅ Documentación</li>
+</ol>
+<br>
+<strong>Entregables:</strong>
+<ul>
+<li>Suite de tests completa</li>
+<li>Performance optimizado</li>
+<li>Documentación de usuario</li>
+</ul>
+<br>
+<strong>Criterios de Aceptación:</strong>
+<li class="checkbox">☐ Todos los tests pasan
+<li class="checkbox">☐ Performance < 2s carga
+<li class="checkbox">☐ UX validada
+<li class="checkbox">☐ Documentación completa
+<br>
+<p>---</p>
+<br>
+<h2>🔧 Consideraciones Técnicas</h2>
+<br>
+<h3>Tecnologías Requeridas</h3>
+<br>
+</code>`<code>typescript
+<p>// Nuevas dependencias</p>
+<p>{</p>
+<p>  "xlsx": "^0.18.5",           // Parsing de Excel</p>
+<p>  "zod": "^3.22.4",            // Validación de esquemas</p>
+<p>  "react-dropzone": "^14.2.3", // Upload de archivos</p>
+<p>  "recharts": "^2.10.3"        // Gráficos avanzados</p>
+<p>}</p>
+</code>`<code>
+<br>
+<h3>Estructura de Archivos</h3>
+<br>
+</code>`<code>
+<p>src/</p>
+<p>├── app/</p>
+<p>│   └── admin/</p>
+<p>│       └── super/</p>
+<p>│           └── surveys/                    # NUEVO</p>
+<p>│               ├── page.tsx                # Listado</p>
+<p>│               ├── new/</p>
+<p>│               │   └── page.tsx            # Nueva encuesta</p>
+<p>│               ├── [id]/</p>
+<p>│               │   ├── page.tsx            # Ver/Editar</p>
+<p>│               │   ├── preview/</p>
+<p>│               │   │   └── page.tsx        # Vista previa</p>
+<p>│               │   └── assign/</p>
+<p>│               │       └── page.tsx        # Asignar a empresas</p>
+<p>│               └── components/</p>
+<p>│                   ├── SurveyList.tsx</p>
+<p>│                   ├── SurveyUploader.tsx</p>
+<p>│                   ├── SurveyPreview.tsx</p>
+<p>│                   └── SurveyAssignment.tsx</p>
+<p>│</p>
+<p>├── lib/</p>
+<p>│   ├── surveys/                            # NUEVO</p>
+<p>│   │   ├── parser.ts                       # Parser de Excel</p>
+<p>│   │   ├── validator.ts                    # Validaciones</p>
+<p>│   │   ├── calculator.ts                   # Cálculo de puntajes</p>
+<p>│   │   └── types.ts                        # Tipos TypeScript</p>
+<p>│   └── logic.ts                            # DEPRECAR gradualmente</p>
+<p>│</p>
+<p>└── components/</p>
+<p>    └── surveys/                            # NUEVO</p>
+<p>        ├── SurveySelector.tsx              # Selector de encuestas</p>
+<p>        ├── QuestionRenderer.tsx            # Renderizado dinámico</p>
+<p>        └── ResultsComparison.tsx           # Comparación</p>
+</code>`<code>
+<br>
+<h3>APIs y Endpoints</h3>
+<br>
+</code>`<code>typescript
+<p>// src/app/api/surveys/route.ts</p>
+<p>GET    /api/surveys              // Listar encuestas</p>
+<p>POST   /api/surveys              // Crear encuesta</p>
+<p>GET    /api/surveys/[id]         // Obtener encuesta</p>
+<p>PUT    /api/surveys/[id]         // Actualizar encuesta</p>
+<p>DELETE /api/surveys/[id]         // Eliminar encuesta</p>
+<br>
+<p>// src/app/api/surveys/upload/route.ts</p>
+<p>POST   /api/surveys/upload       // Subir y parsear Excel</p>
+<br>
+<p>// src/app/api/surveys/[id]/publish/route.ts</p>
+<p>POST   /api/surveys/[id]/publish // Publicar encuesta</p>
+<br>
+<p>// src/app/api/companies/[id]/surveys/route.ts</p>
+<p>GET    /api/companies/[id]/surveys        // Encuestas de empresa</p>
+<p>POST   /api/companies/[id]/surveys        // Asignar encuesta</p>
+<p>DELETE /api/companies/[id]/surveys/[sid]  // Desasignar encuesta</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>⚠️ Riesgos y Mitigaciones</h2>
+<br>
+<h3>Riesgo 1: Migración de Datos Existentes</h3>
+<br>
+<strong>Problema:</strong> Resultados actuales no están vinculados a encuesta específica
+<br>
+<strong>Mitigación:</strong>
+</code>`<code>sql
+<p>-- Script de migración</p>
+<p>UPDATE results </p>
+<p>SET survey_id = (SELECT id FROM surveys WHERE code = 'EBI360'),</p>
+<p>    survey_version = '2.0'</p>
+<p>WHERE survey_id IS NULL;</p>
+</code>`<code>
+<br>
+<h3>Riesgo 2: Performance con Múltiples Encuestas</h3>
+<br>
+<strong>Problema:</strong> Queries lentos con muchas preguntas
+<br>
+<strong>Mitigación:</strong>
+<ul>
+<li>Índices optimizados</li>
+<li>Caché de encuestas activas</li>
+<li>Paginación de resultados</li>
+<li>Lazy loading de preguntas</li>
+</ul>
+<br>
+<h3>Riesgo 3: Validación de Algoritmos Complejos</h3>
+<br>
+<strong>Problema:</strong> Algoritmos de cálculo pueden ser complejos
+<br>
+<strong>Mitigación:</strong>
+<ul>
+<li>Validador de algoritmos</li>
+<li>Tests exhaustivos</li>
+<li>Documentación clara</li>
+<li>Ejemplos de referencia</li>
+</ul>
+<br>
+<h3>Riesgo 4: Compatibilidad con Código Existente</h3>
+<br>
+<strong>Problema:</strong> Código actual usa </code>questions` hardcodeado
+<br>
+<strong>Mitigación:</strong>
+<ul>
+<li>Migración gradual</li>
+<li>Mantener compatibilidad temporal</li>
+<li>Feature flags</li>
+<li>Tests de regresión</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Métricas de Éxito</h2>
+<br>
+<h3>KPIs del Sistema</h3>
+<br>
+<ol>
+<li><strong>Funcionalidad</strong></li>
+<ul>
+<li>✅ 100% de encuestas migrables desde Excel</li>
+<li>✅ 0 errores en cálculo de puntajes</li>
+<li>✅ < 5 segundos para cargar encuesta</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Usabilidad</strong></li>
+<ul>
+<li>✅ Super admin puede crear encuesta en < 5 minutos</li>
+<li>✅ 0 errores de validación falsos positivos</li>
+<li>✅ Interfaz intuitiva (< 2 clics para acción)</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Escalabilidad</strong></li>
+<ul>
+<li>✅ Soporta > 100 encuestas simultáneas</li>
+<li>✅ < 2 segundos para cargar listado</li>
+<li>✅ Maneja archivos Excel de hasta 5MB</li>
+</ul>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Próximos Pasos</h2>
+<br>
+<h3>Para Revisión y Aprobación</h3>
+<br>
+<ol>
+<li><strong>Revisar Modelo de Datos</strong></li>
+<ul>
+<li>¿Las tablas cubren todos los casos de uso?</li>
+<li>¿Falta algún campo importante?</li>
+<li>¿Los tipos de datos son correctos?</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Validar Flujos de Trabajo</strong></li>
+<ul>
+<li>¿Los flujos son lógicos?</li>
+<li>¿Falta algún paso crítico?</li>
+<li>¿Hay casos edge no cubiertos?</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Aprobar Interfaces</strong></li>
+<ul>
+<li>¿El diseño es intuitivo?</li>
+<li>¿Falta alguna funcionalidad?</li>
+<li>¿La navegación es clara?</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Confirmar Plan de Implementación</strong></li>
+<ul>
+<li>¿Las fases son realistas?</li>
+<li>¿El orden es correcto?</li>
+<li>¿Los tiempos son adecuados?</li>
+</ul>
+</ol>
+<br>
+<h3>Decisiones Pendientes</h3>
+<br>
+<li class="checkbox">☐ ¿Permitir edición de encuestas publicadas?
+<li class="checkbox">☐ ¿Versionado automático o manual?
+<li class="checkbox">☐ ¿Límite de encuestas por empresa?
+<li class="checkbox">☐ ¿Soporte para múltiples idiomas desde el inicio?
+<li class="checkbox">☐ ¿Importar/Exportar configuraciones entre ambientes?
+<br>
+<p>---</p>
+<br>
+<h2>📝 Notas Finales</h2>
+<br>
+<p>Este documento es un <strong>punto de partida</strong> para la discusión. Está diseñado para ser:</p>
+<br>
+<ul>
+<li>✅ <strong>Completo:</strong> Cubre todos los aspectos del sistema</li>
+<li>✅ <strong>Flexible:</strong> Puede adaptarse según feedback</li>
+<li>✅ <strong>Práctico:</strong> Enfocado en implementación real</li>
+<li>✅ <strong>Escalable:</strong> Preparado para crecimiento futuro</li>
+</ul>
+<br>
+<strong>Siguiente paso:</strong> Revisar este documento sección por sección y aprobar/ajustar cada componente antes de comenzar la implementación.
+<br>
+<p>---</p>
+<br>
+<strong>Autor:</strong> Antigravity AI + Equipo EBI 360  
+<strong>Versión:</strong> 1.0 - Borrador para Revisión  
+<strong>Fecha:</strong> 23 de Diciembre de 2025
+<br>
+        </div>
+        
+        <div class="footer">
+            <p><strong>© 2025 EBI 360</strong> - Todos los derechos reservados</p>
+            <p>Documento generado el 23 de December de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        window.addEventListener('beforeprint', () => {
+            document.title = 'Sistema de Encuestas Modulares';
+        });
+    </script>
+</body>
+</html>

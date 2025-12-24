@@ -7,7 +7,8 @@ import { resend } from "@/lib/resend";
 export async function saveDiagnosticResult(
     globalScore: number,
     domainScores: Record<string, number>,
-    answers: Record<string, number>
+    answers: Record<string, number>,
+    surveyId?: string
 ) {
     const supabase = await createClient();
 
@@ -42,6 +43,7 @@ export async function saveDiagnosticResult(
             global_score: globalScore,
             domain_scores: domainScores,
             answers: answers,
+            survey_id: surveyId
         });
 
         if (error) throw error;

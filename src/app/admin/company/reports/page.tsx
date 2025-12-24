@@ -34,11 +34,50 @@ export default function ReportsPage() {
     const [domainChartData, setDomainChartData] = useState<any[]>([]);
     const [trendData, setTrendData] = useState<any[]>([]);
 
+    // Survey Filter State
+    const [assignedSurveys, setAssignedSurveys] = useState<any[]>([]);
+    const [selectedSurveyId, setSelectedSurveyId] = useState<string>("all");
+
     useEffect(() => {
-        fetchData();
+        fetchInitialData();
     }, []);
 
+    useEffect(() => {
+        if (!loading || assignedSurveys.length > 0) {
+            fetchData();
+        }
+    }, [selectedSurveyId]);
+
+    const fetchInitialData = async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) return;
+
+        // Get company_id
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('id', user.id)
+            .single();
+
+        const companyId = profile?.company_id;
+
+        // Get assigned surveys for filter
+        const { data: assignments } = await supabase
+            .from('company_surveys')
+            .select('*, survey:surveys(*)')
+            .eq('company_id', companyId)
+            .eq('is_active', true);
+
+        const surveys = (assignments || []).map((a: any) => a.survey);
+        setAssignedSurveys(surveys || []);
+
+        await fetchData();
+    };
+
     const fetchData = async () => {
+        setLoading(true);
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -56,7 +95,7 @@ export default function ReportsPage() {
 
         const companyId = profile?.company_id;
 
-        // Get employee IDs for this company (only employees, not admins)
+        // Get employee IDs for this company
         const { data: companyProfiles } = await supabase
             .from('profiles')
             .select('id')
@@ -65,18 +104,25 @@ export default function ReportsPage() {
 
         const userIds = companyProfiles?.map((p: any) => p.id) || [];
 
-        // Fetch all results for this company's employees
-        const { data: allResults } = await supabase
+        // Fetch results with survey filter
+        let query = supabase
             .from('results')
             .select(`
                 global_score,
                 domain_scores,
                 created_at,
-                user_id
+                user_id,
+                survey_id
             `)
             .in('user_id', userIds);
 
-        // Calculate metrics - count only employees
+        if (selectedSurveyId !== "all") {
+            query = query.eq('survey_id', selectedSurveyId);
+        }
+
+        const { data: allResults } = await query;
+
+        // Calculate metrics
         const totalEmployees = await supabase
             .from('profiles')
             .select('id', { count: 'exact', head: true })
@@ -85,34 +131,35 @@ export default function ReportsPage() {
 
         const empCount = totalEmployees.count || 0;
 
-        // Count UNIQUE users who completed surveys (not total surveys)
         const uniqueUsersWithResults = allResults
             ? new Set(allResults.map((r: any) => r.user_id)).size
             : 0;
 
         const totalSurveysCompleted = allResults?.length || 0;
-
-        // Participation rate based on unique users, capped at 100%
-        const partRate = empCount > 0
-            ? Math.min(100, Math.round((uniqueUsersWithResults / empCount) * 100))
-            : 0;
+        const partRate = empCount > 0 ? Math.min(100, Math.round((uniqueUsersWithResults / empCount) * 100)) : 0;
 
         setEmployeesCount(empCount);
         setCompletedSurveys(totalSurveysCompleted);
         setUniqueParticipants(uniqueUsersWithResults);
         setParticipationRate(partRate);
 
-        // Calculate average global score
         const avgScore = allResults && allResults.length > 0
             ? (allResults.reduce((sum: number, r: any) => sum + Number(r.global_score), 0) / allResults.length).toFixed(1)
             : "0.0";
         setAvgGlobalScore(avgScore);
 
-        // Calculate domain averages
+        // Identify domains to show
+        let domainsToShow = ["Físico", "Nutricional", "Emocional", "Social", "Familiar", "Económico"];
+        if (selectedSurveyId !== "all") {
+            const survey = assignedSurveys.find(s => s.id === selectedSurveyId);
+            if (survey?.calculation_algorithm?.domains) {
+                domainsToShow = survey.calculation_algorithm.domains.map((d: any) => d.name);
+            }
+        }
+
         const domainAverages: Record<string, number> = {};
         if (allResults && allResults.length > 0) {
-            const domains = ["Físico", "Nutricional", "Emocional", "Social", "Familiar", "Económico"];
-            domains.forEach(domain => {
+            domainsToShow.forEach(domain => {
                 const scores = allResults
                     .map((r: any) => r.domain_scores?.[domain])
                     .filter((s: any) => s !== undefined && s !== null);
@@ -122,18 +169,15 @@ export default function ReportsPage() {
             });
         }
 
-        // Prepare data for charts
         const chartData = Object.entries(domainAverages).map(([name, value]) => ({
             name,
             score: Number(value.toFixed(1)),
         }));
         setDomainChartData(chartData);
 
-        // Risk detection
         const riskCount = allResults?.filter((r: any) => Number(r.global_score) < 5).length || 0;
         setAtRiskCount(riskCount);
 
-        // Trend data
         const trend = allResults && allResults.length > 0
             ? allResults.reduce((acc: any[], result: any) => {
                 const month = new Date(result.created_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
@@ -167,12 +211,30 @@ export default function ReportsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight text-gray-900">Reportes de Bienestar</h2>
                     <p className="text-gray-500">Análisis agregado del bienestar organizacional.</p>
                 </div>
-                <div className="flex gap-3">
+
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Survey Selector */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-500">Filtrar por:</span>
+                        <select
+                            value={selectedSurveyId}
+                            onChange={(e) => setSelectedSurveyId(e.target.value)}
+                            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2 transition-all hover:border-purple-400"
+                        >
+                            <option value="all">Todas las encuestas</option>
+                            {assignedSurveys.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                    {s.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     <Link
                         href="/admin/company/settings"
                         className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"

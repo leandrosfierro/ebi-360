@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Super Administrador EBI 360</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            background: linear-gradient(135deg, #8b5cf6 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .cover {
+            background: #8b5cf6;
+            background: linear-gradient(135deg, #8b5cf6 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .cover-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #8b5cf6;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .cover h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+        }
+        
+        .cover .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .cover .version {
+            font-size: 1rem;
+            opacity: 0.85;
+            margin-top: 2rem;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 4rem 3rem;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #111827;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        h1 { 
+            font-size: 2.5rem; 
+            border-bottom: 4px solid #8b5cf6; 
+            padding-bottom: 0.75rem;
+            margin-top: 3rem;
+        }
+        
+        h2 { 
+            font-size: 2rem; 
+            color: #8b5cf6;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        h2::before {
+            content: '';
+            width: 6px;
+            height: 2rem;
+            background: #8b5cf6;
+            border-radius: 3px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: #374151;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+        
+        p {
+            margin-bottom: 1.25rem;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #be123c;
+            border: 1px solid #e5e7eb;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #374151;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border: none;
+        }
+        
+        blockquote {
+            border-left: 5px solid #8b5cf6;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            background: #f9fafb;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #374151;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #8b5cf6 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .toc {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: #8b5cf6;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            padding: 0.5rem 0;
+        }
+        
+        .toc a {
+            color: #8b5cf6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .toc a:hover {
+            transform: translateX(8px);
+            color: #764ba2;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 5px solid #3b82f6;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 5px solid #10b981;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 5px solid #ef4444;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 3rem;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            border-top: 3px solid #8b5cf6;
+        }
+        
+        .footer strong {
+            color: #8b5cf6;
+        }
+        
+        .print-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #8b5cf6;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            .cover {
+                page-break-after: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            pre, table {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                border-radius: 0;
+            }
+            
+            .cover {
+                padding: 3rem 1.5rem;
+            }
+            
+            .cover h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    
+    <div class="container">
+        <div class="cover">
+            <div class="cover-content">
+                <div class="logo">EBI</div>
+                <h1>Guía de Super Administrador EBI 360</h1>
+                <p class="subtitle">Panel de Control Completo</p>
+                <p class="version">Versión 1.0 • December 2025</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1>👑 Guía de Super Administrador - EBI 360</h1>
+<h2>Panel de Control Completo</h2>
+<br>
+<strong>Versión:</strong> 1.0  
+<strong>Última actualización:</strong> Diciembre 2025  
+<strong>Nivel de Acceso:</strong> Super Administrador
+<br>
+<p>---</p>
+<br>
+<h2>📋 Tabla de Contenidos</h2>
+<br>
+<ol>
+<li><a href="#introducción">Introducción</a></li>
+<li><a href="#acceso-y-autenticación">Acceso y Autenticación</a></li>
+<li><a href="#panel-de-super-admin">Panel de Super Admin</a></li>
+<li><a href="#gestión-de-empresas">Gestión de Empresas</a></li>
+<li><a href="#gestión-de-administradores">Gestión de Administradores</a></li>
+<li><a href="#sistema-de-emails">Sistema de Emails</a></li>
+<li><a href="#configuración-global">Configuración Global</a></li>
+<li><a href="#reportes-y-analíticas">Reportes y Analíticas</a></li>
+<li><a href="#cambio-de-roles">Cambio de Roles</a></li>
+</ol>
+<p>10. <a href="#seguridad-y-mejores-prácticas">Seguridad y Mejores Prácticas</a></p>
+<p>11. <a href="#troubleshooting">Troubleshooting</a></p>
+<p>12. <a href="#api-y-integraciones">API y Integraciones</a></p>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Introducción</h2>
+<br>
+<h3>¿Qué es un Super Administrador?</h3>
+<br>
+<p>Como <strong>Super Administrador</strong> de EBI 360, tienes el nivel más alto de acceso y control sobre la plataforma. Tus responsabilidades incluyen:</p>
+<br>
+<ul>
+<li>✅ Gestión completa de empresas clientes</li>
+<li>✅ Administración de usuarios y permisos</li>
+<li>✅ Configuración global del sistema</li>
+<li>✅ Monitoreo de métricas y analíticas</li>
+<li>✅ Soporte técnico de primer nivel</li>
+<li>✅ Gestión de comunicaciones masivas</li>
+</ol>
+<br>
+<h3>Alcance de Permisos</h3>
+<br>
+<strong>Puedes:</strong>
+<ul>
+<li>✅ Crear, editar y eliminar empresas</li>
+<li>✅ Invitar y gestionar administradores de empresa</li>
+<li>✅ Invitar y gestionar otros super administradores</li>
+<li>✅ Acceder a todas las estadísticas agregadas</li>
+<li>✅ Configurar plantillas de email</li>
+<li>✅ Modificar configuraciones globales</li>
+<li>✅ Cambiar entre roles (Super Admin, Company Admin, Employee)</li>
+<li>✅ Exportar datos y reportes</li>
+</ol>
+<br>
+<strong>No puedes:</strong>
+<ul>
+<li>❌ Ver respuestas individuales de diagnósticos (privacidad)</li>
+<li>❌ Modificar resultados de diagnósticos</li>
+<li>❌ Acceder a información médica personal</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>🔐 Acceso y Autenticación</h2>
+<br>
+<h3>Emails Autorizados</h3>
+<br>
+<p>Los Super Administradores están definidos en la configuración del sistema:</p>
+<br>
+<p>``<code>typescript</p>
+<p>// Emails con acceso de Super Admin</p>
+<ul>
+<li>leandro.fierro@bs360.com</li>
+<li>leandrofierro@gmail.com</li>
+<li>admin@bs360.com</li>
+</ul>
+</code>`<code>
+<br>
+<p>> <strong>🔒 Seguridad:</strong> Solo estos emails tienen acceso automático al panel de Super Admin.</p>
+<br>
+<h3>Proceso de Inicio de Sesión</h3>
+<br>
+<ol>
+<li><strong>Accede a la plataforma</strong></li>
+</ol>
+   </code>`<code>
+<p>   https://ebi360.com</p>
+   </code>`<code>
+<br>
+<ol>
+<li><strong>Autenticación con Google</strong></li>
+<li>Haz clic en "Ingresar con Google"</li>
+<li>Selecciona tu cuenta autorizada</li>
+<li>Autoriza el acceso</li>
+</ol>
+<br>
+<ol>
+<li><strong>Verificación Automática</strong></li>
+<li>El sistema detecta tu email</li>
+<li>Asigna automáticamente el rol de Super Admin</li>
+<li>Te otorga acceso a todos los roles:</li>
+<li>Super Administrador</li>
+<li>Administrador de Empresa</li>
+<li>Colaborador</li>
+</ol>
+<br>
+<ol>
+<li><strong>Redirección</strong></li>
+<li>Serás dirigido al Panel de Super Admin</li>
+<li>URL: </code>/admin/super<code></li>
+</ol>
+<br>
+<h3>Primer Acceso</h3>
+<br>
+<p>En tu primer inicio de sesión:</p>
+<br>
+<ol>
+<li><strong>Completa tu perfil</strong></li>
+<li>Nombre completo</li>
+<li>Foto de perfil</li>
+<li>Información de contacto</li>
+</ol>
+<br>
+<ol>
+<li><strong>Configura preferencias</strong></li>
+<li>Notificaciones</li>
+<li>Idioma</li>
+<li>Tema (claro/oscuro)</li>
+</ol>
+<br>
+<ol>
+<li><strong>Revisa la configuración global</strong></li>
+<li>Verifica ajustes del sistema</li>
+<li>Confirma plantillas de email</li>
+<li>Revisa empresas existentes</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🏢 Panel de Super Admin</h2>
+<br>
+<h3>Vista General del Dashboard</h3>
+<br>
+<p>Al acceder al panel, verás:</p>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────┐</p>
+<p>│  Dashboard General                                      │</p>
+<p>│  Bienvenido al panel de control de EBI 360             │</p>
+<p>├─────────────────────────────────────────────────────────┤</p>
+<p>│                                                         │</p>
+<p>│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐│</p>
+<p>│  │Empresas  │  │Usuarios  │  │Encuestas │  │Promedio ││</p>
+<p>│  │Activas   │  │Totales   │  │Completas │  │Global   ││</p>
+<p>│  │          │  │          │  │          │  │         ││</p>
+<p>│  │    24    │  │   1,247  │  │   3,891  │  │   7.6   ││</p>
+<p>│  └──────────┘  └──────────┘  └──────────┘  └─────────┘│</p>
+<p>│                                                         │</p>
+<p>│  Empresas Recientes                                    │</p>
+<p>│  ┌─────────────────────────────────────────────────┐  │</p>
+<p>│  │ Empresa A    │ Pro        │ Activo  │ 15 Dic   │  │</p>
+<p>│  │ Empresa B    │ Enterprise │ Activo  │ 14 Dic   │  │</p>
+<p>│  │ Empresa C    │ Basic      │ Activo  │ 12 Dic   │  │</p>
+<p>│  └─────────────────────────────────────────────────┘  │</p>
+<p>│                                                         │</p>
+<p>│  [Ver todas las empresas →]                            │</p>
+<p>└─────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Navegación Principal</h3>
+<br>
+<h4>Menú Lateral (Desktop)</h4>
+<br>
+</code>`<code>
+<p>┌─────────────────────┐</p>
+<p>│  🏠 Dashboard       │</p>
+<p>│                     │</p>
+<p>│  GESTIÓN            │</p>
+<p>│  🏢 Empresas        │</p>
+<p>│  👑 Super Admins    │</p>
+<p>│  📧 Emails          │</p>
+<p>│                     │</p>
+<p>│  SISTEMA            │</p>
+<p>│  ⚙️ Configuración   │</p>
+<p>│                     │</p>
+<p>│  🚪 Cerrar Sesión   │</p>
+<p>└─────────────────────┘</p>
+</code>`<code>
+<br>
+<h4>Barra Superior (Móvil)</h4>
+<br>
+<ul>
+<li><strong>Menú hamburguesa</strong> (☰) - Abre navegación</li>
+<li><strong>Título de sección</strong> - Indica dónde estás</li>
+<li><strong>Logo EBI 360</strong> - Volver al dashboard</li>
+</ul>
+<br>
+<h3>Estadísticas Clave</h3>
+<br>
+<h4>Tarjetas de Métricas</h4>
+<br>
+<strong>1. Empresas Activas</strong>
+</code>`<code>
+<p>┌──────────────────┐</p>
+<p>│ Empresas Activas │</p>
+<p>│                  │</p>
+<p>│       24         │</p>
+<p>│                  │</p>
+<p>│ Total registradas│</p>
+<p>└──────────────────┘</p>
+</code>`<code>
+<br>
+<strong>2. Usuarios Totales</strong>
+</code>`<code>
+<p>┌──────────────────┐</p>
+<p>│ Usuarios Totales │</p>
+<p>│                  │</p>
+<p>│     1,247        │</p>
+<p>│                  │</p>
+<p>│ Usuarios registrados</p>
+<p>└──────────────────┘</p>
+</code>`<code>
+<br>
+<strong>3. Encuestas Completadas</strong>
+</code>`<code>
+<p>┌──────────────────┐</p>
+<p>│ Encuestas        │</p>
+<p>│ Completadas      │</p>
+<p>│     3,891        │</p>
+<p>│                  │</p>
+<p>│ Total históricas │</p>
+<p>└──────────────────┘</p>
+</code>`<code>
+<br>
+<strong>4. Promedio Global</strong>
+</code>`<code>
+<p>┌──────────────────┐</p>
+<p>│ Promedio Global  │</p>
+<p>│                  │</p>
+<p>│      7.6         │</p>
+<p>│                  │</p>
+<p>│ Promedio general │</p>
+<p>└──────────────────┘</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>🏢 Gestión de Empresas</h2>
+<br>
+<h3>Ver Todas las Empresas</h3>
+<br>
+<strong>Acceso:</strong> Dashboard → Empresas
+<br>
+<h4>Tabla de Empresas</h4>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────────────────┐</p>
+<p>│ Empresas                                                                │</p>
+<p>│ Gestiona las empresas clientes y sus suscripciones                     │</p>
+<p>│                                                                         │</p>
+<p>│ [Buscar empresa...]  [Filtrar: Todos los planes ▼]  [+ Nueva Empresa] │</p>
+<p>├─────────────────────────────────────────────────────────────────────────┤</p>
+<p>│ EMPRESA          │ PLAN       │ ESTADO  │ ADMINISTRADOR    │ ACCIONES  │</p>
+<p>├─────────────────────────────────────────────────────────────────────────┤</p>
+<p>│ 🏢 Empresa A     │ Pro        │ ✅ Activo│ Juan Pérez      │ ⋮         │</p>
+<p>│    ID: abc123... │            │         │ juan@empresaa.com│           │</p>
+<p>├─────────────────────────────────────────────────────────────────────────┤</p>
+<p>│ 🏢 Empresa B     │ Enterprise │ ✅ Activo│ María García    │ ⋮         │</p>
+<p>│    ID: def456... │            │         │ maria@empresab.com│          │</p>
+<p>├─────────────────────────────────────────────────────────────────────────┤</p>
+<p>│ 🏢 Empresa C     │ Basic      │ ⚠️ Inactivo│ Sin asignar   │ ⋮         │</p>
+<p>│    ID: ghi789... │            │         │ [Invitar Admin] │           │</p>
+<p>└─────────────────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h4>Funciones de Búsqueda y Filtrado</h4>
+<br>
+<strong>Barra de Búsqueda:</strong>
+<ul>
+<li>Busca por nombre de empresa</li>
+<li>Busca por ID</li>
+<li>Búsqueda en tiempo real</li>
+</ul>
+<br>
+<strong>Filtros Disponibles:</strong>
+<ul>
+<li><strong>Por Plan:</strong></li>
+<li>Todos los planes</li>
+<li>Basic</li>
+<li>Pro</li>
+<li>Enterprise</li>
+</ol>
+<br>
+<ul>
+<li><strong>Por Estado:</strong></li>
+<li>Todos</li>
+<li>Activos</li>
+<li>Inactivos</li>
+</ul>
+<br>
+<h3>Crear Nueva Empresa</h3>
+<br>
+<strong>Paso a Paso:</strong>
+<br>
+<ol>
+<li><strong>Acceder al Formulario</strong></li>
+<li>Haz clic en <strong>"+ Nueva Empresa"</strong></li>
+<li>Se abrirá el formulario de registro</li>
+</ol>
+<br>
+<ol>
+<li><strong>Completar Información Básica</strong></li>
+</ol>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Nueva Empresa                      │</p>
+<p>│  Registra una nueva organización    │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  Nombre de la Empresa *             │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ Ej: Acme Corporation        │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  Plan de Suscripción *              │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ Seleccionar plan ▼          │   │</p>
+<p>│  │ • Basic                     │   │</p>
+<p>│  │ • Pro                       │   │</p>
+<p>│  │ • Enterprise                │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  Estado                             │</p>
+<p>│  ☑ Empresa activa                   │</p>
+<p>│  La empresa podrá usar la plataforma│</p>
+<p>│                                     │</p>
+<p>│  [Cancelar]  [Crear Empresa]       │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<ol>
+<li><strong>Planes Disponibles</strong></li>
+</ol>
+<br>
+<p>| Plan | Usuarios | Características | Precio |</p>
+<p>|------|----------|-----------------|--------|</p>
+<p>| <strong>Basic</strong> | Hasta 50 | Diagnósticos básicos, Reportes estándar | $$ |</p>
+<p>| <strong>Pro</strong> | Hasta 200 | + Reportes avanzados, Analíticas | $$$ |</p>
+<p>| <strong>Enterprise</strong> | Ilimitado | + Personalización, API, Soporte prioritario | $$$$ |</p>
+<br>
+<ol>
+<li><strong>Confirmar Creación</strong></li>
+<li>Revisa la información</li>
+<li>Haz clic en <strong>"Crear Empresa"</strong></li>
+<li>La empresa se creará inmediatamente</li>
+</ol>
+<br>
+<ol>
+<li><strong>Siguiente Paso</strong></li>
+<li>Invitar al administrador de la empresa</li>
+<li>Configurar branding (opcional)</li>
+</ol>
+<br>
+<h3>Editar Empresa</h3>
+<br>
+<strong>Acceso:</strong> Menú de acciones (⋮) → Editar
+<br>
+<strong>Campos Editables:</strong>
+<ul>
+<li>✅ Nombre de la empresa</li>
+<li>✅ Plan de suscripción</li>
+<li>✅ Estado (activo/inactivo)</li>
+<li>❌ ID (no editable)</li>
+<li>❌ Fecha de creación (no editable)</li>
+</ol>
+<br>
+<strong>Proceso:</strong>
+<br>
+<ol>
+<li>Haz clic en el menú de acciones (⋮)</li>
+<li>Selecciona <strong>"Editar"</strong></li>
+<li>Modifica los campos necesarios</li>
+<li>Haz clic en <strong>"Guardar Cambios"</strong></li>
+</ol>
+<br>
+<p>> <strong>⚠️ Importante:</strong> Cambiar el plan puede afectar las funcionalidades disponibles para la empresa.</p>
+<br>
+<h3>Desactivar/Activar Empresa</h3>
+<br>
+<strong>Desactivar:</strong>
+<ol>
+<li>Menú de acciones (⋮) → Editar</li>
+<li>Desmarca <strong>"Empresa activa"</strong></li>
+<li>Guarda los cambios</li>
+</ol>
+<br>
+<strong>Efectos de Desactivación:</strong>
+<ul>
+<li>❌ Los usuarios no podrán iniciar sesión</li>
+<li>❌ No se podrán realizar nuevos diagnósticos</li>
+<li>✅ Los datos históricos se mantienen</li>
+<li>✅ Se puede reactivar en cualquier momento</li>
+</ul>
+<br>
+<strong>Reactivar:</strong>
+<ol>
+<li>Menú de acciones (⋮) → Editar</li>
+<li>Marca <strong>"Empresa activa"</strong></li>
+<li>Guarda los cambios</li>
+</ol>
+<br>
+<h3>Eliminar Empresa</h3>
+<br>
+<p>> <strong>⚠️ ADVERTENCIA:</strong> Esta acción es IRREVERSIBLE.</p>
+<br>
+<strong>Proceso:</strong>
+<br>
+<ol>
+<li>Menú de acciones (⋮) → <strong>Eliminar</strong></li>
+<li>Aparecerá un diálogo de confirmación:</li>
+</ol>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  ⚠️ Eliminar Empresa                │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  ¿Estás seguro de que deseas        │</p>
+<p>│  eliminar "Empresa A"?              │</p>
+<p>│                                     │</p>
+<p>│  Esta acción:                       │</p>
+<p>│  • Eliminará todos los usuarios     │</p>
+<p>│  • Eliminará todos los datos        │</p>
+<p>│  • NO se puede deshacer             │</p>
+<p>│                                     │</p>
+<p>│  Escribe el nombre de la empresa    │</p>
+<p>│  para confirmar:                    │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │                             │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  [Cancelar]  [Eliminar Empresa]    │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<ol>
+<li>Escribe el nombre exacto de la empresa</li>
+<li>Haz clic en <strong>"Eliminar Empresa"</strong></li>
+</ol>
+<br>
+<strong>Datos que se Eliminan:</strong>
+<ul>
+<li>❌ Perfil de la empresa</li>
+<li>❌ Todos los usuarios asociados</li>
+<li>❌ Todos los diagnósticos</li>
+<li>❌ Todas las configuraciones personalizadas</li>
+</ul>
+<br>
+<h3>Invitar Administrador de Empresa</h3>
+<br>
+<strong>Desde la Tabla de Empresas:</strong>
+<br>
+<ol>
+<li>Encuentra la empresa sin administrador</li>
+<li>Haz clic en <strong>"Invitar Admin"</strong></li>
+<li>Completa el formulario:</li>
+</ol>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Invitar Administrador              │</p>
+<p>│  Para: Empresa A                    │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  Email del Administrador *          │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ admin@empresa.com           │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  Nombre Completo                    │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ Juan Pérez                  │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  ☑ Enviar email de invitación      │</p>
+<p>│                                     │</p>
+<p>│  [Cancelar]  [Enviar Invitación]   │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<ol>
+<li>Haz clic en <strong>"Enviar Invitación"</strong></li>
+</ol>
+<br>
+<strong>Qué Sucede:</strong>
+<ul>
+<li>✅ Se crea el perfil del administrador</li>
+<li>✅ Se asigna a la empresa</li>
+<li>✅ Se envía email de invitación</li>
+<li>✅ El admin recibe instrucciones de acceso</li>
+</ul>
+<br>
+<strong>Email de Invitación:</strong>
+</code>`<code>
+<p>Asunto: Invitación a EBI 360 - Administrador de Empresa A</p>
+<br>
+<p>Hola Juan,</p>
+<br>
+<p>Has sido invitado como Administrador de Empresa A en EBI 360.</p>
+<br>
+<p>Como administrador, podrás:</p>
+<p>• Gestionar colaboradores de tu empresa</p>
+<p>• Ver reportes agregados de bienestar</p>
+<p>• Configurar la apariencia de los reportes</p>
+<p>• Invitar nuevos usuarios</p>
+<br>
+<p>Para comenzar:</p>
+<ol>
+<li>Haz clic en el siguiente enlace</li>
+<li>Inicia sesión con tu cuenta de Google (admin@empresa.com)</li>
+<li>Completa tu perfil</li>
+</ol>
+<br>
+<p>[Acceder a EBI 360]</p>
+<br>
+<p>Si tienes preguntas, contacta a soporte@ebi360.com</p>
+<br>
+<p>Saludos,</p>
+<p>Equipo EBI 360</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>👑 Gestión de Administradores</h2>
+<br>
+<h3>Panel de Super Admins</h3>
+<br>
+<strong>Acceso:</strong> Dashboard → Super Admins
+<br>
+<h4>Vista de Administradores</h4>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│ Super Admins                                                │</p>
+<p>│ Gestiona los usuarios con acceso administrativo completo   │</p>
+<p>│                                                             │</p>
+<p>│ [+ Invitar Super Admin]                                    │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│ ADMINISTRADOR        │ EMAIL                  │ ESTADO     │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│ 👑 Leandro Fierro   │ leandro.fierro@bs360   │ ✅ Activo  │</p>
+<p>│    Super Admin      │                        │ 15 Dic     │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│ 👑 Admin Principal  │ admin@bs360.com        │ ✅ Activo  │</p>
+<p>│    Super Admin      │                        │ 10 Dic     │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Invitar Nuevo Super Admin</h3>
+<br>
+<p>> <strong>⚠️ Precaución:</strong> Solo invita a personas de máxima confianza. Los Super Admins tienen acceso total al sistema.</p>
+<br>
+<strong>Proceso:</strong>
+<br>
+<ol>
+<li><strong>Acceder al Formulario</strong></li>
+<li>Haz clic en <strong>"+ Invitar Super Admin"</strong></li>
+</ol>
+<br>
+<ol>
+<li><strong>Completar Información</strong></li>
+</ol>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Invitar Super Administrador        │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  Email *                            │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ nuevo.admin@bs360.com       │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  Nombre Completo *                  │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ María González              │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  ⚠️ Este usuario tendrá acceso     │</p>
+<p>│     completo al sistema             │</p>
+<p>│                                     │</p>
+<p>│  [Cancelar]  [Enviar Invitación]   │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<ol>
+<li><strong>Confirmar y Enviar</strong></li>
+<li>Revisa la información</li>
+<li>Haz clic en <strong>"Enviar Invitación"</strong></li>
+</ol>
+<br>
+<ol>
+<li><strong>Configuración Adicional</strong></li>
+<li>El email debe agregarse a la configuración del sistema</li>
+<li>Archivo: </code>src/config/super-admins.ts<code></li>
+<li>Agregar email a </code>SUPER_ADMIN_EMAILS<code></li>
+</ol>
+<br>
+<strong>Ejemplo de Configuración:</strong>
+</code>`<code>typescript
+<p>export const SUPER_ADMIN_EMAILS = [</p>
+<p>    'leandro.fierro@bs360.com',</p>
+<p>    'admin@bs360.com',</p>
+<p>    'nuevo.admin@bs360.com', // ← Agregar aquí</p>
+<p>];</p>
+</code>`<code>
+<br>
+<h3>Revocar Acceso de Super Admin</h3>
+<br>
+<strong>Proceso:</strong>
+<br>
+<ol>
+<li><strong>Eliminar del Sistema</strong></li>
+<li>Menú de acciones (⋮) → Eliminar</li>
+<li>Confirmar la acción</li>
+</ol>
+<br>
+<ol>
+<li><strong>Actualizar Configuración</strong></li>
+<li>Editar </code>src/config/super-admins.ts<code></li>
+<li>Remover el email de la lista</li>
+<li>Hacer commit y deploy</li>
+</ol>
+<br>
+<ol>
+<li><strong>Verificar</strong></li>
+<li>El usuario ya no podrá acceder al panel de Super Admin</li>
+<li>Mantendrá acceso como usuario regular si está en una empresa</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>📧 Sistema de Emails</h2>
+<br>
+<h3>Panel de Gestión de Emails</h3>
+<br>
+<strong>Acceso:</strong> Dashboard → Emails
+<br>
+<h4>Funcionalidades</h4>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────────────┐</p>
+<p>│ Gestión de Emails                                           │</p>
+<p>│ Administra las comunicaciones de la plataforma              │</p>
+<p>├─────────────────────────────────────────────────────────────┤</p>
+<p>│                                                             │</p>
+<p>│  📋 Plantillas de Email                                    │</p>
+<p>│  ┌───────────────────────────────────────────────────┐    │</p>
+<p>│  │ • Invitación de Usuario                           │    │</p>
+<p>│  │ • Invitación de Administrador                     │    │</p>
+<p>│  │ • Recordatorio de Diagnóstico                     │    │</p>
+<p>│  │ • Resultados Disponibles                          │    │</p>
+<p>│  │ • Bienvenida a la Plataforma                      │    │</p>
+<p>│  └───────────────────────────────────────────────────┘    │</p>
+<p>│                                                             │</p>
+<p>│  📊 Estadísticas de Envío                                  │</p>
+<p>│  ┌───────────────────────────────────────────────────┐    │</p>
+<p>│  │ Emails enviados hoy: 47                           │    │</p>
+<p>│  │ Emails pendientes: 3                              │    │</p>
+<p>│  │ Tasa de apertura: 68%                             │    │</p>
+<p>│  │ Tasa de rebote: 2%                                │    │</p>
+<p>│  └───────────────────────────────────────────────────┘    │</p>
+<p>│                                                             │</p>
+<p>│  🔧 Configuración SMTP                                     │</p>
+<p>│  [Configurar Servidor de Email]                           │</p>
+<p>└─────────────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Plantillas de Email</h3>
+<br>
+<h4>Ver y Editar Plantillas</h4>
+<br>
+<strong>Plantilla de Invitación:</strong>
+<br>
+<ol>
+<li>Selecciona <strong>"Invitación de Usuario"</strong></li>
+<li>Verás el editor de plantilla:</li>
+</ol>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Editar Plantilla: Invitación       │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  Asunto:                            │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ Bienvenido a EBI 360        │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  Cuerpo del Mensaje:                │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ Hola {{nombre}},            │   │</p>
+<p>│  │                             │   │</p>
+<p>│  │ Has sido invitado a...      │   │</p>
+<p>│  │                             │   │</p>
+<p>│  │ Variables disponibles:      │   │</p>
+<p>│  │ {{nombre}}                  │   │</p>
+<p>│  │ {{empresa}}                 │   │</p>
+<p>│  │ {{link_acceso}}             │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  [Vista Previa]  [Guardar]         │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h4>Variables Disponibles</h4>
+<br>
+<p>| Variable | Descripción | Ejemplo |</p>
+<p>|----------|-------------|---------|</p>
+<p>| </code>{{nombre}}<code> | Nombre del destinatario | Juan Pérez |</p>
+<p>| </code>{{empresa}}<code> | Nombre de la empresa | Acme Corp |</p>
+<p>| </code>{{link_acceso}}<code> | URL de acceso | https://ebi360.com |</p>
+<p>| </code>{{fecha}}<code> | Fecha actual | 15 Dic 2025 |</p>
+<p>| </code>{{puntuacion}}<code> | Puntuación del diagnóstico | 7.8 |</p>
+<br>
+<h3>Envío de Emails Masivos</h3>
+<br>
+<strong>Funcionalidad:</strong> Enviar comunicaciones a múltiples usuarios
+<br>
+<strong>Proceso:</strong>
+<br>
+<ol>
+<li><strong>Acceder a Envío Masivo</strong></li>
+<li>Panel de Emails → <strong>"Envío Masivo"</strong></li>
+</ol>
+<br>
+<ol>
+<li><strong>Configurar Envío</strong></li>
+</ol>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Envío Masivo de Emails             │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  Destinatarios:                     │</p>
+<p>│  ○ Todos los usuarios               │</p>
+<p>│  ○ Por empresa                      │</p>
+<p>│  ○ Por rol                          │</p>
+<p>│  ● Lista personalizada              │</p>
+<p>│                                     │</p>
+<p>│  Plantilla:                         │</p>
+<p>│  ┌─────────────────────────────┐   │</p>
+<p>│  │ Seleccionar plantilla ▼     │   │</p>
+<p>│  └─────────────────────────────┘   │</p>
+<p>│                                     │</p>
+<p>│  Programar envío:                   │</p>
+<p>│  ○ Enviar ahora                     │</p>
+<p>│  ● Programar para:                  │</p>
+<p>│    [15/12/2025] [10:00]            │</p>
+<p>│                                     │</p>
+<p>│  [Vista Previa]  [Programar Envío] │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<ol>
+<li><strong>Revisar y Confirmar</strong></li>
+<li>Vista previa del email</li>
+<li>Confirmar lista de destinatarios</li>
+<li>Programar o enviar</li>
+</ol>
+<br>
+<h3>Monitoreo de Emails</h3>
+<br>
+<strong>Métricas Disponibles:</strong>
+<br>
+<ul>
+<li><strong>Enviados:</strong> Total de emails enviados</li>
+<li><strong>Entregados:</strong> Emails que llegaron exitosamente</li>
+<li><strong>Abiertos:</strong> Emails que fueron abiertos</li>
+<li><strong>Clicks:</strong> Enlaces clickeados</li>
+<li><strong>Rebotados:</strong> Emails que no pudieron entregarse</li>
+<li><strong>Spam:</strong> Marcados como spam</li>
+</ol>
+<br>
+<strong>Dashboard de Métricas:</strong>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Estadísticas de Email - Últimos 30 días</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  Enviados:     1,247  ━━━━━━━━━━   │</p>
+<p>│  Entregados:   1,223  ━━━━━━━━━░   │</p>
+<p>│  Abiertos:       847  ━━━━━━░░░░   │</p>
+<p>│  Clicks:         423  ━━━░░░░░░░   │</p>
+<p>│  Rebotados:       24  ░░░░░░░░░░   │</p>
+<p>│  Spam:             0  ░░░░░░░░░░   │</p>
+<p>│                                     │</p>
+<p>│  Tasa de apertura: 68%              │</p>
+<p>│  Tasa de clicks: 34%                │</p>
+<p>│  Tasa de rebote: 2%                 │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>⚙️ Configuración Global</h2>
+<br>
+<h3>Panel de Configuración</h3>
+<br>
+<strong>Acceso:</strong> Dashboard → Configuración
+<br>
+<h4>Secciones Disponibles</h4>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Configuración del Sistema          │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  👤 Perfil Personal                 │</p>
+<p>│  Nombre, foto, información          │</p>
+<p>│                                     │</p>
+<p>│  🔔 Notificaciones                  │</p>
+<p>│  Preferencias de alertas            │</p>
+<p>│                                     │</p>
+<p>│  🎨 Apariencia                      │</p>
+<p>│  Tema, idioma, personalización      │</p>
+<p>│                                     │</p>
+<p>│  🔐 Seguridad                       │</p>
+<p>│  Contraseña, 2FA, sesiones          │</p>
+<p>│                                     │</p>
+<p>│  📊 Configuración de Reportes       │</p>
+<p>│  Formatos, plantillas, branding     │</p>
+<p>│                                     │</p>
+<p>│  🔧 Configuración Técnica           │</p>
+<p>│  API, webhooks, integraciones       │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Perfil Personal</h3>
+<br>
+<strong>Información Editable:</strong>
+<br>
+<ul>
+<li>✅ Nombre completo</li>
+<li>✅ Foto de perfil</li>
+<li>✅ Teléfono de contacto</li>
+<li>✅ Biografía</li>
+<li>❌ Email (no editable)</li>
+<li>❌ Rol (asignado automáticamente)</li>
+</ol>
+<br>
+<h3>Configuración de Notificaciones</h3>
+<br>
+<strong>Tipos de Notificaciones:</strong>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────┐</p>
+<p>│  Preferencias de Notificaciones     │</p>
+<p>├─────────────────────────────────────┤</p>
+<p>│                                     │</p>
+<p>│  📧 Email                           │</p>
+<p>│  ☑ Nueva empresa registrada         │</p>
+<p>│  ☑ Nuevo administrador invitado     │</p>
+<p>│  ☑ Error del sistema                │</p>
+<p>│  ☑ Reporte semanal                  │</p>
+<p>│                                     │</p>
+<p>│  🔔 En Plataforma                   │</p>
+<p>│  ☑ Actividad importante             │</p>
+<p>│  ☐ Todas las actividades            │</p>
+<p>│                                     │</p>
+<p>│  Frecuencia de Reportes:            │</p>
+<p>│  ○ Diario                           │</p>
+<p>│  ● Semanal                          │</p>
+<p>│  ○ Mensual                          │</p>
+<p>│                                     │</p>
+<p>│  [Guardar Preferencias]             │</p>
+<p>└─────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Configuración de Seguridad</h3>
+<br>
+<strong>Opciones Disponibles:</strong>
+<br>
+<ol>
+<li><strong>Autenticación de Dos Factores (2FA)</strong></li>
+<li>Activar/Desactivar</li>
+<li>Configurar app de autenticación</li>
+<li>Códigos de respaldo</li>
+</ol>
+<br>
+<ol>
+<li><strong>Sesiones Activas</strong></li>
+<li>Ver dispositivos conectados</li>
+<li>Cerrar sesiones remotas</li>
+<li>Historial de accesos</li>
+</ol>
+<br>
+<ol>
+<li><strong>Logs de Auditoría</strong></li>
+<li>Ver todas las acciones realizadas</li>
+<li>Filtrar por fecha y tipo</li>
+<li>Exportar logs</li>
+</ol>
+<br>
+<strong>Ejemplo de Log:</strong>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────┐</p>
+<p>│  Logs de Auditoría                                  │</p>
+<p>├─────────────────────────────────────────────────────┤</p>
+<p>│ FECHA/HORA       │ ACCIÓN              │ DETALLES   │</p>
+<p>├─────────────────────────────────────────────────────┤</p>
+<p>│ 15 Dic 10:30    │ Empresa creada      │ Acme Corp  │</p>
+<p>│ 15 Dic 10:25    │ Admin invitado      │ juan@...   │</p>
+<p>│ 15 Dic 10:20    │ Inicio de sesión    │ IP: 192... │</p>
+<p>│ 14 Dic 18:45    │ Configuración       │ Email SMTP │</p>
+<p>└─────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Reportes y Analíticas</h2>
+<br>
+<h3>Dashboard de Analíticas</h3>
+<br>
+<strong>Métricas Globales:</strong>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────────────────┐</p>
+<p>│  Analíticas Globales - Diciembre 2025               │</p>
+<p>├─────────────────────────────────────────────────────┤</p>
+<p>│                                                     │</p>
+<p>│  📈 Crecimiento                                     │</p>
+<p>│  ┌─────────────────────────────────────────────┐   │</p>
+<p>│  │ Nuevas empresas: +5 este mes                │   │</p>
+<p>│  │ Nuevos usuarios: +247 este mes              │   │</p>
+<p>│  │ Diagnósticos: +891 este mes                 │   │</p>
+<p>│  └─────────────────────────────────────────────┘   │</p>
+<p>│                                                     │</p>
+<p>│  🎯 Engagement                                      │</p>
+<p>│  ┌─────────────────────────────────────────────┐   │</p>
+<p>│  │ Tasa de completación: 87%                   │   │</p>
+<p>│  │ Usuarios activos (30d): 1,089               │   │</p>
+<p>│  │ Promedio diagnósticos/usuario: 3.1          │   │</p>
+<p>│  └─────────────────────────────────────────────┘   │</p>
+<p>│                                                     │</p>
+<p>│  💡 Insights                                        │</p>
+<p>│  ┌─────────────────────────────────────────────┐   │</p>
+<p>│  │ Dimensión más baja: Financiero (6.2)        │   │</p>
+<p>│  │ Dimensión más alta: Social (7.9)            │   │</p>
+<p>│  │ Tendencia general: ↑ +0.3 vs mes anterior  │   │</p>
+<p>│  └─────────────────────────────────────────────┘   │</p>
+<p>└─────────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Reportes por Empresa</h3>
+<br>
+<strong>Acceso:</strong> Empresas → [Seleccionar empresa] → Reportes
+<br>
+<strong>Información Disponible:</strong>
+<br>
+<ol>
+<li><strong>Participación</strong></li>
+<li>Total de colaboradores</li>
+<li>Diagnósticos completados</li>
+<li>Tasa de participación</li>
+</ol>
+<br>
+<ol>
+<li><strong>Puntuaciones</strong></li>
+<li>Promedio global de la empresa</li>
+<li>Promedio por dimensión</li>
+<li>Distribución de puntuaciones</li>
+</ol>
+<br>
+<ol>
+<li><strong>Tendencias</strong></li>
+<li>Evolución mes a mes</li>
+<li>Comparación con promedio general</li>
+<li>Áreas de mejora</li>
+</ol>
+<br>
+<ol>
+<li><strong>Demografía</strong> (si disponible)</li>
+<li>Por departamento</li>
+<li>Por antigüedad</li>
+<li>Por ubicación</li>
+</ol>
+<br>
+<h3>Exportar Reportes</h3>
+<br>
+<strong>Formatos Disponibles:</strong>
+<br>
+<ol>
+<li><strong>PDF</strong></li>
+<li>Reporte ejecutivo</li>
+<li>Reporte detallado</li>
+<li>Reporte personalizado</li>
+</ol>
+<br>
+<ol>
+<li><strong>Excel/CSV</strong></li>
+<li>Datos crudos</li>
+<li>Tablas dinámicas</li>
+<li>Gráficos incluidos</li>
+</ol>
+<br>
+<ol>
+<li><strong>PowerPoint</strong></li>
+<li>Presentación ejecutiva</li>
+<li>Gráficos y visualizaciones</li>
+</ol>
+<br>
+<strong>Proceso de Exportación:</strong>
+<br>
+<ol>
+<li>Selecciona el tipo de reporte</li>
+<li>Elige el rango de fechas</li>
+<li>Selecciona empresas (todas o específicas)</li>
+<li>Configura opciones de formato</li>
+<li>Haz clic en <strong>"Exportar"</strong></li>
+<li>El archivo se descargará automáticamente</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🔄 Cambio de Roles</h2>
+<br>
+<h3>Sistema Multi-Rol</h3>
+<br>
+<p>Como Super Admin, tienes acceso a <strong>tres roles diferentes</strong>:</p>
+<br>
+<ol>
+<li><strong>👑 Super Administrador</strong> - Gestión global</li>
+<li><strong>🏢 Administrador de Empresa</strong> - Gestión de empresa específica</li>
+<li><strong>👤 Colaborador</strong> - Vista de usuario final</li>
+</ol>
+<br>
+<h3>Cambiar de Rol</h3>
+<br>
+<strong>Ubicación del Selector:</strong>
+<br>
+<ul>
+<li><strong>Desktop:</strong> Esquina superior derecha</li>
+<li><strong>Móvil:</strong> Menú de navegación</li>
+</ul>
+<br>
+<strong>Interfaz:</strong>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────┐</p>
+<p>│  Super Administrador  ▼     │</p>
+<p>└─────────────────────────────┘</p>
+<br>
+<p>Al hacer clic:</p>
+<br>
+<p>┌─────────────────────────────┐</p>
+<p>│  CAMBIAR ROL                │</p>
+<p>├─────────────────────────────┤</p>
+<p>│  ● Super Administrador      │</p>
+<p>│    (actual)                 │</p>
+<p>│                             │</p>
+<p>│  ○ Admin de Empresa         │</p>
+<p>│                             │</p>
+<p>│  ○ Colaborador              │</p>
+<p>└─────────────────────────────┘</p>
+</code>`<code>
+<br>
+<h3>Funcionalidades por Rol</h3>
+<br>
+<h4>Como Super Administrador</h4>
+<ul>
+<li>✅ Gestión de empresas</li>
+<li>✅ Gestión de super admins</li>
+<li>✅ Configuración global</li>
+<li>✅ Analíticas globales</li>
+<li>✅ Sistema de emails</li>
+</ol>
+<br>
+<h4>Como Administrador de Empresa</h4>
+<ul>
+<li>✅ Gestión de colaboradores de UNA empresa</li>
+<li>✅ Reportes de la empresa</li>
+<li>✅ Configuración de branding</li>
+<li>✅ Invitación de empleados</li>
+<li>❌ No puede ver otras empresas</li>
+</ol>
+<br>
+<h4>Como Colaborador</h4>
+<ul>
+<li>✅ Realizar diagnósticos</li>
+<li>✅ Ver resultados propios</li>
+<li>✅ Descargar reportes personales</li>
+<li>❌ No puede ver datos de otros</li>
+<li>❌ No puede gestionar usuarios</li>
+</ol>
+<br>
+<h3>Casos de Uso</h3>
+<br>
+<strong>Escenario 1: Probar la Experiencia del Usuario</strong>
+<ol>
+<li>Cambia a rol <strong>"Colaborador"</strong></li>
+<li>Realiza un diagnóstico</li>
+<li>Verifica que todo funcione correctamente</li>
+<li>Vuelve a <strong>"Super Administrador"</strong></li>
+</ol>
+<br>
+<strong>Escenario 2: Configurar una Empresa</strong>
+<ol>
+<li>Cambia a rol <strong>"Admin de Empresa"</strong></li>
+<li>Configura el branding</li>
+<li>Invita colaboradores</li>
+<li>Vuelve a <strong>"Super Administrador"</strong></li>
+</ol>
+<br>
+<strong>Escenario 3: Soporte a Cliente</strong>
+<ol>
+<li>Cambia a <strong>"Admin de Empresa"</strong> de la empresa del cliente</li>
+<li>Revisa la configuración</li>
+<li>Identifica el problema</li>
+<li>Vuelve a <strong>"Super Administrador"</strong> para solucionarlo</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🔒 Seguridad y Mejores Prácticas</h2>
+<br>
+<h3>Principios de Seguridad</h3>
+<br>
+<h4>1. Principio de Mínimo Privilegio</h4>
+<br>
+<strong>Regla:</strong> Solo otorga el nivel de acceso necesario.
+<br>
+<ul>
+<li>✅ Colaboradores: Solo acceso a sus datos</li>
+<li>✅ Admins de Empresa: Solo su empresa</li>
+<li>✅ Super Admins: Solo personal de confianza</li>
+</ul>
+<br>
+<h4>2. Auditoría Continua</h4>
+<br>
+<strong>Acciones a Monitorear:</strong>
+<br>
+<ul>
+<li>Creación/eliminación de empresas</li>
+<li>Invitaciones de administradores</li>
+<li>Cambios en configuración global</li>
+<li>Accesos desde IPs inusuales</li>
+<li>Exportación masiva de datos</li>
+</ol>
+<br>
+<strong>Revisar Logs:</strong>
+<ul>
+<li>Diariamente: Actividad sospechosa</li>
+<li>Semanalmente: Resumen de actividades</li>
+<li>Mensualmente: Análisis de tendencias</li>
+</ul>
+<br>
+<h4>3. Gestión de Accesos</h4>
+<br>
+<strong>Checklist Mensual:</strong>
+<br>
+</code>`<code>
+<p>□ Revisar lista de Super Admins</p>
+<p>□ Verificar empresas activas</p>
+<p>□ Revisar administradores de empresa</p>
+<p>□ Eliminar cuentas inactivas</p>
+<p>□ Actualizar contraseñas</p>
+<p>□ Revisar sesiones activas</p>
+<p>□ Verificar configuración 2FA</p>
+</code>`<code>
+<br>
+<h3>Mejores Prácticas</h3>
+<br>
+<h4>Para Gestión de Empresas</h4>
+<br>
+<ol>
+<li><strong>Antes de Crear:</strong></li>
+<li>✅ Verifica que la empresa no existe</li>
+<li>✅ Confirma el plan adecuado</li>
+<li>✅ Ten el email del admin listo</li>
+</ol>
+<br>
+<ol>
+<li><strong>Al Crear:</strong></li>
+<li>✅ Usa nombres descriptivos</li>
+<li>✅ Activa la empresa inmediatamente</li>
+<li>✅ Invita al admin de inmediato</li>
+</ol>
+<br>
+<ol>
+<li><strong>Después de Crear:</strong></li>
+<li>✅ Verifica que el admin recibió el email</li>
+<li>✅ Confirma que puede acceder</li>
+<li>✅ Programa seguimiento</li>
+</ol>
+<br>
+<h4>Para Gestión de Usuarios</h4>
+<br>
+<ol>
+<li><strong>Invitaciones:</strong></li>
+<li>✅ Verifica el email antes de enviar</li>
+<li>✅ Usa plantillas profesionales</li>
+<li>✅ Incluye instrucciones claras</li>
+<li>✅ Establece expectativas</li>
+</ol>
+<br>
+<ol>
+<li><strong>Seguimiento:</strong></li>
+<li>✅ Confirma que aceptaron la invitación</li>
+<li>✅ Verifica su primer acceso</li>
+<li>✅ Ofrece soporte si es necesario</li>
+</ol>
+<br>
+<ol>
+<li><strong>Desactivación:</strong></li>
+<li>✅ Desactiva usuarios inactivos</li>
+<li>✅ Documenta el motivo</li>
+<li>✅ Archiva datos si es necesario</li>
+</ol>
+<br>
+<h4>Para Comunicaciones</h4>
+<br>
+<ol>
+<li><strong>Emails:</strong></li>
+<li>✅ Personaliza el contenido</li>
+<li>✅ Usa un tono profesional</li>
+<li>✅ Incluye call-to-action claro</li>
+<li>✅ Prueba antes de envío masivo</li>
+</ol>
+<br>
+<ol>
+<li><strong>Notificaciones:</strong></li>
+<li>✅ No satures a los usuarios</li>
+<li>✅ Agrupa notificaciones similares</li>
+<li>✅ Permite desuscripción</li>
+<li>✅ Respeta preferencias</li>
+</ol>
+<br>
+<h3>Respaldo y Recuperación</h3>
+<br>
+<h4>Respaldos Automáticos</h4>
+<br>
+<strong>Frecuencia:</strong>
+<ul>
+<li>Base de datos: Cada 6 horas</li>
+<li>Archivos: Diariamente</li>
+<li>Configuración: Cada cambio</li>
+</ul>
+<br>
+<strong>Retención:</strong>
+<ul>
+<li>Diarios: 7 días</li>
+<li>Semanales: 4 semanas</li>
+<li>Mensuales: 12 meses</li>
+</ul>
+<br>
+<h4>Recuperación de Datos</h4>
+<br>
+<strong>En caso de pérdida de datos:</strong>
+<br>
+<ol>
+<li><strong>Contacta a Soporte Técnico</strong></li>
+<li>Email: tech@ebi360.com</li>
+<li>Urgente: +54 11 xxxx-xxxx</li>
+</ol>
+<br>
+<ol>
+<li><strong>Proporciona Información:</strong></li>
+<li>Qué datos se perdieron</li>
+<li>Cuándo ocurrió</li>
+<li>Última vez que estaban disponibles</li>
+</ol>
+<br>
+<ol>
+<li><strong>Proceso de Recuperación:</strong></li>
+<li>Evaluación: 1-2 horas</li>
+<li>Recuperación: 2-4 horas</li>
+<li>Verificación: 1 hora</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🔧 Troubleshooting</h2>
+<br>
+<h3>Problemas Comunes</h3>
+<br>
+<h4>1. Usuario No Puede Iniciar Sesión</h4>
+<br>
+<strong>Posibles Causas:</strong>
+<ul>
+<li>Email no autorizado</li>
+<li>Empresa desactivada</li>
+<li>Problemas de autenticación con Google</li>
+</ul>
+<br>
+<strong>Solución:</strong>
+<br>
+<ol>
+<li><strong>Verificar Email:</strong></li>
+<li>Busca al usuario en la base de datos</li>
+<li>Confirma que el email es correcto</li>
+<li>Verifica que la empresa está activa</li>
+</ol>
+<br>
+<ol>
+<li><strong>Verificar Estado:</strong></li>
+</ol>
+   </code>`<code>
+<p>   Dashboard → Empresas → [Buscar empresa]</p>
+<p>   → Ver usuarios → [Buscar usuario]</p>
+   </code>`<code>
+<br>
+<ol>
+<li><strong>Reenviar Invitación:</strong></li>
+<li>Si no existe, invítalo nuevamente</li>
+<li>Verifica que reciba el email</li>
+</ol>
+<br>
+<h4>2. Empresa No Aparece en la Lista</h4>
+<br>
+<strong>Posibles Causas:</strong>
+<ul>
+<li>Filtros activos</li>
+<li>Empresa eliminada</li>
+<li>Error de búsqueda</li>
+</ul>
+<br>
+<strong>Solución:</strong>
+<br>
+<ol>
+<li><strong>Limpiar Filtros:</strong></li>
+<li>Selecciona "Todos los planes"</li>
+<li>Selecciona "Todos los estados"</li>
+</ol>
+<br>
+<ol>
+<li><strong>Buscar por ID:</strong></li>
+<li>Si tienes el ID, búscalo directamente</li>
+</ol>
+<br>
+<ol>
+<li><strong>Verificar Eliminación:</strong></li>
+<li>Revisa logs de auditoría</li>
+<li>Confirma si fue eliminada</li>
+</ol>
+<br>
+<h4>3. Emails No Se Envían</h4>
+<br>
+<strong>Posibles Causas:</strong>
+<ul>
+<li>Configuración SMTP incorrecta</li>
+<li>Email en lista de spam</li>
+<li>Límite de envío alcanzado</li>
+</ul>
+<br>
+<strong>Solución:</strong>
+<br>
+<ol>
+<li><strong>Verificar Configuración SMTP:</strong></li>
+</ol>
+   </code>`<code>
+<p>   Dashboard → Emails → Configuración SMTP</p>
+<p>   → Probar Conexión</p>
+   </code>`<code>
+<br>
+<ol>
+<li><strong>Revisar Cola de Envío:</strong></li>
+</ol>
+   </code>`<code>
+<p>   Dashboard → Emails → Emails Pendientes</p>
+   </code>`<code>
+<br>
+<ol>
+<li><strong>Verificar Logs:</strong></li>
+</ol>
+   </code>`<code>
+<p>   Dashboard → Configuración → Logs</p>
+<p>   → Filtrar por "Email"</p>
+   </code>`<code>
+<br>
+<h4>4. Datos No Se Actualizan</h4>
+<br>
+<strong>Posibles Causas:</strong>
+<ul>
+<li>Caché del navegador</li>
+<li>Sesión expirada</li>
+<li>Error de sincronización</li>
+</ul>
+<br>
+<strong>Solución:</strong>
+<br>
+<ol>
+<li><strong>Refrescar Página:</strong></li>
+<li>Presiona F5 o Ctrl+R</li>
+<li>Fuerza recarga: Ctrl+Shift+R</li>
+</ol>
+<br>
+<ol>
+<li><strong>Limpiar Caché:</strong></li>
+<li>Chrome: Ctrl+Shift+Delete</li>
+<li>Selecciona "Caché"</li>
+<li>Limpia y recarga</li>
+</ol>
+<br>
+<ol>
+<li><strong>Cerrar y Reabrir Sesión:</strong></li>
+<li>Cierra sesión completamente</li>
+<li>Vuelve a iniciar sesión</li>
+</ol>
+<br>
+<h3>Errores del Sistema</h3>
+<br>
+<h4>Error 500 - Error del Servidor</h4>
+<br>
+<strong>Qué Hacer:</strong>
+<br>
+<ol>
+<li><strong>Captura de Pantalla:</strong></li>
+<li>Toma screenshot del error</li>
+<li>Anota la hora exacta</li>
+</ol>
+<br>
+<ol>
+<li><strong>Verifica el Estado:</strong></li>
+<li>Revisa si afecta a todos los usuarios</li>
+<li>Prueba en modo incógnito</li>
+</ol>
+<br>
+<ol>
+<li><strong>Contacta Soporte:</strong></li>
+<li>Envía screenshot</li>
+<li>Describe qué estabas haciendo</li>
+<li>Proporciona hora del error</li>
+</ol>
+<br>
+<h4>Error 403 - Acceso Denegado</h4>
+<br>
+<strong>Causas:</strong>
+<ul>
+<li>Permisos insuficientes</li>
+<li>Sesión expirada</li>
+<li>Rol incorrecto</li>
+</ul>
+<br>
+<strong>Solución:</strong>
+<br>
+<ol>
+<li><strong>Verifica tu Rol:</strong></li>
+<li>Confirma que estás en el rol correcto</li>
+<li>Cambia de rol si es necesario</li>
+</ol>
+<br>
+<ol>
+<li><strong>Refresca la Sesión:</strong></li>
+<li>Cierra y vuelve a iniciar sesión</li>
+</ol>
+<br>
+<ol>
+<li><strong>Verifica Permisos:</strong></li>
+<li>Contacta a otro Super Admin</li>
+<li>Verifica que tu email está en la lista autorizada</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🔌 API y Integraciones</h2>
+<br>
+<h3>API de EBI 360</h3>
+<br>
+<strong>Documentación:</strong> </code>https://api.ebi360.com/docs<code>
+<br>
+<h4>Autenticación</h4>
+<br>
+<strong>Método:</strong> API Key
+<br>
+</code>`<code>bash
+<p>curl -H "Authorization: Bearer YOUR_API_KEY" \</p>
+<p>     https://api.ebi360.com/v1/companies</p>
+</code>`<code>
+<br>
+<h4>Endpoints Principales</h4>
+<br>
+<strong>1. Empresas</strong>
+<br>
+</code>`<code>
+<p>GET    /v1/companies           # Listar empresas</p>
+<p>POST   /v1/companies           # Crear empresa</p>
+<p>GET    /v1/companies/:id       # Obtener empresa</p>
+<p>PUT    /v1/companies/:id       # Actualizar empresa</p>
+<p>DELETE /v1/companies/:id       # Eliminar empresa</p>
+</code>`<code>
+<br>
+<strong>2. Usuarios</strong>
+<br>
+</code>`<code>
+<p>GET    /v1/users               # Listar usuarios</p>
+<p>POST   /v1/users               # Crear usuario</p>
+<p>GET    /v1/users/:id           # Obtener usuario</p>
+<p>PUT    /v1/users/:id           # Actualizar usuario</p>
+<p>DELETE /v1/users/:id           # Eliminar usuario</p>
+</code>`<code>
+<br>
+<strong>3. Diagnósticos</strong>
+<br>
+</code>`<code>
+<p>GET    /v1/diagnostics         # Listar diagnósticos</p>
+<p>GET    /v1/diagnostics/:id     # Obtener diagnóstico</p>
+<p>GET    /v1/diagnostics/stats   # Estadísticas agregadas</p>
+</code>`<code>
+<br>
+<h4>Webhooks</h4>
+<br>
+<strong>Configurar Webhooks:</strong>
+<br>
+</code>`<code>
+<p>Dashboard → Configuración → Webhooks</p>
+<p>→ Agregar Webhook</p>
+</code>`<code>
+<br>
+<strong>Eventos Disponibles:</strong>
+<br>
+<ul>
+<li></code>company.created<code> - Nueva empresa creada</li>
+<li></code>company.updated<code> - Empresa actualizada</li>
+<li></code>user.invited<code> - Usuario invitado</li>
+<li></code>diagnostic.completed<code> - Diagnóstico completado</li>
+<li></code>report.generated<code> - Reporte generado</li>
+</ol>
+<br>
+<strong>Ejemplo de Payload:</strong>
+<br>
+</code>`<code>json
+<p>{</p>
+<p>  "event": "diagnostic.completed",</p>
+<p>  "timestamp": "2025-12-15T10:30:00Z",</p>
+<p>  "data": {</p>
+<p>    "user_id": "abc123",</p>
+<p>    "company_id": "xyz789",</p>
+<p>    "score": 7.8,</p>
+<p>    "dimensions": {</p>
+<p>      "physical": 8.2,</p>
+<p>      "emotional": 7.5,</p>
+<p>      "social": 7.9,</p>
+<p>      "professional": 7.6,</p>
+<p>      "intellectual": 7.4,</p>
+<p>      "financial": 7.2</p>
+<p>    }</p>
+<p>  }</p>
+<p>}</p>
+</code>`<code>
+<br>
+<h3>Integraciones</h3>
+<br>
+<h4>HRIS (Sistemas de RRHH)</h4>
+<br>
+<strong>Sistemas Soportados:</strong>
+<ul>
+<li>Workday</li>
+<li>BambooHR</li>
+<li>SAP SuccessFactors</li>
+<li>ADP</li>
+</ul>
+<br>
+<strong>Sincronización:</strong>
+<ul>
+<li>Importación automática de empleados</li>
+<li>Actualización de departamentos</li>
+<li>Gestión de altas/bajas</li>
+</ul>
+<br>
+<h4>Comunicaciones</h4>
+<br>
+<strong>Plataformas:</strong>
+<ul>
+<li>Slack</li>
+<li>Microsoft Teams</li>
+<li>Email (SMTP)</li>
+</ul>
+<br>
+<strong>Notificaciones:</strong>
+<ul>
+<li>Nuevos diagnósticos</li>
+<li>Alertas de bienestar</li>
+<li>Recordatorios</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>📚 Recursos Adicionales</h2>
+<br>
+<h3>Documentación Técnica</h3>
+<br>
+<ul>
+<li><strong>API Docs:</strong> https://api.ebi360.com/docs</li>
+<li><strong>GitHub:</strong> https://github.com/ebi360</li>
+<li><strong>Changelog:</strong> https://ebi360.com/changelog</li>
+</ul>
+<br>
+<h3>Soporte</h3>
+<br>
+<strong>Canales de Soporte:</strong>
+<br>
+<ul>
+<li>📧 <strong>Email:</strong> support@ebi360.com</li>
+<li>💬 <strong>Chat:</strong> Disponible en plataforma</li>
+<li>📞 <strong>Teléfono:</strong> +54 11 xxxx-xxxx (Urgencias)</li>
+<li>🎫 <strong>Tickets:</strong> https://support.ebi360.com</li>
+</ul>
+<br>
+<strong>Horarios:</strong>
+<ul>
+<li>Lunes a Viernes: 9:00 - 18:00 (GMT-3)</li>
+<li>Urgencias: 24/7</li>
+</ul>
+<br>
+<h3>Capacitación</h3>
+<br>
+<strong>Webinars Mensuales:</strong>
+<ul>
+<li>Nuevas funcionalidades</li>
+<li>Mejores prácticas</li>
+<li>Casos de éxito</li>
+</ul>
+<br>
+<strong>Certificación:</strong>
+<ul>
+<li>Curso de Super Admin</li>
+<li>Examen de certificación</li>
+<li>Certificado oficial</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>✅ Checklist del Super Admin</h2>
+<br>
+<h3>Diario</h3>
+<br>
+</code>`<code>
+<p>□ Revisar dashboard de métricas</p>
+<p>□ Verificar emails pendientes</p>
+<p>□ Revisar logs de errores</p>
+<p>□ Responder tickets de soporte</p>
+</code>`<code>
+<br>
+<h3>Semanal</h3>
+<br>
+</code>`<code>
+<p>□ Revisar nuevas empresas</p>
+<p>□ Verificar tasa de participación</p>
+<p>□ Analizar tendencias de bienestar</p>
+<p>□ Revisar reportes de email</p>
+<p>□ Actualizar documentación</p>
+</code>`<code>
+<br>
+<h3>Mensual</h3>
+<br>
+</code>`<code>
+<p>□ Auditoría de usuarios</p>
+<p>□ Revisión de seguridad</p>
+<p>□ Análisis de métricas globales</p>
+<p>□ Planificación de mejoras</p>
+<p>□ Backup de configuración</p>
+<p>□ Reunión con equipo</p>
+</code>`<code>
+<br>
+<h3>Trimestral</h3>
+<br>
+</code>`<code>
+<p>□ Revisión estratégica</p>
+<p>□ Evaluación de satisfacción</p>
+<p>□ Planificación de nuevas features</p>
+<p>□ Capacitación del equipo</p>
+<p>□ Auditoría completa del sistema</p>
+</code>``
+<br>
+<p>---</p>
+<br>
+<h2>🎓 Conclusión</h2>
+<br>
+<p>Como Super Administrador de EBI 360, tienes la responsabilidad y el poder de:</p>
+<br>
+<ul>
+<li>🏢 Gestionar múltiples organizaciones</li>
+<li>👥 Impactar positivamente en miles de personas</li>
+<li>📊 Tomar decisiones basadas en datos</li>
+<li>🔒 Mantener la seguridad y privacidad</li>
+<li>🚀 Impulsar el bienestar organizacional</li>
+</ol>
+<br>
+<h3>Recuerda</h3>
+<br>
+<p>> <strong>"Con gran poder viene gran responsabilidad"</strong></p>
+<br>
+<ul>
+<li>✅ Usa tus permisos sabiamente</li>
+<li>✅ Protege la privacidad de los usuarios</li>
+<li>✅ Documenta tus acciones</li>
+<li>✅ Mantente actualizado</li>
+<li>✅ Busca ayuda cuando la necesites</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<strong>¡Bienvenido al equipo de Super Administradores de EBI 360!</strong>
+<br>
+<p>Estamos aquí para apoyarte en tu misión de promover el bienestar integral en las organizaciones de LATAM.</p>
+<br>
+<p>---</p>
+<br>
+<strong>Versión del Documento:</strong> 1.0  
+<strong>Última Actualización:</strong> Diciembre 2025  
+<strong>Próxima Revisión:</strong> Marzo 2026  
+<strong>Autor:</strong> Equipo EBI 360
+<br>
+<p>---</p>
+<br>
+<em>© 2025 EBI 360 - Todos los derechos reservados</em>  
+<em>Documento Confidencial - Solo para Super Administradores</em>
+<br>
+        </div>
+        
+        <div class="footer">
+            <p><strong>© 2025 EBI 360</strong> - Todos los derechos reservados</p>
+            <p>Documento generado el 22 de December de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        window.addEventListener('beforeprint', () => {
+            document.title = 'Guía de Super Administrador EBI 360';
+        });
+    </script>
+</body>
+</html>

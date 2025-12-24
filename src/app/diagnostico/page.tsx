@@ -1,38 +1,127 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check } from "lucide-react";
-import { questions } from "@/lib/logic";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { DiagnosisSelector } from "@/components/diagnosis/DiagnosisSelector";
+import { questions as staticQuestions } from "@/lib/logic";
 
 export default function DiagnosticPage() {
     const router = useRouter();
+    const supabase = createClient();
+
+    // State for survey selection
+    const [assignedSurveys, setAssignedSurveys] = useState<any[]>([]);
+    const [selectedSurvey, setSelectedSurvey] = useState<any | null>(null);
+    const [loadingSurveys, setLoadingSurveys] = useState(true);
+
+    // State for diagnosis
+    const [questions, setQuestions] = useState<any[]>([]);
     const [currentStep, setCurrentStep] = useState(0);
-    const [answers, setAnswers] = useState<Record<number, number>>({});
+    const [answers, setAnswers] = useState<Record<string, number>>({});
     const [mounted, setMounted] = useState(false);
     const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
+    const [loadingQuestions, setLoadingQuestions] = useState(false);
 
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
 
+    // 1. Initial Load: Get User's Company and Assigned Surveys
     useEffect(() => {
         setMounted(true);
-        const saved = localStorage.getItem("ebi_answers");
-        if (saved) {
-            setAnswers(JSON.parse(saved));
-        }
+        loadSurveys();
     }, []);
 
+    async function loadSurveys() {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push('/login');
+                return;
+            }
+
+            // Get user's profile to find company_id
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('company_id')
+                .eq('id', user.id)
+                .single();
+
+            if (!profile?.company_id) {
+                throw new Error('No company assigned to user');
+            }
+
+            // Get assigned surveys
+            const { data: assignments, error } = await supabase
+                .from('company_surveys')
+                .select('*, survey:surveys(*)')
+                .eq('company_id', profile.company_id)
+                .eq('is_active', true);
+
+            if (error) throw error;
+
+            const surveys = (assignments || []).map((a: any) => a.survey);
+            setAssignedSurveys(surveys);
+
+            // If only one survey, select it automatically
+            if (surveys.length === 1) {
+                handleSelectSurvey(surveys[0]);
+            }
+        } catch (error) {
+            console.error('Error loading surveys:', error);
+            // Fallback to static EBI if everything fails (optional)
+            // setQuestions(staticQuestions);
+        } finally {
+            setLoadingSurveys(false);
+        }
+    }
+
+    async function handleSelectSurvey(survey: any) {
+        setSelectedSurvey(survey);
+        setLoadingQuestions(true);
+
+        try {
+            // Load questions for this survey
+            const { data: dbQuestions, error } = await supabase
+                .from('survey_questions')
+                .select('*')
+                .eq('survey_id', survey.id)
+                .order('question_number', { ascending: true });
+
+            if (error) throw error;
+
+            // Map DB fields to component needs if necessary
+            // For now, our component uses .domain and .text which are in DB
+            setQuestions(dbQuestions || []);
+
+            // Check if there are saved answers for this specific survey
+            const saved = localStorage.getItem(`ebi_answers_${survey.id}`);
+            if (saved) {
+                setAnswers(JSON.parse(saved));
+            } else {
+                setAnswers({});
+            }
+        } catch (error) {
+            console.error('Error loading questions:', error);
+        } finally {
+            setLoadingQuestions(false);
+        }
+    }
+
+    // 2. Logic for Diagnosis (after survey selection)
     const currentQuestion = questions[currentStep];
     const totalSteps = questions.length;
-    const progress = ((currentStep + 1) / totalSteps) * 100;
+    const progress = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
 
     const handleAnswer = (value: number) => {
-        const newAnswers = { ...answers, [currentQuestion.id]: value };
+        const questionId = currentQuestion.id;
+        const newAnswers = { ...answers, [questionId]: value };
         setAnswers(newAnswers);
-        if (mounted) {
-            localStorage.setItem("ebi_answers", JSON.stringify(newAnswers));
+
+        if (mounted && selectedSurvey) {
+            localStorage.setItem(`ebi_answers_${selectedSurvey.id}`, JSON.stringify(newAnswers));
         }
 
         if (currentStep < totalSteps - 1) {
@@ -42,6 +131,10 @@ export default function DiagnosticPage() {
                 setSlideDirection(null);
             }, 400);
         } else {
+            // Store selected survey ID for results page
+            if (selectedSurvey) {
+                localStorage.setItem('last_survey_id', selectedSurvey.id);
+            }
             router.push("/resultados");
         }
     };
@@ -54,71 +147,53 @@ export default function DiagnosticPage() {
                 setSlideDirection(null);
             }, 400);
         } else {
-            router.push("/");
-        }
-    };
-
-    // ... touch handlers remain same ...
-    const handleTouchStart = (e: React.TouchEvent) => {
-        touchStartX.current = e.touches[0].clientX;
-    };
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-        touchEndX.current = e.touches[0].clientX;
-    };
-
-    const handleTouchEnd = () => {
-        const swipeDistance = touchStartX.current - touchEndX.current;
-        const minSwipeDistance = 50;
-
-        if (Math.abs(swipeDistance) > minSwipeDistance) {
-            if (swipeDistance > 0 && currentStep < totalSteps - 1) {
-                // Swipe left - next question (only if answered)
-                if (answers[currentQuestion.id]) {
-                    setSlideDirection("left");
-                    setTimeout(() => {
-                        setCurrentStep(currentStep + 1);
-                        setSlideDirection(null);
-                    }, 400);
-                }
-            } else if (swipeDistance < 0 && currentStep > 0) {
-                // Swipe right - previous question
-                handleBack();
-            }
+            setSelectedSurvey(null);
+            setQuestions([]);
+            setCurrentStep(0);
         }
     };
 
     const getDomainStyles = (domain: string) => {
-        const lower = domain.toLowerCase();
-        if (lower.includes("físico") || lower.includes("física")) return {
+        const lower = (domain || "").toLowerCase();
+
+        // Físico / Ambiente / Nutricional (Teal/Green)
+        if (lower.includes("físico") || lower.includes("física") || lower.includes("ambiente") || lower.includes("nutricional")) return {
             badge: "bg-teal-100 text-teal-800",
             bar: "bg-teal-500",
             optionSelected: "bg-teal-50 border-teal-200 ring-teal-100 text-teal-900",
             checkBg: "bg-teal-100",
             checkIcon: "text-teal-600"
         };
-        if (lower.includes("emocional") || lower.includes("mental")) return {
+
+        // Emocional / Cultura / Mental (Pink/Rose)
+        if (lower.includes("emocional") || lower.includes("mental") || lower.includes("cultura")) return {
             badge: "bg-pink-100 text-pink-800",
             bar: "bg-pink-500",
             optionSelected: "bg-pink-50 border-pink-200 ring-pink-100 text-pink-900",
             checkBg: "bg-pink-100",
             checkIcon: "text-pink-600"
         };
-        if (lower.includes("social")) return {
+
+        // Social / Liderazgo / Prevención (Indigo/Blue)
+        if (lower.includes("social") || lower.includes("liderazgo") || lower.includes("prevención")) return {
             badge: "bg-indigo-100 text-indigo-800",
             bar: "bg-indigo-500",
             optionSelected: "bg-indigo-50 border-indigo-200 ring-indigo-100 text-indigo-900",
             checkBg: "bg-indigo-100",
             checkIcon: "text-indigo-600"
         };
-        if (lower.includes("valores") || lower.includes("espiritual")) return {
+
+        // Valores / Espiritual / Tarea (Amber/Orange)
+        if (lower.includes("valores") || lower.includes("espiritual") || lower.includes("tarea")) return {
             badge: "bg-amber-100 text-amber-800",
             bar: "bg-amber-500",
             optionSelected: "bg-amber-50 border-amber-200 ring-amber-100 text-amber-900",
             checkBg: "bg-amber-100",
             checkIcon: "text-amber-600"
         };
-        if (lower.includes("profesional") || lower.includes("trabajo")) return {
+
+        // Profesional / Trabajo / Económico (Blue/Cyan)
+        if (lower.includes("profesional") || lower.includes("trabajo") || lower.includes("económico")) return {
             badge: "bg-blue-100 text-blue-800",
             bar: "bg-blue-500",
             optionSelected: "bg-blue-50 border-blue-200 ring-blue-100 text-blue-900",
@@ -126,7 +201,6 @@ export default function DiagnosticPage() {
             checkIcon: "text-blue-600"
         };
 
-        // Default Purple
         return {
             badge: "bg-purple-100 text-purple-800",
             bar: "bg-purple-600",
@@ -136,15 +210,43 @@ export default function DiagnosticPage() {
         };
     };
 
+    // If survey list is loading
+    if (loadingSurveys) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-mesh-gradient">
+                <Loader2 className="h-12 w-12 animate-spin text-purple-400" />
+            </div>
+        );
+    }
+
+    // If no survey selected yet, show selector
+    if (!selectedSurvey) {
+        return (
+            <div className="flex min-h-screen flex-col bg-mesh-gradient justify-center py-12">
+                <DiagnosisSelector
+                    surveys={assignedSurveys}
+                    onSelect={handleSelectSurvey}
+                />
+            </div>
+        );
+    }
+
+    // If loading questions for selected survey
+    if (loadingQuestions || !currentQuestion) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-mesh-gradient flex-col gap-4">
+                <Loader2 className="h-12 w-12 animate-spin text-purple-400" />
+                <p className="text-gray-500 font-medium">Cargando preguntas de {selectedSurvey.name}...</p>
+            </div>
+        );
+    }
+
     const domainStyle = getDomainStyles(currentQuestion.domain);
 
     return (
         <div
             className="flex min-h-screen flex-col bg-mesh-gradient text-foreground transition-colors duration-500"
             suppressHydrationWarning
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
         >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-6 pt-12">
@@ -156,7 +258,7 @@ export default function DiagnosticPage() {
                 </button>
                 <div className="flex flex-col items-end">
                     <span className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">
-                        Tu Progreso
+                        {selectedSurvey.name}
                     </span>
                     <div className="flex items-center space-x-2">
                         <span className="text-xs font-medium text-gray-500">
@@ -173,29 +275,29 @@ export default function DiagnosticPage() {
             </div>
 
             {/* Question Card */}
-            <div className="flex flex-1 flex-col justify-center px-6 pb-32 max-w-lg mx-auto w-full">
+            <div className="flex flex-1 flex-col justify-center px-6 pb-32 max-w-xl mx-auto w-full">
                 <div
                     className={cn(
-                        "mb-6 transition-all duration-500 ease-in-out",
+                        "mb-8 transition-all duration-500 ease-in-out",
                         slideDirection === "left" && "translate-x-full opacity-0 scale-95",
                         slideDirection === "right" && "-translate-x-full opacity-0 scale-95",
                         !slideDirection && "translate-x-0 opacity-100 scale-100"
                     )}
                 >
                     <div className="mb-6 flex justify-center">
-                        <span className={cn("inline-flex items-center rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider shadow-sm transition-colors duration-300", domainStyle.badge)}>
+                        <span className={cn("inline-flex items-center rounded-full px-5 py-2 text-xs font-black uppercase tracking-[0.2em] shadow-sm transition-colors duration-300", domainStyle.badge)}>
                             {currentQuestion.domain}
                         </span>
                     </div>
 
-                    <h2 className="text-center text-3xl font-bold leading-tight text-gray-900 drop-shadow-sm">
-                        {currentQuestion.text}
+                    <h2 className="text-center text-3xl font-black leading-tight text-gray-900 drop-shadow-sm tracking-tight px-4">
+                        {currentQuestion.question_text}
                     </h2>
                 </div>
 
                 {/* Options */}
                 <div className={cn(
-                    "space-y-3 transition-all duration-500 delay-75",
+                    "grid grid-cols-1 gap-4 transition-all duration-500 delay-75",
                     slideDirection ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"
                 )}>
                     {[
@@ -211,25 +313,25 @@ export default function DiagnosticPage() {
                                 key={value}
                                 onClick={() => handleAnswer(value)}
                                 className={cn(
-                                    "group relative flex w-full items-center justify-between rounded-2xl p-5 font-medium transition-all duration-200 border shadow-sm outline-none",
+                                    "group relative flex w-full items-center justify-between rounded-[24px] p-5 font-bold transition-all duration-300 border shadow-sm outline-none",
                                     isSelected
-                                        ? cn("scale-[1.02] shadow-md z-10 ring-2", domainStyle.optionSelected)
-                                        : "bg-white border-transparent hover:border-gray-100 hover:bg-white/80 hover:shadow-md hover:-translate-y-0.5"
+                                        ? cn("scale-[1.02] shadow-xl z-10 ring-2", domainStyle.optionSelected)
+                                        : "bg-white border-transparent hover:border-gray-100 hover:bg-white/95 hover:shadow-lg hover:-translate-y-1"
                                 )}
                             >
                                 <span className="flex items-center space-x-4">
-                                    <span className="text-3xl transition-transform duration-300 group-hover:scale-125 filter-none">
+                                    <span className="text-4xl transition-transform duration-300 group-hover:scale-125 filter-none drop-shadow-sm">
                                         {emoji}
                                     </span>
                                     <span className={cn(
-                                        "text-lg transition-colors",
-                                        isSelected ? "text-gray-900 font-bold" : "text-gray-600"
+                                        "text-lg transition-colors tracking-tight",
+                                        isSelected ? "text-gray-900" : "text-gray-600"
                                     )}>
                                         {label}
                                     </span>
                                 </span>
                                 {isSelected && (
-                                    <div className={cn("rounded-full p-1 animate-in zoom-in spin-in-12 duration-300", domainStyle.checkBg)}>
+                                    <div className={cn("rounded-full p-1.5 animate-in zoom-in spin-in-12 duration-500", domainStyle.checkBg)}>
                                         <Check className={cn("h-5 w-5", domainStyle.checkIcon)} />
                                     </div>
                                 )}
@@ -237,15 +339,6 @@ export default function DiagnosticPage() {
                         );
                     })}
                 </div>
-
-                {/* Swipe Hint */}
-                {currentStep === 0 && !answers[currentQuestion.id] && (
-                    <div className="fixed bottom-32 left-0 right-0 flex justify-center pointer-events-none">
-                        <div className="rounded-full bg-gray-900/10 px-4 py-2 text-xs text-gray-600 backdrop-blur-sm">
-                            💡 Desliza para navegar entre preguntas
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

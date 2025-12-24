@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 
 interface RoleSwitcherProps {
     currentRole: string;
@@ -25,6 +25,7 @@ const rolePaths: Record<string, string> = {
 export function RoleSwitcher({ currentRole, availableRoles }: RoleSwitcherProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [switching, setSwitching] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     if (availableRoles.length <= 1) {
@@ -32,20 +33,39 @@ export function RoleSwitcher({ currentRole, availableRoles }: RoleSwitcherProps)
     }
 
     const handleRoleSwitch = async (newRole: string) => {
+        if (newRole === currentRole) return;
+
         setSwitching(true);
+        setError(null);
         const supabase = createClient();
 
-        const { error } = await supabase
-            .from('profiles')
-            .update({ active_role: newRole })
-            .eq('id', (await supabase.auth.getUser()).data.user?.id);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
 
-        if (!error) {
+            if (!user) {
+                throw new Error("Usuario no autenticado");
+            }
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ active_role: newRole })
+                .eq('id', user.id);
+
+            if (updateError) {
+                throw updateError;
+            }
+
             // Redirect to the appropriate panel
             router.push(rolePaths[newRole] || '/');
             router.refresh();
-        } else {
-            console.error("Error switching role:", error);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Error al cambiar de rol";
+            setError(errorMessage);
+
+            if (process.env.NODE_ENV === 'development') {
+                console.error("[RoleSwitcher] Error:", err);
+            }
+        } finally {
             setSwitching(false);
         }
     };
@@ -55,11 +75,21 @@ export function RoleSwitcher({ currentRole, availableRoles }: RoleSwitcherProps)
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 disabled={switching}
-                className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold text-foreground hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px] justify-between"
             >
-                <span>{roleLabels[currentRole] || currentRole}</span>
-                <ChevronDown className="h-4 w-4" />
+                <span className="truncate">{roleLabels[currentRole] || currentRole}</span>
+                {switching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                    <ChevronDown className="h-4 w-4" />
+                )}
             </button>
+
+            {error && (
+                <div className="absolute top-full mt-2 w-full rounded-lg bg-rose-500/10 border border-rose-500/20 p-2 text-xs text-rose-600 dark:text-rose-400">
+                    {error}
+                </div>
+            )}
 
             {isOpen && (
                 <>
@@ -67,30 +97,34 @@ export function RoleSwitcher({ currentRole, availableRoles }: RoleSwitcherProps)
                         className="fixed inset-0 z-10"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-lg z-20">
+                    <div className="absolute right-0 mt-2 w-64 rounded-2xl glass-card border-none shadow-xl z-20 overflow-hidden">
                         <div className="p-2">
-                            <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
+                            <div className="px-4 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] border-b border-white/5">
                                 Cambiar Rol
                             </div>
-                            {availableRoles.map((role) => (
-                                <button
-                                    key={role}
-                                    onClick={() => {
-                                        handleRoleSwitch(role);
-                                        setIsOpen(false);
-                                    }}
-                                    disabled={role === currentRole || switching}
-                                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${role === currentRole
-                                            ? 'bg-purple-50 text-purple-700 font-medium'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                        } disabled:opacity-50`}
-                                >
-                                    {roleLabels[role] || role}
-                                    {role === currentRole && (
-                                        <span className="ml-2 text-xs">(actual)</span>
-                                    )}
-                                </button>
-                            ))}
+                            <div className="py-2 space-y-1">
+                                {availableRoles.map((role) => (
+                                    <button
+                                        key={role}
+                                        onClick={() => {
+                                            handleRoleSwitch(role);
+                                            setIsOpen(false);
+                                        }}
+                                        disabled={role === currentRole || switching}
+                                        className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all ${role === currentRole
+                                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                                : 'text-foreground hover:bg-white/5'
+                                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span>{roleLabels[role] || role}</span>
+                                            {role === currentRole && (
+                                                <span className="text-[10px] opacity-70">(actual)</span>
+                                            )}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </>

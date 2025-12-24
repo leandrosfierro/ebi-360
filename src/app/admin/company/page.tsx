@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileCheck, TrendingUp, AlertCircle } from "lucide-react";
+import { Users, FileCheck, TrendingUp, AlertCircle, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardStats } from "@/components/admin/DashboardStats";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { redirect } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default async function CompanyAdminDashboard() {
     const supabase = await createClient();
@@ -45,16 +46,16 @@ export default async function CompanyAdminDashboard() {
             } else {
                 return (
                     <div className="p-8 text-center">
-                        <h2 className="text-xl font-bold text-gray-800">Vista Global (Sin Empresas)</h2>
-                        <p className="text-gray-500">Eres Super Admin, pero no hay empresas activas para mostrar en este dashboard.</p>
+                        <h2 className="text-xl font-bold text-foreground">Vista Global (Sin Empresas)</h2>
+                        <p className="text-muted-foreground">Eres Super Admin, pero no hay empresas activas para mostrar en este dashboard.</p>
                     </div>
                 );
             }
         } else {
             return (
                 <div className="p-8 text-center">
-                    <h2 className="text-xl font-bold text-red-600">Error de Configuración</h2>
-                    <p className="text-gray-500">No tienes una empresa asignada. Contacta al soporte.</p>
+                    <h2 className="text-xl font-bold text-rose-600">Error de Configuración</h2>
+                    <p className="text-muted-foreground">No tienes una empresa asignada. Contacta al soporte.</p>
                 </div>
             );
         }
@@ -86,21 +87,24 @@ export default async function CompanyAdminDashboard() {
     const totalEmployees = employeesCount || 0;
     const totalResults = resultsCount || 0;
 
-    console.log("Dashboard Debug:", {
-        companyId,
-        totalEmployees,
-        totalResults,
-        employeeIds: employeeIds.length,
-        resultsData: results?.length
-    });
+    // Debug logging only in development
+    if (process.env.NODE_ENV === 'development') {
+        console.log("[Dashboard Debug]", {
+            companyId,
+            totalEmployees,
+            totalResults,
+            employeeIds: employeeIds.length,
+            resultsData: results?.length
+        });
+    }
 
     // EMPTY STATE CHECK
     if (totalEmployees === 0) {
         return (
             <div className="space-y-8">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard de Empresa</h2>
-                    <p className="text-gray-500">Bienvenido al panel de administración.</p>
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard de Empresa</h2>
+                    <p className="text-muted-foreground">Bienvenido al panel de administración.</p>
                 </div>
                 <EmptyState type="no_employees" />
             </div>
@@ -111,8 +115,8 @@ export default async function CompanyAdminDashboard() {
         return (
             <div className="space-y-8">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard de Empresa</h2>
-                    <p className="text-gray-500">Resumen del estado de bienestar de tu organización.</p>
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard de Empresa</h2>
+                    <p className="text-muted-foreground">Resumen del estado de bienestar de tu organización.</p>
                 </div>
 
                 {/* Show stats with 0 values */}
@@ -185,8 +189,11 @@ export default async function CompanyAdminDashboard() {
     return (
         <div className="space-y-8">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard de Empresa</h2>
-                <p className="text-gray-500">Resumen del estado de bienestar de tu organización.</p>
+                <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard de Empresa</h2>
+                <p className="text-muted-foreground flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    Resumen del estado de bienestar de tu organización.
+                </p>
             </div>
 
             {/* Stats Grid */}
@@ -200,7 +207,7 @@ export default async function CompanyAdminDashboard() {
                 <DashboardStats
                     title="Participación"
                     value={`${participationRate}%`}
-                    description={`${uniqueUsersWithResults} de ${totalEmployees} colaboradores (${totalResults} encuestas)`}
+                    description={`${uniqueUsersWithResults} de ${totalEmployees} colaboradores`}
                     icon={FileCheck}
                 />
                 <DashboardStats
@@ -219,35 +226,45 @@ export default async function CompanyAdminDashboard() {
             </div>
 
             {/* Charts Section */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
-                    <CardHeader>
-                        <CardTitle>Evolución del Bienestar</CardTitle>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="col-span-1 lg:col-span-4 glass-card border-none shadow-xl overflow-hidden">
+                    <CardHeader className="border-b border-white/5 bg-white/5">
+                        <CardTitle className="text-lg font-bold text-foreground">Evolución del Bienestar</CardTitle>
                     </CardHeader>
-                    <CardContent className="pl-2">
-                        <div className="h-[200px] flex items-center justify-center bg-gray-50 rounded-md border border-dashed">
-                            <p className="text-sm text-gray-400">Gráfico de evolución temporal (Próximamente)</p>
+                    <CardContent className="p-8">
+                        <div className="h-[240px] flex flex-col items-center justify-center bg-white/5 rounded-[24px] border border-dashed border-white/10 group hover:border-primary/50 transition-colors">
+                            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <TrendingUp className="h-6 w-6 text-primary" />
+                            </div>
+                            <p className="text-sm font-bold text-foreground/60 uppercase tracking-widest">Temporalmente no disponible</p>
+                            <p className="text-xs text-muted-foreground mt-2 italic px-8 text-center">Estamos procesando los datos para mostrarte tendencias precisas.</p>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle>Desglose por Dominio</CardTitle>
+
+                <Card className="col-span-1 lg:col-span-3 glass-card border-none shadow-xl">
+                    <CardHeader className="border-b border-white/5 bg-white/5">
+                        <CardTitle className="text-lg font-bold text-foreground font-title">Desglose por Dominio</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    <CardContent className="p-8">
+                        <div className="space-y-6">
                             {domainAverages.map((domain) => (
-                                <div key={domain.name} className="flex items-center">
-                                    <div className="w-full flex-1 space-y-1">
-                                        <p className="text-sm font-medium leading-none">{domain.name}</p>
-                                        <div className="h-2 w-full rounded-full bg-gray-100">
-                                            <div
-                                                className={`h-2 rounded-full ${Number(domain.value) >= 7 ? 'bg-green-500' : Number(domain.value) >= 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                                style={{ width: `${Number(domain.value) * 10}%` }}
-                                            ></div>
-                                        </div>
+                                <div key={domain.name} className="group">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-sm font-bold text-foreground/80 group-hover:text-primary transition-colors">{domain.name}</p>
+                                        <span className="text-sm font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg">{domain.value}</span>
                                     </div>
-                                    <span className="ml-4 text-sm font-bold">{domain.value}</span>
+                                    <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                                        <div
+                                            className={cn(
+                                                "h-2 rounded-full transition-all duration-1000 ease-out",
+                                                Number(domain.value) >= 7 ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]' :
+                                                    Number(domain.value) >= 5 ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]' :
+                                                        'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]'
+                                            )}
+                                            style={{ width: `${Number(domain.value) * 10}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
                             ))}
                         </div>

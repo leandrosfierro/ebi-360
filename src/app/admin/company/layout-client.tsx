@@ -1,9 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, Users, Settings, LogOut, FileText } from "lucide-react";
+import {
+    LayoutDashboard,
+    Users,
+    Settings,
+    LogOut,
+    FileText,
+    Home
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
+import Image from "next/image";
 
 interface CompanyAdminLayoutClientProps {
     children: React.ReactNode;
@@ -18,44 +27,56 @@ export default function CompanyAdminLayoutClient({
 }: CompanyAdminLayoutClientProps) {
     const pathname = usePathname();
 
+    const navLinks = [
+        { href: "/admin/company", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/admin/company/employees", label: "Colaboradores", icon: Users },
+        { href: "/admin/company/reports", label: "Reportes", icon: FileText },
+        { href: "/admin/company/settings", label: "Configuración", icon: Settings },
+    ];
+
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-md hidden md:block">
-                <div className="p-6">
-                    <h1 className="text-2xl font-bold text-blue-600">Empresa Panel</h1>
-                    <p className="text-xs text-gray-500">Administración</p>
-                    <div className="mt-4">
-                        <RoleSwitcher currentRole={activeRole} availableRoles={userRoles} />
+        <div className="flex min-h-screen bg-mesh-gradient text-foreground flex-col md:flex-row">
+            {/* Desktop Sidebar */}
+            <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
+                <div className="p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="relative h-10 w-40">
+                            <Image
+                                src="/logo-bs360.png"
+                                alt="Bienestar 360"
+                                fill
+                                className="object-contain object-left logo-color-filter"
+                                priority
+                            />
+                        </div>
                     </div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Empresa Panel</p>
+                    <RoleSwitcher currentRole={activeRole} availableRoles={userRoles} />
                 </div>
-                <nav className="mt-6 px-4 space-y-2">
-                    <Link href="/" className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-200 mb-3 pb-3">
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        Volver al Home
-                    </Link>
-                    <Link href="/admin/company" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <LayoutDashboard className="h-5 w-5" />
-                        Dashboard
-                    </Link>
-                    <Link href="/admin/company/employees" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company/employees' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <Users className="h-5 w-5" />
-                        Colaboradores
-                    </Link>
-                    <Link href="/admin/company/reports" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company/reports' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <FileText className="h-5 w-5" />
-                        Reportes
-                    </Link>
-                    <Link href="/admin/company/settings" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${pathname === '/admin/company/settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <Settings className="h-5 w-5" />
-                        Configuración
-                    </Link>
+
+                <nav className="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
+                    <div className="mb-4">
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Navegación</p>
+                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                            <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
+                            <span>Volver al Home</span>
+                        </Link>
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all ${pathname === link.href ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-white/5 hover:text-primary'}`}
+                            >
+                                <link.icon className={`h-5 w-5 transition-colors ${pathname === link.href ? 'text-white' : 'text-primary/60 group-hover:text-primary'}`} />
+                                <span>{link.label}</span>
+                            </Link>
+                        ))}
+                    </div>
                 </nav>
-                <div className="absolute bottom-0 w-64 p-4 border-t">
+
+                <div className="p-4 border-t border-white/10">
                     <form action="/auth/signout" method="post">
-                        <button className="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-red-600 hover:bg-red-50">
+                        <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95">
                             <LogOut className="h-5 w-5" />
                             <span>Cerrar Sesión</span>
                         </button>
@@ -63,9 +84,18 @@ export default function CompanyAdminLayoutClient({
                 </div>
             </aside>
 
+            {/* Mobile Nav */}
+            <MobileAdminNav
+                title="Empresa Panel"
+                links={navLinks}
+                role="Gestión Empresa"
+            />
+
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto">
-                {children}
+            <main className="flex-1 p-4 md:p-8 overflow-x-hidden overflow-y-auto h-screen">
+                <div className="mx-auto max-w-7xl animate-fadeIn space-y-6">
+                    {children}
+                </div>
             </main>
         </div>
     );

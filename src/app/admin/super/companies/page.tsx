@@ -25,16 +25,19 @@ export default async function CompaniesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">Empresas</h2>
-                    <p className="text-muted-foreground">Gestiona las empresas clientes y sus suscripciones.</p>
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground">Empresas</h2>
+                    <p className="text-muted-foreground flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-primary" />
+                        Gestiona las empresas clientes y sus suscripciones.
+                    </p>
                 </div>
                 <Link
                     href="/admin/super/companies/new"
-                    className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95"
                 >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                     Nueva Empresa
                 </Link>
             </div>

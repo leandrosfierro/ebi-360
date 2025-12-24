@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formato Excel para Encuestas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            background: linear-gradient(135deg, #a855f7 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .cover {
+            background: #a855f7;
+            background: linear-gradient(135deg, #a855f7 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .cover-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #a855f7;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .cover h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+        }
+        
+        .cover .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .cover .version {
+            font-size: 1rem;
+            opacity: 0.85;
+            margin-top: 2rem;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 4rem 3rem;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #111827;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        h1 { 
+            font-size: 2.5rem; 
+            border-bottom: 4px solid #a855f7; 
+            padding-bottom: 0.75rem;
+            margin-top: 3rem;
+        }
+        
+        h2 { 
+            font-size: 2rem; 
+            color: #a855f7;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        h2::before {
+            content: '';
+            width: 6px;
+            height: 2rem;
+            background: #a855f7;
+            border-radius: 3px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: #374151;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+        
+        p {
+            margin-bottom: 1.25rem;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        
+        li.checkbox {
+            list-style: none;
+            margin-left: -1.5rem;
+        }
+        
+        li.checkbox.checked {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #be123c;
+            border: 1px solid #e5e7eb;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #374151;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border: none;
+        }
+        
+        blockquote {
+            border-left: 5px solid #a855f7;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            background: #f9fafb;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #374151;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #a855f7 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .toc {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: #a855f7;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            padding: 0.5rem 0;
+        }
+        
+        .toc a {
+            color: #a855f7;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .toc a:hover {
+            transform: translateX(8px);
+            color: #764ba2;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 5px solid #3b82f6;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 5px solid #10b981;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .danger-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 5px solid #ef4444;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 3rem;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            border-top: 3px solid #a855f7;
+        }
+        
+        .footer strong {
+            color: #a855f7;
+        }
+        
+        .print-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #a855f7;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        }
+        
+        .diagram {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            margin: 2rem 0;
+            white-space: pre;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            .cover {
+                page-break-after: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            pre, table, .diagram {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                border-radius: 0;
+            }
+            
+            .cover {
+                padding: 3rem 1.5rem;
+            }
+            
+            .cover h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    
+    <div class="container">
+        <div class="cover">
+            <div class="cover-content">
+                <div class="logo">📋</div>
+                <h1>Formato Excel para Encuestas</h1>
+                <p class="subtitle">Guía de Uso y Validación</p>
+                <p class="version">Versión 1.0 • December 2025</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1>📋 Plantilla de Excel para Encuestas - EBI 360</h1>
+<h2>Guía de Uso y Formato</h2>
+<br>
+<p>---</p>
+<br>
+<h2>📄 Estructura del Archivo</h2>
+<br>
+<p>El archivo Excel debe tener <strong>3 hojas</strong> obligatorias:</p>
+<br>
+<ol>
+<li><strong>Metadata</strong> - Información general de la encuesta</li>
+<li><strong>Questions</strong> - Listado de preguntas</li>
+<li><strong>Algorithm</strong> - Configuración del algoritmo de cálculo</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Hoja 1: "Metadata"</h2>
+<br>
+<h3>Formato</h3>
+<br>
+<p>| Campo | Valor | Tipo | Obligatorio | Descripción |</p>
+<p>|-------|-------|------|-------------|-------------|</p>
+<p>| Código | NOM035 | Texto | ✅ | Código único (sin espacios, mayúsculas) |</p>
+<p>| Nombre | NOM-035 STPS 2018 | Texto | ✅ | Nombre completo de la encuesta |</p>
+<p>| Descripción | Identificación y análisis de factores de riesgo psicosocial | Texto | ✅ | Descripción breve |</p>
+<p>| Tipo | regulatory | Texto | ✅ | base / regulatory / custom |</p>
+<p>| País | MX | Texto | ❌ | Código ISO 2 letras (MX, CL, AR, etc.) |</p>
+<p>| Normativa | NOM-035-STPS-2018 | Texto | ❌ | Nombre oficial de la normativa |</p>
+<p>| Versión | 1.0 | Texto | ✅ | Versión de la encuesta |</p>
+<p>| Es Base | NO | SI/NO | ✅ | Solo SI para EBI360 |</p>
+<p>| Es Obligatoria | SI | SI/NO | ✅ | Si es obligatoria para empresas |</p>
+<br>
+<h3>Ejemplo Real</h3>
+<br>
+<p>``<code></p>
+<p>┌─────────────────┬───────────────────────────────────────────────────┐</p>
+<p>│ Campo           │ Valor                                             │</p>
+<p>├─────────────────┼───────────────────────────────────────────────────┤</p>
+<p>│ Código          │ NOM035                                            │</p>
+<p>│ Nombre          │ NOM-035 STPS 2018                                │</p>
+<p>│ Descripción     │ Identificación y análisis de factores de riesgo  │</p>
+<p>│                 │ psicosocial y evaluación del entorno organizacional│</p>
+<p>│ Tipo            │ regulatory                                        │</p>
+<p>│ País            │ MX                                                │</p>
+<p>│ Normativa       │ NOM-035-STPS-2018                                │</p>
+<p>│ Versión         │ 1.0                                               │</p>
+<p>│ Es Base         │ NO                                                │</p>
+<p>│ Es Obligatoria  │ SI                                                │</p>
+<p>└─────────────────┴───────────────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Hoja 2: "Questions"</h2>
+<br>
+<h3>Formato de Columnas</h3>
+<br>
+<p>| # | Columna | Tipo | Obligatorio | Valores Permitidos | Descripción |</p>
+<p>|---|---------|------|-------------|--------------------|-------------|</p>
+<p>| A | Número | Entero | ✅ | 1, 2, 3, ... | Número de pregunta (secuencial) |</p>
+<p>| B | Dominio | Texto | ✅ | Cualquier texto | Dimensión o categoría |</p>
+<p>| C | Constructo | Texto | ❌ | Cualquier texto | Subcategoría o tema |</p>
+<p>| D | Tipo | Texto | ✅ | RP, FO, MIXED | Tipo de pregunta |</p>
+<p>| E | Pregunta | Texto | ✅ | Cualquier texto | Texto de la pregunta |</p>
+<p>| F | Peso | Decimal | ✅ | 0.0 - 1.0 | Peso en el cálculo |</p>
+<p>| G | Severidad | Decimal | ✅ | 0.0 - 1.0 | Nivel de severidad |</p>
+<p>| H | Peso_Personal | Decimal | ✅ | 0.0 - 1.0 | Peso responsabilidad personal |</p>
+<p>| I | Peso_Org | Decimal | ✅ | 0.0 - 1.0 | Peso factor organizacional |</p>
+<br>
+<h3>Tipos de Pregunta</h3>
+<br>
+<ul>
+<li><strong>RP</strong> (Responsabilidad Personal): Depende del individuo</li>
+<li><strong>FO</strong> (Factor Organizacional): Depende de la organización</li>
+<li><strong>MIXED</strong>: Combinación de ambos</li>
+</ul>
+<br>
+<h3>Ejemplo de Datos</h3>
+<br>
+</code>`<code>
+<p>┌───┬─────────────┬──────────────────┬──────┬────────────────────────────────┬──────┬──────────┬──────────────┬─────────┐</p>
+<p>│ # │ Dominio     │ Constructo       │ Tipo │ Pregunta                       │ Peso │ Severidad│ Peso_Personal│ Peso_Org│</p>
+<p>├───┼─────────────┼──────────────────┼──────┼────────────────────────────────┼──────┼──────────┼──────────────┼─────────┤</p>
+<p>│ 1 │ Físico      │ Bienestar básico │ RP   │ ¿Dormís lo suficiente?         │ 0.6  │ 0.9      │ 1.0          │ 0.0     │</p>
+<p>│ 2 │ Físico      │ Bienestar básico │ FO   │ ¿Tu jornada permite descanso?  │ 0.6  │ 0.9      │ 0.0          │ 1.0     │</p>
+<p>│ 3 │ Físico      │ Cuidado diario   │ RP   │ ¿Te movés durante la jornada?  │ 0.4  │ 0.8      │ 1.0          │ 0.0     │</p>
+<p>│ 4 │ Físico      │ Cuidado diario   │ FO   │ ¿Hay espacios para pausas?     │ 0.4  │ 0.8      │ 0.0          │ 1.0     │</p>
+<p>│ 5 │ Emocional   │ Gestión emocional│ RP   │ ¿Manejás bien el estrés?       │ 0.7  │ 0.9      │ 1.0          │ 0.0     │</p>
+<p>│ 6 │ Emocional   │ Gestión emocional│ FO   │ ¿Hay apoyo emocional?          │ 0.7  │ 0.9      │ 0.0          │ 1.0     │</p>
+<p>└───┴─────────────┴──────────────────┴──────┴────────────────────────────────┴──────┴──────────┴──────────────┴─────────┘</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Hoja 3: "Algorithm"</h2>
+<br>
+<h3>Formato JSON</h3>
+<br>
+<p>Esta hoja contiene <strong>una sola celda</strong> (A1) con un JSON que define el algoritmo de cálculo.</p>
+<br>
+<h3>Estructura del JSON</h3>
+<br>
+</code>`<code>json
+<p>{</p>
+<p>  "scoring_method": "weighted_average",</p>
+<p>  "domains": [</p>
+<p>    {</p>
+<p>      "name": "Físico",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [1, 2, 3, 4, 5, 6]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Emocional",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [7, 8, 9, 10, 11, 12]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Social",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [13, 14, 15, 16, 17, 18]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Profesional",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [19, 20, 21, 22, 23, 24]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Intelectual",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [25, 26, 27, 28, 29, 30]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Financiero",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [31, 32, 33, 34, 35, 36]</p>
+<p>    }</p>
+<p>  ],</p>
+<p>  "thresholds": {</p>
+<p>    "low": 0,</p>
+<p>    "medium": 5,</p>
+<p>    "high": 7,</p>
+<p>    "excellent": 9</p>
+<p>  },</p>
+<p>  "recommendations": {</p>
+<p>    "low": "Requiere atención urgente",</p>
+<p>    "medium": "Área de oportunidad",</p>
+<p>    "high": "Buen nivel, mantener",</p>
+<p>    "excellent": "Excelente, ejemplo a seguir"</p>
+<p>  }</p>
+<p>}</p>
+</code>`<code>
+<br>
+<h3>Campos del Algoritmo</h3>
+<br>
+<p>| Campo | Tipo | Descripción |</p>
+<p>|-------|------|-------------|</p>
+<p>| </code>scoring_method<code> | String | Método de cálculo: "weighted_average", "sum", "custom" |</p>
+<p>| </code>domains<code> | Array | Lista de dominios con sus configuraciones |</p>
+<p>| </code>domains[].name<code> | String | Nombre del dominio (debe coincidir con hoja Questions) |</p>
+<p>| </code>domains[].weight<code> | Number | Peso del dominio en el cálculo global (0.0 - 1.0) |</p>
+<p>| </code>domains[].questions<code> | Array | Números de preguntas que pertenecen a este dominio |</p>
+<p>| </code>thresholds<code> | Object | Umbrales para clasificación de puntajes |</p>
+<p>| </code>recommendations<code> | Object | Mensajes según nivel de puntaje |</p>
+<br>
+<p>---</p>
+<br>
+<h2>✅ Validaciones Automáticas</h2>
+<br>
+<p>El sistema validará automáticamente:</p>
+<br>
+<h3>Validaciones de Metadata</h3>
+<br>
+<ul>
+<li>✅ Código único (no existe otra encuesta con ese código)</li>
+<li>✅ Código sin espacios ni caracteres especiales</li>
+<li>✅ Tipo válido (base, regulatory, custom)</li>
+<li>✅ País en formato ISO (2 letras)</li>
+<li>✅ Versión en formato X.Y</li>
+<li>✅ Solo una encuesta puede ser "Base"</li>
+</ul>
+<br>
+<h3>Validaciones de Questions</h3>
+<br>
+<ul>
+<li>✅ Números secuenciales (1, 2, 3, ...)</li>
+<li>✅ Sin números duplicados</li>
+<li>✅ Tipo válido (RP, FO, MIXED)</li>
+<li>✅ Pesos entre 0.0 y 1.0</li>
+<li>✅ Suma de Peso_Personal + Peso_Org = 1.0</li>
+<li>✅ Texto de pregunta no vacío</li>
+<li>✅ Dominio no vacío</li>
+</ul>
+<br>
+<h3>Validaciones de Algorithm</h3>
+<br>
+<ul>
+<li>✅ JSON válido</li>
+<li>✅ Todos los dominios existen en Questions</li>
+<li>✅ Todas las preguntas están asignadas a un dominio</li>
+<li>✅ No hay preguntas duplicadas en dominios</li>
+<li>✅ Suma de weights de dominios = número de dominios (si weighted_average)</li>
+<li>✅ Thresholds en orden ascendente</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>❌ Errores Comunes</h2>
+<br>
+<h3>Error 1: Código Duplicado</h3>
+<br>
+</code>`<code>
+<p>❌ ERROR: El código "NOM035" ya existe en el sistema.</p>
+<p>   Solución: Usar un código diferente o incrementar versión.</p>
+</code>`<code>
+<br>
+<h3>Error 2: Pregunta sin Dominio</h3>
+<br>
+</code>`<code>
+<p>❌ ERROR: Pregunta #15 no tiene dominio asignado.</p>
+<p>   Solución: Completar la columna "Dominio" en la fila 15.</p>
+</code>`<code>
+<br>
+<h3>Error 3: Pesos Incorrectos</h3>
+<br>
+</code>`<code>
+<p>❌ ERROR: Pregunta #8 - Peso_Personal (0.6) + Peso_Org (0.6) ≠ 1.0</p>
+<p>   Solución: Ajustar los pesos para que sumen exactamente 1.0</p>
+</code>`<code>
+<br>
+<h3>Error 4: JSON Inválido</h3>
+<br>
+</code>`<code>
+<p>❌ ERROR: El algoritmo no es un JSON válido.</p>
+<p>   Línea 5: Falta coma después de "weight": 1.0</p>
+<p>   Solución: Validar JSON en jsonlint.com</p>
+</code>`<code>
+<br>
+<h3>Error 5: Pregunta No Asignada</h3>
+<br>
+</code>`<code>
+<p>❌ ERROR: Pregunta #23 no está asignada a ningún dominio en el algoritmo.</p>
+<p>   Solución: Agregar el número 23 al array "questions" de un dominio.</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>📝 Ejemplo Completo: NOM-035</h2>
+<br>
+<h3>Archivo: </code>NOM035_v1.0.xlsx<code></h3>
+<br>
+<h4>Metadata</h4>
+</code>`<code>
+<p>Código: NOM035</p>
+<p>Nombre: NOM-035 STPS 2018</p>
+<p>Descripción: Factores de riesgo psicosocial en el trabajo</p>
+<p>Tipo: regulatory</p>
+<p>País: MX</p>
+<p>Normativa: NOM-035-STPS-2018</p>
+<p>Versión: 1.0</p>
+<p>Es Base: NO</p>
+<p>Es Obligatoria: SI</p>
+</code>`<code>
+<br>
+<h4>Questions (primeras 6 de 72)</h4>
+</code>`<code>
+<p>1 | Condiciones ambiente | Iluminación      | FO | ¿La iluminación es adecuada?           | 0.5 | 0.7 | 0.0 | 1.0</p>
+<p>2 | Condiciones ambiente | Temperatura      | FO | ¿La temperatura es confortable?        | 0.5 | 0.7 | 0.0 | 1.0</p>
+<p>3 | Condiciones ambiente | Ruido            | FO | ¿El ruido permite concentración?       | 0.6 | 0.8 | 0.0 | 1.0</p>
+<p>4 | Carga de trabajo     | Volumen          | FO | ¿El volumen de trabajo es razonable?   | 0.8 | 0.9 | 0.0 | 1.0</p>
+<p>5 | Carga de trabajo     | Ritmo            | FO | ¿El ritmo de trabajo es sostenible?    | 0.8 | 0.9 | 0.0 | 1.0</p>
+<p>6 | Carga de trabajo     | Autonomía        | RP | ¿Tienes control sobre tu trabajo?      | 0.7 | 0.8 | 1.0 | 0.0</p>
+</code>`<code>
+<br>
+<h4>Algorithm</h4>
+</code>`<code>json
+<p>{</p>
+<p>  "scoring_method": "weighted_average",</p>
+<p>  "domains": [</p>
+<p>    {</p>
+<p>      "name": "Condiciones ambiente",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Carga de trabajo",</p>
+<p>      "weight": 1.2,</p>
+<p>      "questions": [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Falta de control",</p>
+<p>      "weight": 1.1,</p>
+<p>      "questions": [28, 29, 30, 31, 32, 33, 34, 35, 36, 37]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Jornada de trabajo",</p>
+<p>      "weight": 1.0,</p>
+<p>      "questions": [38, 39, 40, 41, 42, 43, 44, 45]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Interferencia trabajo-familia",</p>
+<p>      "weight": 0.9,</p>
+<p>      "questions": [46, 47, 48, 49, 50, 51]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Liderazgo",</p>
+<p>      "weight": 1.3,</p>
+<p>      "questions": [52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]</p>
+<p>    },</p>
+<p>    {</p>
+<p>      "name": "Relaciones en el trabajo",</p>
+<p>      "weight": 1.1,</p>
+<p>      "questions": [64, 65, 66, 67, 68, 69, 70, 71, 72]</p>
+<p>    }</p>
+<p>  ],</p>
+<p>  "thresholds": {</p>
+<p>    "nulo": 0,</p>
+<p>    "bajo": 15,</p>
+<p>    "medio": 30,</p>
+<p>    "alto": 45,</p>
+<p>    "muy_alto": 60</p>
+<p>  },</p>
+<p>  "recommendations": {</p>
+<p>    "nulo": "Sin riesgo psicosocial",</p>
+<p>    "bajo": "Riesgo bajo - Monitorear",</p>
+<p>    "medio": "Riesgo medio - Implementar acciones",</p>
+<p>    "alto": "Riesgo alto - Acciones urgentes",</p>
+<p>    "muy_alto": "Riesgo muy alto - Intervención inmediata"</p>
+<p>  }</p>
+<p>}</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Mejores Prácticas</h2>
+<br>
+<h3>1. Nomenclatura de Códigos</h3>
+<br>
+<p>✅ <strong>Bueno:</strong></p>
+<ul>
+<li></code>EBI360<code></li>
+<li></code>NOM035<code></li>
+<li></code>LEY_KARIN<code></li>
+<li></code>CLIMA_2025<code></li>
+</ul>
+<br>
+<p>❌ <strong>Malo:</strong></p>
+<ul>
+<li></code>nom-035<code> (minúsculas)</li>
+<li></code>Ley Karin<code> (espacios)</li>
+<li></code>NOM 035 STPS<code> (espacios)</li>
+<li></code>encuesta_1<code> (poco descriptivo)</li>
+</ul>
+<br>
+<h3>2. Organización de Dominios</h3>
+<br>
+<p>✅ <strong>Bueno:</strong></p>
+<ul>
+<li>Agrupar preguntas relacionadas</li>
+<li>Máximo 6-8 dominios</li>
+<li>Nombres claros y descriptivos</li>
+</ul>
+<br>
+<p>❌ <strong>Malo:</strong></p>
+<ul>
+<li>Demasiados dominios (>10)</li>
+<li>Nombres genéricos ("Categoría 1")</li>
+<li>Dominios con 1-2 preguntas</li>
+</ul>
+<br>
+<h3>3. Balance de Preguntas</h3>
+<br>
+<p>✅ <strong>Bueno:</strong></p>
+<ul>
+<li>5-10 preguntas por dominio</li>
+<li>Balance entre RP y FO</li>
+<li>Total 30-80 preguntas</li>
+</ul>
+<br>
+<p>❌ <strong>Malo:</strong></p>
+<ul>
+<li>Dominios con 1 pregunta</li>
+<li>Solo preguntas RP o solo FO</li>
+<li>Más de 100 preguntas (fatiga)</li>
+</ul>
+<br>
+<h3>4. Pesos y Severidad</h3>
+<br>
+<p>✅ <strong>Bueno:</strong></p>
+<ul>
+<li>Usar escala completa (0.1 - 1.0)</li>
+<li>Diferenciar importancia</li>
+<li>Documentar criterios</li>
+</ul>
+<br>
+<p>❌ <strong>Malo:</strong></p>
+<ul>
+<li>Todo peso 1.0 (no diferencia)</li>
+<li>Valores arbitrarios</li>
+<li>Sin justificación</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>📥 Descarga de Plantilla</h2>
+<br>
+<h3>Plantillas Disponibles</h3>
+<br>
+<ol>
+<li><strong>Plantilla Básica</strong> - </code>plantilla_encuesta_basica.xlsx<code></li>
+<ul>
+<li>Estructura mínima</li>
+<li>Ejemplo con 12 preguntas</li>
+<li>Ideal para empezar</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Plantilla EBI 360</strong> - </code>plantilla_ebi360.xlsx<code></li>
+<ul>
+<li>Encuesta base completa</li>
+<li>36 preguntas en 6 dominios</li>
+<li>Referencia de buenas prácticas</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Plantilla NOM-035</strong> - </code>plantilla_nom035.xlsx<code></li>
+<ul>
+<li>Encuesta regulatoria completa</li>
+<li>72 preguntas</li>
+<li>Ejemplo de normativa mexicana</li>
+</ul>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>🔄 Proceso de Actualización</h2>
+<br>
+<h3>Actualizar Encuesta Existente</h3>
+<br>
+<ol>
+<li><strong>Descargar versión actual</strong></li>
+<ul>
+<li>Exportar desde panel de Super Admin</li>
+<li>Archivo: </code>[CODIGO]_v[VERSION_ACTUAL].xlsx<code></li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Modificar</strong></li>
+<ul>
+<li>Hacer cambios necesarios</li>
+<li>Incrementar versión en Metadata</li>
+<li>Validar formato</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Subir nueva versión</strong></li>
+<ul>
+<li>Upload en panel de Super Admin</li>
+<li>Sistema detecta versión nueva</li>
+<li>Crea nueva entrada en BD</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Activar</strong></li>
+<ul>
+<li>Revisar vista previa</li>
+<li>Publicar nueva versión</li>
+<li>Versión anterior queda archivada</li>
+</ul>
+</ol>
+<br>
+<h3>Versionado Semántico</h3>
+<br>
+</code>`<code>
+<p>v1.0 - Versión inicial</p>
+<p>v1.1 - Cambios menores (correcciones, ajustes)</p>
+<p>v2.0 - Cambios mayores (nuevas preguntas, dominios)</p>
+</code>``
+<br>
+<p>---</p>
+<br>
+<h2>📞 Soporte</h2>
+<br>
+<p>Si tienes dudas sobre el formato:</p>
+<br>
+<ol>
+<li><strong>Revisar esta guía</strong></li>
+<li><strong>Descargar plantilla de ejemplo</strong></li>
+<li><strong>Validar en el sistema</strong> (te mostrará errores específicos)</li>
+<li><strong>Contactar soporte:</strong> tech@ebi360.com</li>
+</ol>
+<br>
+<p>---</p>
+<br>
+<strong>Última actualización:</strong> Diciembre 2025  
+<strong>Versión de la guía:</strong> 1.0
+<br>
+        </div>
+        
+        <div class="footer">
+            <p><strong>© 2025 EBI 360</strong> - Todos los derechos reservados</p>
+            <p>Documento generado el 23 de December de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        window.addEventListener('beforeprint', () => {
+            document.title = 'Formato Excel para Encuestas';
+        });
+    </script>
+</body>
+</html>

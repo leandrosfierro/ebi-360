@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Encuestas Modulares</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            background: linear-gradient(135deg, #6366f1 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .cover {
+            background: #6366f1;
+            background: linear-gradient(135deg, #6366f1 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .cover-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #6366f1;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .cover h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+        }
+        
+        .cover .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .cover .version {
+            font-size: 1rem;
+            opacity: 0.85;
+            margin-top: 2rem;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 4rem 3rem;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #111827;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        h1 { 
+            font-size: 2.5rem; 
+            border-bottom: 4px solid #6366f1; 
+            padding-bottom: 0.75rem;
+            margin-top: 3rem;
+        }
+        
+        h2 { 
+            font-size: 2rem; 
+            color: #6366f1;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        h2::before {
+            content: '';
+            width: 6px;
+            height: 2rem;
+            background: #6366f1;
+            border-radius: 3px;
+        }
+        
+        h3 { 
+            font-size: 1.5rem;
+            color: #374151;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+        
+        p {
+            margin-bottom: 1.25rem;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        
+        li.checkbox {
+            list-style: none;
+            margin-left: -1.5rem;
+        }
+        
+        li.checkbox.checked {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #be123c;
+            border: 1px solid #e5e7eb;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #374151;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border: none;
+        }
+        
+        blockquote {
+            border-left: 5px solid #6366f1;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            background: #f9fafb;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #374151;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #6366f1 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .toc {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: #6366f1;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            padding: 0.5rem 0;
+        }
+        
+        .toc a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .toc a:hover {
+            transform: translateX(8px);
+            color: #764ba2;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 5px solid #3b82f6;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 5px solid #10b981;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .danger-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 5px solid #ef4444;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 3rem;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            border-top: 3px solid #6366f1;
+        }
+        
+        .footer strong {
+            color: #6366f1;
+        }
+        
+        .print-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #6366f1;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        }
+        
+        .diagram {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 16px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            margin: 2rem 0;
+            white-space: pre;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            .cover {
+                page-break-after: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            pre, table, .diagram {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                border-radius: 0;
+            }
+            
+            .cover {
+                padding: 3rem 1.5rem;
+            }
+            
+            .cover h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    
+    <div class="container">
+        <div class="cover">
+            <div class="cover-content">
+                <div class="logo">📊</div>
+                <h1>Sistema de Encuestas Modulares</h1>
+                <p class="subtitle">Resumen Ejecutivo</p>
+                <p class="version">Versión 1.0 • December 2025</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1>📊 Sistema de Encuestas Modulares - Resumen Ejecutivo</h1>
+<br>
+<h2>🎯 Visión General</h2>
+<br>
+<p>Transformar EBI 360 de un sistema con <strong>una encuesta hardcodeada</strong> a una <strong>plataforma flexible</strong> que soporta múltiples encuestas dinámicas, permitiendo:</p>
+<br>
+<ul>
+<li>✅ Encuesta base (EBI 360) para todos</li>
+<li>✅ Encuestas regulatorias por país (NOM-035, Ley Karin, etc.)</li>
+<li>✅ Encuestas personalizadas por empresa</li>
+<li>✅ Gestión completa desde panel de Super Admin</li>
+<li>✅ Carga mediante archivos Excel</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>📋 Propuesta en 3 Conceptos Clave</h2>
+<br>
+<h3>1️⃣ <strong>Encuestas Dinámicas en Base de Datos</strong></h3>
+<br>
+<strong>Antes:</strong>
+<p>``<code>typescript</p>
+<p>// Hardcodeado en código</p>
+<p>export const questions: Question[] = [</p>
+<p>    { id: 0, domain: "Físico", text: "¿Dormís bien?", ... },</p>
+<p>    // ... 35 preguntas más</p>
+<p>];</p>
+</code>`<code>
+<br>
+<strong>Después:</strong>
+</code>`<code>sql
+<p>-- Almacenado en BD, modificable sin deploy</p>
+<p>surveys (id, code, name, type, country_code, ...)</p>
+<p>survey_questions (id, survey_id, domain, text, ...)</p>
+<p>company_surveys (company_id, survey_id, is_active, ...)</p>
+</code>`<code>
+<br>
+<strong>Beneficio:</strong> Actualizar encuestas sin tocar código ni hacer deploy
+<br>
+<p>---</p>
+<br>
+<h3>2️⃣ <strong>Jerarquía de Encuestas</strong></h3>
+<br>
+</code>`<code>
+<p>┌─────────────────────────────────────────┐</p>
+<p>│         ENCUESTA BASE (Obligatoria)     │</p>
+<p>│              EBI 360 v2.0               │</p>
+<p>│         Para TODAS las empresas         │</p>
+<p>└─────────────────────────────────────────┘</p>
+<p>                    +</p>
+<p>┌─────────────────────────────────────────┐</p>
+<p>│      ENCUESTAS REGULATORIAS (Opcional)  │</p>
+<p>│  ┌─────────────┐  ┌─────────────┐      │</p>
+<p>│  │  NOM-035    │  │ Ley Karin   │      │</p>
+<p>│  │  (México)   │  │  (Chile)    │      │</p>
+<p>│  └─────────────┘  └─────────────┘      │</p>
+<p>│         Según país de la empresa        │</p>
+<p>└─────────────────────────────────────────┘</p>
+<p>                    +</p>
+<p>┌─────────────────────────────────────────┐</p>
+<p>│    ENCUESTAS PERSONALIZADAS (Opcional)  │</p>
+<p>│         Creadas para empresa            │</p>
+<p>│         específica o industria          │</p>
+<p>└─────────────────────────────────────────┘</p>
+</code>`<code>
+<br>
+<strong>Beneficio:</strong> Flexibilidad total para cumplir normativas locales
+<br>
+<p>---</p>
+<br>
+<h3>3️⃣ <strong>Gestión mediante Excel</strong></h3>
+<br>
+<strong>Flujo de Trabajo:</strong>
+<br>
+</code>`<code>
+<p>Super Admin</p>
+<p>    ↓</p>
+<p>Prepara Excel con encuesta</p>
+<p>    ↓</p>
+<p>Sube a panel /admin/super/surveys</p>
+<p>    ↓</p>
+<p>Sistema valida automáticamente</p>
+<p>    ↓</p>
+<p>Vista previa de datos</p>
+<p>    ↓</p>
+<p>Publica encuesta</p>
+<p>    ↓</p>
+<p>Asigna a empresas</p>
+<p>    ↓</p>
+<p>Empleados pueden responder</p>
+</code>`<code>
+<br>
+<strong>Beneficio:</strong> No requiere conocimientos técnicos para gestionar encuestas
+<br>
+<p>---</p>
+<br>
+<h2>🗂️ Modelo de Datos Simplificado</h2>
+<br>
+</code>`<code>
+<p>surveys                     survey_questions              company_surveys</p>
+<p>┌──────────────┐           ┌──────────────┐             ┌──────────────┐</p>
+<p>│ id           │───┐       │ id           │             │ id           │</p>
+<p>│ code         │   │       │ survey_id    │◄────┐       │ company_id   │</p>
+<p>│ name         │   └──────►│ question_num │     │       │ survey_id    │</p>
+<p>│ type         │           │ domain       │     │       │ is_active    │</p>
+<p>│ country_code │           │ text         │     │       │ is_mandatory │</p>
+<p>│ version      │           │ weight       │     │       └──────────────┘</p>
+<p>│ status       │           └──────────────┘     │</p>
+<p>│ is_base      │                                │</p>
+<p>└──────────────┘                                │</p>
+<p>                                                │</p>
+<p>results                     survey_responses    │</p>
+<p>┌──────────────┐           ┌──────────────┐    │</p>
+<p>│ id           │───┐       │ id           │    │</p>
+<p>│ user_id      │   │       │ result_id    │◄───┘</p>
+<p>│ survey_id    │───┼──────►│ question_id  │</p>
+<p>│ survey_ver   │   │       │ response_val │</p>
+<p>│ total_score  │   │       └──────────────┘</p>
+<p>└──────────────┘   │</p>
+<p>                   │</p>
+<p>                   └─ Vincula resultado con encuesta específica</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>🎨 Interfaces Clave</h2>
+<br>
+<h3>Panel de Super Admin</h3>
+<br>
+</code>`<code>
+<p>/admin/super/surveys</p>
+<p>├── Listado de encuestas</p>
+<p>├── Nueva encuesta (upload Excel)</p>
+<p>├── Editar encuesta</p>
+<p>├── Publicar/Archivar</p>
+<p>└── Asignar a empresas</p>
+</code>`<code>
+<br>
+<h3>Panel de Company Admin</h3>
+<br>
+</code>`<code>
+<p>/admin/company</p>
+<p>└── Ver encuestas asignadas</p>
+<p>    ├── EBI 360 (base)</p>
+<p>    ├── NOM-035 (si aplica)</p>
+<p>    └── Estadísticas de completitud</p>
+</code>`<code>
+<br>
+<h3>Vista de Empleado</h3>
+<br>
+</code>`<code>
+<p>/diagnostico</p>
+<p>└── Selector de encuestas disponibles</p>
+<p>    ├── [Realizar EBI 360]</p>
+<p>    ├── [Realizar NOM-035]</p>
+<p>    └── [Ver resultados anteriores]</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>📅 Plan de Implementación (10 Semanas)</h2>
+<br>
+<p>| Fase | Semanas | Objetivo | Entregable |</p>
+<p>|------|---------|----------|------------|</p>
+<p>| 1 | 1-2 | Base de datos | Esquema + Migración EBI |</p>
+<p>| 2 | 3 | Parser Excel | Función de importación |</p>
+<p>| 3 | 4-5 | Panel Super Admin | CRUD de encuestas |</p>
+<p>| 4 | 6 | Asignación | Vincular empresas |</p>
+<p>| 5 | 7-8 | Diagnóstico dinámico | Flujo multi-encuesta |</p>
+<p>| 6 | 9 | Resultados | Dashboard multi-encuesta |</p>
+<p>| 7 | 10 | Testing | QA completo |</p>
+<br>
+<p>---</p>
+<br>
+<h2>🔑 Decisiones Clave a Tomar</h2>
+<br>
+<h3>1. Versionado de Encuestas</h3>
+<br>
+<strong>Opción A:</strong> Versionado automático
+<ul>
+<li>✅ Más simple</li>
+<li>❌ Menos control</li>
+</ul>
+<br>
+<strong>Opción B:</strong> Versionado manual
+<ul>
+<li>✅ Control total</li>
+<li>❌ Más complejo</li>
+</ul>
+<br>
+<strong>Recomendación:</strong> Opción A (automático) con opción de override manual
+<br>
+<p>---</p>
+<br>
+<h3>2. Edición de Encuestas Publicadas</h3>
+<br>
+<strong>Opción A:</strong> No permitir edición, solo nueva versión
+<ul>
+<li>✅ Integridad de datos</li>
+<li>❌ Menos flexible</li>
+</ul>
+<br>
+<strong>Opción B:</strong> Permitir edición con advertencias
+<ul>
+<li>✅ Más flexible</li>
+<li>❌ Riesgo de inconsistencias</li>
+</ul>
+<br>
+<strong>Recomendación:</strong> Opción A (nueva versión) para encuestas con respuestas
+<br>
+<p>---</p>
+<br>
+<h3>3. Límite de Encuestas por Empresa</h3>
+<br>
+<strong>Opción A:</strong> Sin límite
+<ul>
+<li>✅ Máxima flexibilidad</li>
+<li>❌ Posible confusión</li>
+</ul>
+<br>
+<strong>Opción B:</strong> Límite por plan (Basic: 2, Pro: 5, Enterprise: ilimitado)
+<ul>
+<li>✅ Monetizable</li>
+<li>❌ Menos flexible</li>
+</ul>
+<br>
+<strong>Recomendación:</strong> Opción B (límite por plan)
+<br>
+<p>---</p>
+<br>
+<h3>4. Soporte Multiidioma</h3>
+<br>
+<strong>Opción A:</strong> Desde el inicio
+<ul>
+<li>✅ Preparado para expansión</li>
+<li>❌ Más complejo</li>
+</ul>
+<br>
+<strong>Opción B:</strong> Fase 2 (después de MVP)
+<ul>
+<li>✅ Más rápido</li>
+<li>❌ Refactor futuro</li>
+</ul>
+<br>
+<strong>Recomendación:</strong> Opción B (Fase 2), pero diseñar BD preparada
+<br>
+<p>---</p>
+<br>
+<h2>💡 Casos de Uso Reales</h2>
+<br>
+<h3>Caso 1: Empresa Mexicana</h3>
+<br>
+</code>`<code>
+<p>Acme Corp (México)</p>
+<p>├── EBI 360 (base) ✓</p>
+<p>└── NOM-035 (regulatoria) ✓</p>
+<p>    └── Obligatoria por ley mexicana</p>
+</code>`<code>
+<br>
+<h3>Caso 2: Empresa Chilena</h3>
+<br>
+</code>`<code>
+<p>TechCorp (Chile)</p>
+<p>├── EBI 360 (base) ✓</p>
+<p>└── Ley Karin (regulatoria) ✓</p>
+<p>    └── Obligatoria por ley chilena</p>
+</code>`<code>
+<br>
+<h3>Caso 3: Empresa Multinacional</h3>
+<br>
+</code>`<code>
+<p>GlobalCorp (Multinacional)</p>
+<p>├── EBI 360 (base) ✓</p>
+<p>├── NOM-035 (México) ✓</p>
+<p>├── Ley Karin (Chile) ✓</p>
+<p>└── Encuesta Clima Laboral (custom) ✓</p>
+</code>`<code>
+<br>
+<p>---</p>
+<br>
+<h2>✅ Checklist de Revisión</h2>
+<br>
+<h3>Modelo de Datos</h3>
+<li class="checkbox">☐ ¿Las tablas cubren todos los casos?
+<li class="checkbox">☐ ¿Los campos son suficientes?
+<li class="checkbox">☐ ¿Las relaciones son correctas?
+<li class="checkbox">☐ ¿Falta algún índice importante?
+<br>
+<h3>Flujos de Trabajo</h3>
+<li class="checkbox">☐ ¿Los flujos son lógicos?
+<li class="checkbox">☐ ¿Hay casos edge no cubiertos?
+<li class="checkbox">☐ ¿La UX es intuitiva?
+<li class="checkbox">☐ ¿Falta algún paso crítico?
+<br>
+<h3>Formato Excel</h3>
+<li class="checkbox">☐ ¿El formato es fácil de usar?
+<li class="checkbox">☐ ¿Las validaciones son suficientes?
+<li class="checkbox">☐ ¿Falta algún campo?
+<li class="checkbox">☐ ¿Hay campos redundantes?
+<br>
+<h3>Plan de Implementación</h3>
+<li class="checkbox">☐ ¿Las fases son realistas?
+<li class="checkbox">☐ ¿Los tiempos son adecuados?
+<li class="checkbox">☐ ¿El orden es correcto?
+<li class="checkbox">☐ ¿Faltan dependencias?
+<br>
+<p>---</p>
+<br>
+<h2>🚀 Próximos Pasos</h2>
+<br>
+<h3>Inmediatos (Esta Semana)</h3>
+<br>
+<ol>
+<li><strong>Revisar este documento</strong></li>
+<ul>
+<li>Leer sección por sección</li>
+<li>Anotar dudas y sugerencias</li>
+<li>Identificar puntos críticos</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Tomar decisiones clave</strong></li>
+<ul>
+<li>Versionado (automático vs manual)</li>
+<li>Edición de publicadas (sí vs no)</li>
+<li>Límites por plan</li>
+<li>Multiidioma (ahora vs después)</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Aprobar o ajustar</strong></li>
+<ul>
+<li>Modelo de datos</li>
+<li>Flujos de trabajo</li>
+<li>Interfaces</li>
+<li>Plan de implementación</li>
+</ul>
+</ol>
+<br>
+<h3>Siguiente Semana</h3>
+<br>
+<ol>
+<li><strong>Comenzar Fase 1</strong></li>
+<ul>
+<li>Crear migraciones SQL</li>
+<li>Migrar encuesta EBI actual</li>
+<li>Tests de integridad</li>
+</ul>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>📞 Preguntas para Discutir</h2>
+<br>
+<ol>
+<li><strong>Prioridad:</strong> ¿Qué es más urgente?</li>
+<ul>
+<li>¿Soporte para NOM-035?</li>
+<li>¿Flexibilidad para actualizar EBI?</li>
+<li>¿Encuestas personalizadas?</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Alcance:</strong> ¿Qué incluir en MVP?</li>
+<ul>
+<li>¿Solo carga de Excel?</li>
+<li>¿También editor manual?</li>
+<li>¿Versionado completo?</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Usuarios:</strong> ¿Quién gestionará esto?</li>
+<ul>
+<li>¿Solo super admins?</li>
+<li>¿También company admins?</li>
+<li>¿Necesitan capacitación?</li>
+</ul>
+</ol>
+<br>
+<ol>
+<li><strong>Datos:</strong> ¿Qué hacer con resultados actuales?</li>
+<ul>
+<li>¿Migrar todos a nueva estructura?</li>
+<li>¿Mantener separados?</li>
+<li>¿Período de transición?</li>
+</ul>
+</ol>
+<br>
+<p>---</p>
+<br>
+<h2>📊 Impacto Esperado</h2>
+<br>
+<h3>Para Super Admins</h3>
+<ul>
+<li>⏱️ <strong>Tiempo:</strong> De 2 días (deploy) a 10 minutos (upload Excel)</li>
+<li>🎯 <strong>Control:</strong> Total sobre encuestas sin depender de desarrollo</li>
+<li>📈 <strong>Escalabilidad:</strong> Agregar nuevas encuestas sin límite</li>
+</ul>
+<br>
+<h3>Para Company Admins</h3>
+<ul>
+<li>📋 <strong>Visibilidad:</strong> Ver todas las encuestas asignadas</li>
+<li>📊 <strong>Reportes:</strong> Comparar resultados entre encuestas</li>
+<li>✅ <strong>Cumplimiento:</strong> Asegurar normativas locales</li>
+</ul>
+<br>
+<h3>Para Empleados</h3>
+<ul>
+<li>🎯 <strong>Claridad:</strong> Ver qué encuestas debe completar</li>
+<li>⏰ <strong>Flexibilidad:</strong> Completar en su propio tiempo</li>
+<li>📈 <strong>Progreso:</strong> Seguimiento de diagnósticos</li>
+</ul>
+<br>
+<h3>Para la Plataforma</h3>
+<ul>
+<li>🚀 <strong>Competitividad:</strong> Única plataforma con soporte multi-encuesta</li>
+<li>🌍 <strong>Expansión:</strong> Fácil adaptación a nuevos países</li>
+<li>💰 <strong>Monetización:</strong> Encuestas como feature premium</li>
+</ul>
+<br>
+<p>---</p>
+<br>
+<h2>🎯 Conclusión</h2>
+<br>
+<p>Este sistema transformará EBI 360 en una <strong>plataforma verdaderamente modular y escalable</strong>, preparada para:</p>
+<br>
+<ul>
+<li>✅ Expansión internacional</li>
+<li>✅ Cumplimiento normativo</li>
+<li>✅ Personalización por cliente</li>
+<li>✅ Crecimiento sostenible</li>
+</ul>
+<br>
+<strong>El siguiente paso es tu feedback para ajustar y aprobar el diseño antes de comenzar la implementación.</strong>
+<br>
+<p>---</p>
+<br>
+<strong>Documento completo:</strong> </code>.agent/DISEÑO-SISTEMA-ENCUESTAS.md`  
+<strong>Autor:</strong> Antigravity AI + Equipo EBI 360  
+<strong>Estado:</strong> 🔍 Pendiente de Revisión
+<br>
+        </div>
+        
+        <div class="footer">
+            <p><strong>© 2025 EBI 360</strong> - Todos los derechos reservados</p>
+            <p>Documento generado el 23 de December de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        window.addEventListener('beforeprint', () => {
+            document.title = 'Sistema de Encuestas Modulares';
+        });
+    </script>
+</body>
+</html>

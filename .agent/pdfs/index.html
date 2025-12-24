@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Encuestas Modulares - Documentación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.5rem;
+            opacity: 0.95;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--card-color) 0%, #764ba2 100%);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .card-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+        
+        .card-subtitle {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+        
+        .card-description {
+            font-size: 0.95rem;
+            color: #4b5563;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .card-button {
+            display: inline-block;
+            background: var(--card-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .card-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .card-1 { --card-color: #8b5cf6; }
+        .card-2 { --card-color: #6366f1; }
+        .card-3 { --card-color: #7c3aed; }
+        .card-4 { --card-color: #a855f7; }
+        
+        .info-section {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+        }
+        
+        .info-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #111827;
+        }
+        
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-section li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .info-section li:last-child {
+            border-bottom: none;
+        }
+        
+        .info-section li::before {
+            content: '✓';
+            color: #10b981;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.9;
+            padding: 2rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Sistema de Encuestas Modulares</h1>
+            <p>Documentación Técnica Completa - EBI 360</p>
+        </div>
+        
+        <div class="cards-grid">
+            <div class="card card-1" onclick="window.open('Sistema-Encuestas-INDICE.html', '_blank')">
+                <div class="card-icon">📑</div>
+                <h3 class="card-title">Índice General</h3>
+                <p class="card-subtitle">Navegación y Guía de Uso</p>
+                <p class="card-description">
+                    Punto de partida para navegar toda la documentación. Incluye flujo de revisión recomendado, checklist completo y consejos por rol.
+                </p>
+                <div class="card-meta">
+                    <span>📄 15 páginas</span>
+                    <span>⏱️ 10-15 min</span>
+                    <span>👥 Todos</span>
+                </div>
+                <a href="Sistema-Encuestas-INDICE.html" class="card-button" onclick="event.stopPropagation()">
+                    Abrir Documento →
+                </a>
+            </div>
+            
+            <div class="card card-2" onclick="window.open('Sistema-Encuestas-RESUMEN.html', '_blank')">
+                <div class="card-icon">📊</div>
+                <h3 class="card-title">Resumen Ejecutivo</h3>
+                <p class="card-subtitle">Visión General del Sistema</p>
+                <p class="card-description">
+                    Propuesta en 3 conceptos clave, modelo de datos simplificado, interfaces principales y plan de implementación de 10 semanas.
+                </p>
+                <div class="card-meta">
+                    <span>📄 20 páginas</span>
+                    <span>⏱️ 15-20 min</span>
+                    <span>👥 Stakeholders</span>
+                </div>
+                <a href="Sistema-Encuestas-RESUMEN.html" class="card-button" onclick="event.stopPropagation()">
+                    Abrir Documento →
+                </a>
+            </div>
+            
+            <div class="card card-3" onclick="window.open('Sistema-Encuestas-DISEÑO.html', '_blank')">
+                <div class="card-icon">🏗️</div>
+                <h3 class="card-title">Diseño Técnico</h3>
+                <p class="card-subtitle">Arquitectura y Especificaciones</p>
+                <p class="card-description">
+                    Documento técnico completo con modelo de datos SQL, arquitectura, flujos de trabajo, interfaces detalladas y plan de implementación por fases.
+                </p>
+                <div class="card-meta">
+                    <span>📄 60 páginas</span>
+                    <span>⏱️ 45-60 min</span>
+                    <span>👥 Desarrolladores</span>
+                </div>
+                <a href="Sistema-Encuestas-DISEÑO.html" class="card-button" onclick="event.stopPropagation()">
+                    Abrir Documento →
+                </a>
+            </div>
+            
+            <div class="card card-4" onclick="window.open('Sistema-Encuestas-EXCEL.html', '_blank')">
+                <div class="card-icon">📋</div>
+                <h3 class="card-title">Guía de Excel</h3>
+                <p class="card-subtitle">Formato y Validaciones</p>
+                <p class="card-description">
+                    Manual completo del formato Excel para carga de encuestas. Incluye estructura, validaciones, errores comunes, ejemplos y mejores prácticas.
+                </p>
+                <div class="card-meta">
+                    <span>📄 25 páginas</span>
+                    <span>⏱️ 20-30 min</span>
+                    <span>👥 Super Admins</span>
+                </div>
+                <a href="Sistema-Encuestas-EXCEL.html" class="card-button" onclick="event.stopPropagation()">
+                    Abrir Documento →
+                </a>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h2>🎯 Flujo de Revisión Recomendado</h2>
+            <ul>
+                <li>Leer el Índice General para orientarte (10 min)</li>
+                <li>Revisar el Resumen Ejecutivo para entender la propuesta (15 min)</li>
+                <li>Profundizar en el Diseño Técnico si te convence (60 min)</li>
+                <li>Validar la Guía de Excel para usabilidad (30 min)</li>
+                <li>Agendar reunión de revisión y feedback</li>
+                <li>Tomar decisiones clave y aprobar fases</li>
+            </ul>
+        </div>
+        
+        <div class="info-section">
+            <h2>✅ Características del Sistema</h2>
+            <ul>
+                <li>Encuestas dinámicas almacenadas en base de datos</li>
+                <li>Carga mediante archivos Excel (sin código)</li>
+                <li>Soporte para múltiples encuestas por empresa</li>
+                <li>Encuestas regulatorias por país (NOM-035, Ley Karin, etc.)</li>
+                <li>Versionado automático de encuestas</li>
+                <li>Asignación flexible por empresa y plan</li>
+                <li>Algoritmos de cálculo configurables</li>
+                <li>Migración sin pérdida de datos existentes</li>
+            </ul>
+        </div>
+        
+        <div class="info-section">
+            <h2>📅 Plan de Implementación</h2>
+            <ul>
+                <li>Fase 1 (Semanas 1-2): Base de datos y migración</li>
+                <li>Fase 2 (Semana 3): Parser de Excel</li>
+                <li>Fase 3 (Semanas 4-5): Panel de Super Admin</li>
+                <li>Fase 4 (Semana 6): Asignación a empresas</li>
+                <li>Fase 5 (Semanas 7-8): Diagnóstico dinámico</li>
+                <li>Fase 6 (Semana 9): Resultados multi-encuesta</li>
+                <li>Fase 7 (Semana 10): Testing y optimización</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p><strong>© 2025 EBI 360</strong> - Sistema de Encuestas Modulares</p>
+            <p>Documentación generada el 23 de Diciembre de 2025</p>
+        </div>
+    </div>
+</body>
+</html>

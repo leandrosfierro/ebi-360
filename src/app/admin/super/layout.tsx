@@ -1,8 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
-import { LayoutDashboard, Users, Building2, Settings, LogOut, Shield, Mail } from "lucide-react";
+import {
+    LayoutDashboard,
+    Users,
+    Building2,
+    Settings,
+    LogOut,
+    Shield,
+    Mail,
+    Home,
+    BookOpen,
+    ClipboardCheck
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
 
 export default async function AdminLayout({
     children,
@@ -16,13 +28,19 @@ export default async function AdminLayout({
         redirect("/login");
     }
 
-    // In a real app, we would fetch the user's role here and verify access
-    // const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    const navLinks = [
+        { href: "/admin/super", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/admin/super/companies", label: "Empresas", icon: Building2 },
+        { href: "/admin/super/admins", label: "Super Admins", icon: Shield },
+        { href: "/admin/super/emails", label: "Emails", icon: Mail },
+        { href: "/admin/super/surveys", label: "Encuestas", icon: ClipboardCheck },
+        { href: "/admin/super/docs", label: "Documentación", icon: BookOpen },
+        { href: "/admin/super/settings", label: "Configuración", icon: Settings },
+    ];
 
     return (
-
-        <div className="flex min-h-screen bg-mesh-gradient text-foreground transition-colors duration-500">
-            {/* Glass Sidebar */}
+        <div className="flex min-h-screen bg-mesh-gradient text-foreground transition-colors duration-500 flex-col md:flex-row">
+            {/* Desktop Sidebar */}
             <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                 <div className="p-8">
                     <div className="flex items-center gap-3 mb-2">
@@ -36,52 +54,48 @@ export default async function AdminLayout({
                             />
                         </div>
                     </div>
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">Super Admin Dashboard</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Super Admin Panel</p>
                 </div>
 
                 <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
                     <div className="mb-4">
-                        <p className="px-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Principal</p>
-                        <Link href="/" className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white transition-all">
-                            <svg className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Principal</p>
+                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                            <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
                             <span>Volver al Home</span>
                         </Link>
-                        <Link href="/admin/super" className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white transition-all">
-                            <LayoutDashboard className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
-                            <span>Dashboard</span>
-                        </Link>
+                        {navLinks.slice(0, 1).map(link => (
+                            <Link key={link.href} href={link.href} className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                                <link.icon className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
+                                <span>{link.label}</span>
+                            </Link>
+                        ))}
                     </div>
 
                     <div className="mb-4">
-                        <p className="px-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Gestión</p>
-                        <Link href="/admin/super/companies" className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white transition-all">
-                            <Building2 className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
-                            <span>Empresas</span>
-                        </Link>
-                        <Link href="/admin/super/admins" className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white transition-all">
-                            <Shield className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
-                            <span>Super Admins</span>
-                        </Link>
-                        <Link href="/admin/super/emails" className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white transition-all">
-                            <Mail className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
-                            <span>Emails</span>
-                        </Link>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Gestión</p>
+                        {navLinks.slice(1, 4).map(link => (
+                            <Link key={link.href} href={link.href} className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                                <link.icon className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
+                                <span>{link.label}</span>
+                            </Link>
+                        ))}
                     </div>
 
                     <div>
-                        <p className="px-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Sistema</p>
-                        <Link href="/admin/super/settings" className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white transition-all">
-                            <Settings className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
-                            <span>Configuración</span>
-                        </Link>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Sistema</p>
+                        {navLinks.slice(4).map(link => (
+                            <Link key={link.href} href={link.href} className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                                <link.icon className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
+                                <span>{link.label}</span>
+                            </Link>
+                        ))}
                     </div>
                 </nav>
 
                 <div className="p-4 border-t border-white/10">
                     <form action="/auth/signout" method="post">
-                        <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-all">
+                        <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95">
                             <LogOut className="h-5 w-5" />
                             <span>Cerrar Sesión</span>
                         </button>
@@ -89,10 +103,16 @@ export default async function AdminLayout({
                 </div>
             </aside>
 
+            {/* Mobile Nav */}
+            <MobileAdminNav
+                title="Super Admin"
+                links={navLinks}
+                role="Super Administrador"
+            />
+
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto h-screen">
-                {/* Top Bar / Header for Mobile could go here later */}
-                <div className="mx-auto max-w-7xl animate-fadeIn">
+            <main className="flex-1 p-4 md:p-8 overflow-x-hidden overflow-y-auto h-screen">
+                <div className="mx-auto max-w-7xl animate-fadeIn space-y-6">
                     {children}
                 </div>
             </main>
