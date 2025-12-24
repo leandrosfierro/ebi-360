@@ -5,25 +5,34 @@ import Link from "next/link";
 
 export default async function SuperAdminDashboard() {
     const supabase = await createClient();
+    const { data, error: authError } = await supabase.auth.getUser();
+    const user = data?.user;
 
     // Fetch real stats
-    const { count: companiesCount } = await supabase.from("companies").select("*", { count: "exact", head: true });
-    const { count: usersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-    const { count: resultsCount } = await supabase.from("results").select("*", { count: "exact", head: true });
-    const { count: surveysCount } = await supabase.from("surveys").select("*", { count: "exact", head: true });
+    // Fetch real stats with resilience
+    const { count: companiesCount, error: companiesErr } = await supabase.from("companies").select("*", { count: "exact", head: true });
+    const { count: usersCount, error: usersErr } = await supabase.from("profiles").select("*", { count: "exact", head: true });
 
-    // Calculate average global score
-    const { data: results } = await supabase.from("results").select("global_score");
-    const averageScore = results?.length
-        ? (results.reduce((acc, curr) => acc + Number(curr.global_score), 0) / results.length).toFixed(1)
+    // Check if surveys table exists by wrapping in a try or checking error
+    const { count: resultsCount, error: resultsErr } = await supabase.from("results").select("*", { count: "exact", head: true });
+    const { count: surveysCount, error: surveysErr } = await supabase.from("surveys").select("*", { count: "exact", head: true });
+
+    // Calculate average global score safely
+    const { data: results, error: scoreErr } = await supabase.from("results").select("global_score");
+    const averageScore = results && results.length > 0
+        ? (results.reduce((acc, curr) => acc + (Number(curr.global_score) || 0), 0) / results.length).toFixed(1)
         : "0.0";
 
     // Fetch Recent Companies
-    const { data: recentCompanies } = await supabase
+    const { data: recentCompanies, error: recentErr } = await supabase
         .from("companies")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(5);
+
+    if (resultsErr || surveysErr || scoreErr) {
+        console.warn("Dashboard potential data missing:", { resultsErr, surveysErr, scoreErr });
+    }
 
     return (
         <div className="space-y-8">
