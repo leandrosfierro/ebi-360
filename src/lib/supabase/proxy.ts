@@ -29,10 +29,9 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    // Check auth user
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    // Check auth user safely
+    const { data, error: authError } = await supabase.auth.getUser()
+    const user = data?.user
 
     // 1. Routes that REQUIRE authentication
     if (request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/perfil') || request.nextUrl.pathname.startsWith('/diagnostico')) {
@@ -46,29 +45,37 @@ export async function updateSession(request: NextRequest) {
 
     // 2. Admin Routes - Role Check
     if (request.nextUrl.pathname.startsWith('/admin') && user) {
-        // Fetch profile to check role
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('active_role, role, roles')
-            .eq('id', user.id)
-            .maybeSingle()
+        let profile = null;
+        try {
+            // Fetch profile to check role - be very conservative with columns
+            const { data } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .maybeSingle();
+            profile = data;
+        } catch (e) {
+            console.error("Middleware profile fetch error:", e);
+        }
 
-        const activeRole = profile?.active_role || profile?.role || 'employee'
-        // Universal Pass: If user has 'super_admin' in their roles list, let them pass ANY admin check
-        const isSuperAdmin = profile?.roles?.includes('super_admin') || profile?.role === 'super_admin';
+        const role = profile?.role || 'employee';
+        const isSuperAdmin = role === 'super_admin';
 
         // Super Admin area
         if (request.nextUrl.pathname.startsWith('/admin/super')) {
-            if (activeRole !== 'super_admin' && !isSuperAdmin) {
-                return NextResponse.redirect(new URL('/perfil', request.url))
+            if (!isSuperAdmin) {
+                const url = request.nextUrl.clone();
+                url.pathname = '/perfil';
+                return NextResponse.redirect(url);
             }
         }
 
         // Company Admin area
         if (request.nextUrl.pathname.startsWith('/admin/company')) {
-            // Allow if active_role is company_admin OR if they are a super_admin (even if acting as company_admin)
-            if (activeRole !== 'company_admin' && activeRole !== 'super_admin' && !isSuperAdmin) {
-                return NextResponse.redirect(new URL('/perfil', request.url))
+            if (role !== 'company_admin' && !isSuperAdmin) {
+                const url = request.nextUrl.clone();
+                url.pathname = '/perfil';
+                return NextResponse.redirect(url);
             }
         }
     }
