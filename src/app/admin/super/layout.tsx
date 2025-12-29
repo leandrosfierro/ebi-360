@@ -1,24 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
-    LayoutDashboard,
-    Users,
-    Building2,
-    Settings,
-    LogOut,
-    Shield,
-    Mail,
     Home,
-    BookOpen,
-    ClipboardCheck
+    LogOut
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
-
-import { cn } from "@/lib/utils";
-// We don't have usePathname in Server Components, using a simplified layout for now 
-// or the user can refresh. Usually we'd use a Client Sidebar component.
+import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 
 export const dynamic = "force-dynamic";
 
@@ -55,17 +44,6 @@ export default async function AdminLayout({
         { href: "/admin/super/settings", label: "Configuración", icon: "Settings" },
     ];
 
-    // Map strings to icons for server-side rendering in the sidebar
-    const serverIconMap: Record<string, any> = {
-        LayoutDashboard,
-        Building2,
-        Shield,
-        Mail,
-        ClipboardCheck,
-        BookOpen,
-        Settings
-    };
-
     return (
         <div className="flex min-h-screen bg-mesh-gradient text-foreground transition-colors duration-500 flex-col md:flex-row">
             {/* Desktop Sidebar */}
@@ -85,83 +63,29 @@ export default async function AdminLayout({
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Super Admin Panel</p>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
-                    <div className="mb-4">
+                <nav className="flex-1 px-4 space-y-4 overflow-y-auto no-scrollbar">
+                    <div>
                         <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Principal</p>
-                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all mb-1">
                             <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
                             <span>Volver al Home</span>
                         </Link>
-                        {navLinks.slice(0, 1).map((link) => {
-                            const Icon = serverIconMap[link.icon] || LayoutDashboard;
-                            return (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all"
-                                >
-                                    <Icon className="h-5 w-5 text-primary/60 shadow-sm" />
-                                    <span>{link.label}</span>
-                                </Link>
-                            );
-                        })}
+                        <AdminSidebarLinks links={navLinks.slice(0, 1)} />
                     </div>
 
-                    <div className="space-y-1">
-                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">
-                            Gestión
-                        </p>
-                        {navLinks.slice(1, 4).map((link) => {
-                            const Icon = serverIconMap[link.icon] || LayoutDashboard;
-                            return (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all"
-                                >
-                                    <Icon className="h-5 w-5 text-primary/60 shadow-sm" />
-                                    <span>{link.label}</span>
-                                </Link>
-                            );
-                        })}
+                    <div>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Gestión</p>
+                        <AdminSidebarLinks links={navLinks.slice(1, 4)} />
                     </div>
 
-                    <div className="space-y-1">
-                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">
-                            Sistemas & Docs
-                        </p>
-                        {navLinks.slice(4, 6).map((link) => {
-                            const Icon = serverIconMap[link.icon] || LayoutDashboard;
-                            return (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all"
-                                >
-                                    <Icon className="h-5 w-5 text-primary/60 shadow-sm" />
-                                    <span>{link.label}</span>
-                                </Link>
-                            );
-                        })}
+                    <div>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Sistemas & Docs</p>
+                        <AdminSidebarLinks links={navLinks.slice(4, 6)} />
                     </div>
 
-                    <div className="space-y-1">
-                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">
-                            Configuración
-                        </p>
-                        {navLinks.slice(6).map((link) => {
-                            const Icon = serverIconMap[link.icon] || LayoutDashboard;
-                            return (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all"
-                                >
-                                    <Icon className="h-5 w-5 text-primary/60 shadow-sm" />
-                                    <span>{link.label}</span>
-                                </Link>
-                            );
-                        })}
+                    <div>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Configuración</p>
+                        <AdminSidebarLinks links={navLinks.slice(6)} />
                     </div>
                 </nav>
 
