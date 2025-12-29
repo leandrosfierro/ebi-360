@@ -21,9 +21,19 @@ export default async function AdminLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.getUser();
-    const user = data?.user;
+    let user = null;
+
+    try {
+        const supabase = await createClient();
+        const { data, error } = await supabase.auth.getUser();
+        user = data?.user;
+
+        if (error) {
+            console.error("Layout auth error:", error);
+        }
+    } catch (e) {
+        console.error("Critical Layout Auth Failure:", e);
+    }
 
     if (!user) {
         redirect("/login");
