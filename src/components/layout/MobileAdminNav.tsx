@@ -15,15 +15,34 @@ import {
     Mail,
     FileText,
     ChevronRight,
-    Home
+    Home,
+    BookOpen,
+    ClipboardCheck,
+    Activity,
+    TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
+// Map of icon names to components for safe serialization
+const IconMap: Record<string, any> = {
+    LayoutDashboard,
+    Building2,
+    Shield,
+    Mail,
+    ClipboardCheck,
+    BookOpen,
+    Settings,
+    Users,
+    Activity,
+    TrendingUp,
+    FileText
+};
+
 interface NavLink {
     href: string;
     label: string;
-    icon: any;
+    icon: string; // Passed as name string
 }
 
 interface MobileAdminNavProps {
@@ -120,6 +139,8 @@ export function MobileAdminNav({ title, links, role }: MobileAdminNavProps) {
 
                             {links.map((link) => {
                                 const isActive = pathname === link.href;
+                                const Icon = IconMap[link.icon] || LayoutDashboard;
+
                                 return (
                                     <Link
                                         key={link.href}
@@ -133,7 +154,7 @@ export function MobileAdminNav({ title, links, role }: MobileAdminNavProps) {
                                         )}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <link.icon className={cn("h-5 w-5", isActive ? "text-white" : "text-primary")} />
+                                            <Icon className={cn("h-5 w-5", isActive ? "text-white" : "text-primary")} />
                                             <span>{link.label}</span>
                                         </div>
                                         {isActive && <ChevronRight className="h-4 w-4 opacity-50" />}
