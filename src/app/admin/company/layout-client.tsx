@@ -12,6 +12,7 @@ import {
 import { usePathname } from "next/navigation";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
+import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import Image from "next/image";
 
 interface CompanyAdminLayoutClientProps {
@@ -28,10 +29,10 @@ export default function CompanyAdminLayoutClient({
     const pathname = usePathname();
 
     const navLinks = [
-        { href: "/admin/company", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/admin/company/employees", label: "Colaboradores", icon: Users },
-        { href: "/admin/company/reports", label: "Reportes", icon: FileText },
-        { href: "/admin/company/settings", label: "Configuración", icon: Settings },
+        { href: "/admin/company", label: "Dashboard", icon: "LayoutDashboard" },
+        { href: "/admin/company/employees", label: "Colaboradores", icon: "Users" },
+        { href: "/admin/company/reports", label: "Reportes", icon: "FileText" },
+        { href: "/admin/company/settings", label: "Configuración", icon: "Settings" },
     ];
 
     return (
@@ -40,15 +41,14 @@ export default function CompanyAdminLayoutClient({
             <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                 <div className="p-8">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="relative h-10 w-40">
-                            <Image
-                                src="/logo-bs360.png"
-                                alt="Bienestar 360"
-                                fill
-                                className="object-contain object-left logo-color-filter"
-                                priority
-                            />
-                        </div>
+                        <Image
+                            src="/logo-bs360.png"
+                            alt="Bienestar 360"
+                            width={140}
+                            height={40}
+                            className="object-contain logo-color-filter"
+                            priority
+                        />
                     </div>
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Empresa Panel</p>
                     <RoleSwitcher currentRole={activeRole} availableRoles={userRoles} />
@@ -61,16 +61,7 @@ export default function CompanyAdminLayoutClient({
                             <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
                             <span>Volver al Home</span>
                         </Link>
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all ${pathname === link.href ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-white/5 hover:text-primary'}`}
-                            >
-                                <link.icon className={`h-5 w-5 transition-colors ${pathname === link.href ? 'text-white' : 'text-primary/60 group-hover:text-primary'}`} />
-                                <span>{link.label}</span>
-                            </Link>
-                        ))}
+                        <AdminSidebarLinks links={navLinks} />
                     </div>
                 </nav>
 
