@@ -16,19 +16,8 @@ export default async function AdminLayout({
 }: {
     children: React.ReactNode;
 }) {
-    let user = null;
-
-    try {
-        const supabase = await createClient();
-        const { data, error } = await supabase.auth.getUser();
-        user = data?.user;
-
-        if (error) {
-            console.error("Layout auth error:", error);
-        }
-    } catch (e) {
-        console.error("Critical Layout Auth Failure:", e);
-    }
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         redirect("/login");
@@ -50,15 +39,14 @@ export default async function AdminLayout({
             <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                 <div className="p-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="relative h-10 w-40">
-                            <Image
-                                src="/logo-bs360.png"
-                                alt="Bienestar 360"
-                                fill
-                                className="object-contain object-left logo-color-filter"
-                                priority
-                            />
-                        </div>
+                        <Image
+                            src="/logo-bs360.png"
+                            alt="Bienestar 360"
+                            width={140}
+                            height={40}
+                            className="object-contain logo-color-filter"
+                            priority
+                        />
                     </div>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Super Admin Panel</p>
                 </div>
@@ -108,8 +96,10 @@ export default async function AdminLayout({
                 role="Super Administrador"
             />
 
-            <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto no-scrollbar relative z-10">
-                {children}
+            <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto no-scrollbar relative z-10 w-full min-w-0">
+                <div className="mx-auto max-w-7xl">
+                    {children}
+                </div>
             </main>
         </div>
     );
