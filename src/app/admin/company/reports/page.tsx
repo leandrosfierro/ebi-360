@@ -37,6 +37,7 @@ export default function ReportsPage() {
     // Survey Filter State
     const [assignedSurveys, setAssignedSurveys] = useState<any[]>([]);
     const [selectedSurveyId, setSelectedSurveyId] = useState<string>("all");
+    const [companyInfo, setCompanyInfo] = useState<any>(null);
 
     useEffect(() => {
         fetchInitialData();
@@ -62,6 +63,15 @@ export default function ReportsPage() {
             .single();
 
         const companyId = profile?.company_id;
+
+        // Get company info
+        const { data: company } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('id', companyId)
+            .single();
+
+        setCompanyInfo(company);
 
         // Get assigned surveys for filter
         const { data: assignments } = await supabase
@@ -243,7 +253,10 @@ export default function ReportsPage() {
                         Configurar Branding
                     </Link>
                     <CompanyReportExport
-                        companyName="Mi Empresa"
+                        companyName={companyInfo?.name || "Mi Empresa"}
+                        primaryColor={companyInfo?.primary_color || "#7e22ce"}
+                        secondaryColor={companyInfo?.secondary_color || "#3b82f6"}
+                        logoUrl={companyInfo?.logo_url}
                         metrics={{
                             participationRate,
                             avgGlobalScore,
@@ -304,84 +317,87 @@ export default function ReportsPage() {
                 </Card>
             </div>
 
-            {/* Domain Breakdown */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Promedio por Dimensión</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {domainChartData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={domainChartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis domain={[0, 10]} />
-                                <Tooltip />
-                                <Bar dataKey="score" fill="#7e22ce" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="flex h-[300px] items-center justify-center text-gray-500">
-                            No hay datos suficientes para mostrar
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Trend Over Time */}
-            {trendData.length > 1 && (
+            {/* Charts Section */}
+            <div data-chart-container className="space-y-6">
+                {/* Domain Breakdown */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Evolución en el Tiempo</CardTitle>
+                        <CardTitle>Promedio por Dimensión</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={trendData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="month" />
-                                <YAxis domain={[0, 10]} />
-                                <Tooltip />
-                                <Legend />
-                                <Line type="monotone" dataKey="score" stroke="#7e22ce" strokeWidth={2} name="Índice de Bienestar" />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        {domainChartData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={domainChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis domain={[0, 10]} />
+                                    <Tooltip />
+                                    <Bar dataKey="score" fill="#7e22ce" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex h-[300px] items-center justify-center text-gray-500">
+                                No hay datos suficientes para mostrar
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
-            )}
 
-            {/* Domain Distribution (Pie Chart) */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Distribución de Puntajes por Dimensión</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {domainChartData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={domainChartData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, percent }: any) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="score"
-                                >
-                                    {domainChartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="flex h-[300px] items-center justify-center text-gray-500">
-                            No hay datos suficientes para mostrar
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                {/* Trend Over Time */}
+                {trendData.length > 1 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Evolución en el Tiempo</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={trendData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="month" />
+                                    <YAxis domain={[0, 10]} />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="score" stroke="#7e22ce" strokeWidth={2} name="Índice de Bienestar" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Domain Distribution (Pie Chart) */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Distribución de Puntajes por Dimensión</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {domainChartData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={300}>
+                                <PieChart>
+                                    <Pie
+                                        data={domainChartData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }: any) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="score"
+                                    >
+                                        {domainChartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex h-[300px] items-center justify-center text-gray-500">
+                                No hay datos suficientes para mostrar
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }
