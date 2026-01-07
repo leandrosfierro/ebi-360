@@ -12,6 +12,8 @@ export async function GET(request: Request) {
         const supabase = await createClient();
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
+            let activeRoleForRedirect = 'employee';
+
             // Get user and create/update profile
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -47,6 +49,9 @@ export async function GET(request: Request) {
 
                 const finalActiveRole = existingProfile?.active_role || finalRole;
 
+                // Set the role for redirection
+                activeRoleForRedirect = finalActiveRole;
+
                 // Debug logging only in development
                 if (process.env.NODE_ENV === 'development') {
                     console.log("[AUTH CALLBACK] Final Roles for user:", {
@@ -74,8 +79,20 @@ export async function GET(request: Request) {
                     });
             }
 
-            // Robust redirect
-            const redirectUrl = new URL(next === '/' ? '/perfil' : next, request.url);
+            // Robust redirect based on role
+            let targetPath = next;
+
+            if (next === '/' || next === '/perfil') {
+                if (activeRoleForRedirect === 'super_admin') {
+                    targetPath = '/admin/super';
+                } else if (activeRoleForRedirect === 'company_admin') {
+                    targetPath = '/admin/company';
+                } else {
+                    targetPath = '/perfil';
+                }
+            }
+
+            const redirectUrl = new URL(targetPath, request.url);
             return NextResponse.redirect(redirectUrl);
         }
     }

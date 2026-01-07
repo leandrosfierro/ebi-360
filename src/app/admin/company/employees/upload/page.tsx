@@ -23,14 +23,27 @@ export default function BulkUploadPage() {
     const [uploadComplete, setUploadComplete] = useState(false);
     const [uploadResults, setUploadResults] = useState<{ success: number; errors: string[] } | null>(null);
 
-    const downloadTemplate = () => {
+    const downloadCsvTemplate = () => {
         const csvContent = "email,full_name,department\njuan.perez@empresa.com,Juan Pérez,Ventas\nmaria.gomez@empresa.com,María Gómez,Marketing";
-        const blob = new Blob([csvContent], { type: "text/csv" });
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "plantilla_usuarios.csv";
+        a.download = "plantilla_usuarios_ebi360.csv";
         a.click();
+    };
+
+    const downloadXlsxTemplate = () => {
+        const data = [
+            { email: "juan.perez@empresa.com", full_name: "Juan Pérez", department: "Ventas" },
+            { email: "maria.gomez@empresa.com", full_name: "María Gómez", department: "Marketing" }
+        ];
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Colaboradores");
+
+        // Use XLSX.writeFile for browser download
+        XLSX.writeFile(workbook, "plantilla_usuarios_ebi360.xlsx");
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,28 +148,39 @@ export default function BulkUploadPage() {
             </div>
 
             {/* Template Download */}
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                <div className="flex items-start gap-3">
-                    <FileSpreadsheet className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
+                        <FileSpreadsheet className="h-6 w-6 text-blue-600" />
+                    </div>
                     <div className="flex-1">
-                        <h3 className="font-medium text-blue-900">¿Primera vez?</h3>
-                        <p className="text-sm text-blue-700 mt-1">
-                            Descarga la plantilla para asegurarte de usar el formato correcto.
+                        <h3 className="text-lg font-bold text-blue-900 tracking-tight">¿Primera vez?</h3>
+                        <p className="text-sm text-blue-700/80 mt-1 font-medium">
+                            Descarga la plantilla en tu formato preferido para asegurarte de que el sistema reconozca todos los datos correctamente.
                         </p>
-                        <button
-                            onClick={downloadTemplate}
-                            className="mt-3 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-                        >
-                            <Download className="h-4 w-4" />
-                            Descargar Plantilla CSV
-                        </button>
+                        <div className="mt-4 flex flex-wrap gap-3">
+                            <button
+                                onClick={downloadCsvTemplate}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-blue-200 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 hover:scale-105 active:scale-95 transition-all shadow-sm"
+                            >
+                                <Download className="h-4 w-4" />
+                                Descargar Plantilla CSV
+                            </button>
+                            <button
+                                onClick={downloadXlsxTemplate}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 rounded-xl text-sm font-bold text-white hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all shadow-md shadow-blue-200"
+                            >
+                                <FileSpreadsheet className="h-4 w-4" />
+                                Descargar Plantilla Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Upload Area */}
             {!uploadComplete && (
-                <div className="rounded-xl border-2 border-dashed border-gray-300 bg-white p-12 text-center hover:border-blue-400 transition-colors">
+                <div className="rounded-[32px] border-2 border-dashed border-gray-200 bg-white/50 p-16 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300 group cursor-pointer">
                     <input
                         type="file"
                         accept=".csv,.xlsx,.xls"
@@ -164,12 +188,16 @@ export default function BulkUploadPage() {
                         className="hidden"
                         id="file-upload"
                     />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <p className="text-lg font-medium text-gray-900">
-                            {file ? file.name : "Arrastra un archivo o haz clic para seleccionar"}
+                    <label htmlFor="file-upload" className="cursor-pointer block">
+                        <div className="mx-auto h-20 w-20 rounded-3xl bg-gray-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-100 transition-all duration-300">
+                            <Upload className="h-10 w-10 text-gray-400 group-hover:text-blue-600" />
+                        </div>
+                        <p className="text-xl font-black text-gray-900 tracking-tight">
+                            {file ? file.name : "Subir archivo de colaboradores"}
                         </p>
-                        <p className="text-sm text-gray-500 mt-2">CSV, XLSX o XLS (máx. 5MB)</p>
+                        <p className="text-sm text-gray-500 mt-2 font-medium">
+                            Arrastra tu archivo <span className="text-blue-600 font-bold">Excel (.xlsx)</span> o <span className="text-blue-600 font-bold">CSV</span> aquí
+                        </p>
                     </label>
                 </div>
             )}

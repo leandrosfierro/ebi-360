@@ -8,6 +8,7 @@ import { ChevronDown, Loader2 } from "lucide-react";
 interface RoleSwitcherProps {
     currentRole: string;
     availableRoles: string[];
+    primaryColor?: string | null;
 }
 
 const roleLabels: Record<string, string> = {
@@ -22,7 +23,7 @@ const rolePaths: Record<string, string> = {
     employee: "/"
 };
 
-export function RoleSwitcher({ currentRole, availableRoles }: RoleSwitcherProps) {
+export function RoleSwitcher({ currentRole, availableRoles, primaryColor }: RoleSwitcherProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [switching, setSwitching] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -112,9 +113,13 @@ export function RoleSwitcher({ currentRole, availableRoles }: RoleSwitcherProps)
                                         }}
                                         disabled={role === currentRole || switching}
                                         className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all ${role === currentRole
-                                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                                : 'text-foreground hover:bg-white/5'
+                                            ? 'text-white'
+                                            : 'text-foreground hover:bg-white/5'
                                             } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                        style={role === currentRole ? {
+                                            backgroundColor: primaryColor || 'var(--primary)',
+                                            boxShadow: primaryColor ? `0 10px 15px -3px ${primaryColor}40` : undefined
+                                        } : {}}
                                     >
                                         <div className="flex items-center justify-between">
                                             <span>{roleLabels[role] || role}</span>

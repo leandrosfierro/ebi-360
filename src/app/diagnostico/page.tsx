@@ -24,6 +24,7 @@ export default function DiagnosticPage() {
     const [mounted, setMounted] = useState(false);
     const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
     const [loadingQuestions, setLoadingQuestions] = useState(false);
+    const [companyBranding, setCompanyBranding] = useState<any>(null);
 
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
@@ -36,47 +37,75 @@ export default function DiagnosticPage() {
 
     async function loadSurveys() {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (!user || userError) {
                 router.push('/login');
                 return;
             }
 
             // Get user's profile to find company_id
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
                 .from('profiles')
-                .select('company_id')
+                .select('company_id, full_name')
                 .eq('id', user.id)
                 .single();
 
-            if (!profile?.company_id) {
-                throw new Error('No company assigned to user');
+            if (profileError || !profile?.company_id) {
+                setLoadingSurveys(false);
+                setErrorState({
+                    title: "Sin Empresa Asignada",
+                    message: `Hola ${profile?.full_name || 'colaborador'}, aún no tienes una empresa vinculada a tu perfil. Por favor, solicita a tu administrador que te asigne a una organización.`
+                });
+                return;
+            }
+
+            // Get company branding
+            const { data: company, error: companyError } = await supabase
+                .from('companies')
+                .select('name, logo_url, primary_color, secondary_color, font')
+                .eq('id', profile.company_id)
+                .single();
+
+            if (!companyError && company) {
+                setCompanyBranding(company);
             }
 
             // Get assigned surveys
-            const { data: assignments, error } = await supabase
+            const { data: assignments, error: assignError } = await supabase
                 .from('company_surveys')
                 .select('*, survey:surveys(*)')
                 .eq('company_id', profile.company_id)
                 .eq('is_active', true);
 
-            if (error) throw error;
+            if (assignError) throw assignError;
 
-            const surveys = (assignments || []).map((a: any) => a.survey);
+            const surveys = (assignments || [])
+                .filter((a: any) => a.survey) // Ensure survey data exists
+                .map((a: any) => a.survey);
+
             setAssignedSurveys(surveys);
 
-            // If only one survey, select it automatically
-            if (surveys.length === 1) {
+            if (surveys.length === 0) {
+                setErrorState({
+                    title: "No hay diagnósticos",
+                    message: "Tu empresa aún no tiene diagnósticos activos asignados. Vuelve a consultar más tarde."
+                });
+            } else if (surveys.length === 1) {
+                // If only one survey, select it automatically
                 handleSelectSurvey(surveys[0]);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error loading surveys:', error);
-            // Fallback to static EBI if everything fails (optional)
-            // setQuestions(staticQuestions);
+            setErrorState({
+                title: "Error de Carga",
+                message: "Hubo un problema al cargar tus diagnósticos. Por favor intenta de nuevo."
+            });
         } finally {
             setLoadingSurveys(false);
         }
     }
+
+    const [errorState, setErrorState] = useState<{ title: string, message: string } | null>(null);
 
     async function handleSelectSurvey(survey: any) {
         setSelectedSurvey(survey);
@@ -219,6 +248,27 @@ export default function DiagnosticPage() {
         );
     }
 
+    // If there's an error state (no company or no surveys)
+    if (errorState) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-mesh-gradient flex-col p-6 text-center">
+                <div className="max-w-md p-8 glass-card rounded-[32px] border border-white/40 shadow-xl animate-in fade-in zoom-in duration-500">
+                    <div className="w-20 h-20 rounded-3xl bg-amber-100 flex items-center justify-center mx-auto mb-6">
+                        <ArrowLeft className="w-10 h-10 text-amber-600 cursor-pointer" onClick={() => router.push('/perfil')} />
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">{errorState.title}</h2>
+                    <p className="text-gray-500 font-medium leading-relaxed mb-8">{errorState.message}</p>
+                    <button
+                        onClick={() => router.push('/perfil')}
+                        className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl transition-transform hover:scale-105 active:scale-95 shadow-lg"
+                    >
+                        Volver al Perfil
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     // If no survey selected yet, show selector
     if (!selectedSurvey) {
         return (
@@ -226,6 +276,7 @@ export default function DiagnosticPage() {
                 <DiagnosisSelector
                     surveys={assignedSurveys}
                     onSelect={handleSelectSurvey}
+                    companyBranding={companyBranding}
                 />
             </div>
         );
@@ -246,28 +297,41 @@ export default function DiagnosticPage() {
     return (
         <div
             className="flex min-h-screen flex-col bg-mesh-gradient text-foreground transition-colors duration-500"
+            style={companyBranding?.font ? { fontFamily: companyBranding.font } : {}}
             suppressHydrationWarning
         >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-6 pt-12">
+            <div className="flex items-center justify-between px-6 py-6 pt-12 relative z-10">
                 <button
                     onClick={handleBack}
                     className="rounded-full bg-white/80 backdrop-blur-sm p-3 text-gray-700 shadow-sm transition-all hover:bg-white hover:scale-110 active:scale-95 border border-gray-200"
                 >
                     <ArrowLeft className="h-5 w-5" />
                 </button>
+
+                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+                    {companyBranding?.logo_url ? (
+                        <img src={companyBranding.logo_url} alt={companyBranding.name} className="h-8 w-auto object-contain drop-shadow-sm" />
+                    ) : (
+                        <span className="text-xl font-black italic tracking-tighter text-gray-900 border-b-2 border-primary">EBI 360</span>
+                    )}
+                </div>
+
                 <div className="flex flex-col items-end">
-                    <span className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary/50 mb-1" style={{ color: companyBranding?.primary_color ? `${companyBranding.primary_color}80` : undefined }}>
                         {selectedSurvey.name}
                     </span>
                     <div className="flex items-center space-x-2">
-                        <span className="text-xs font-medium text-gray-500">
+                        <span className="text-xs font-black text-gray-500">
                             {Math.round(progress)}%
                         </span>
-                        <div className="relative h-2 w-24 overflow-hidden rounded-full bg-gray-200/50">
+                        <div className="relative h-2 w-20 overflow-hidden rounded-full bg-gray-200/50">
                             <div
-                                className={cn("h-full transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]", domainStyle.bar)}
-                                style={{ width: `${progress}%` }}
+                                className={cn("h-full transition-all duration-500 ease-out rounded-full shadow-inner")}
+                                style={{
+                                    width: `${progress}%`,
+                                    backgroundColor: companyBranding?.secondary_color || domainStyle.bar.replace('bg-', '')
+                                }}
                             />
                         </div>
                     </div>

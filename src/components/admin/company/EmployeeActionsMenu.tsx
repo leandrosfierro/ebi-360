@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, Ban, CheckCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Ban, CheckCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -12,7 +11,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toggleEmployeeStatus, deleteEmployee } from "@/lib/actions";
+import { sendManualInvitations } from "@/lib/invitation-actions";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface EmployeeActionsMenuProps {
     employee: {
@@ -45,6 +46,19 @@ export function EmployeeActionsMenu({ employee }: EmployeeActionsMenuProps) {
         router.refresh();
     };
 
+    const handleSendInvitation = async () => {
+        setIsLoading(true);
+        const result = await sendManualInvitations([employee.id]) as any;
+
+        if (result.success) {
+            alert("✓ Invitación enviada correctamente");
+        } else {
+            alert(`Error: ${result.errors?.[0] || result.error || 'No se pudo enviar la invitación'}`);
+        }
+        setIsLoading(false);
+        router.refresh();
+    };
+
     const handleDelete = async () => {
         if (!confirm(`¿Eliminar a ${employee.full_name}? Esta acción no se puede deshacer.`)) return;
 
@@ -68,25 +82,33 @@ export function EmployeeActionsMenu({ employee }: EmployeeActionsMenuProps) {
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                <DropdownMenuItem onClick={handleToggleStatus}>
+            <DropdownMenuContent align="end" className="w-56 glass-card border border-white/10 rounded-2xl shadow-xl">
+                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Acciones Usuario</DropdownMenuLabel>
+
+                <DropdownMenuItem onClick={handleSendInvitation} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
+                    <Mail className="mr-2 h-4 w-4 text-primary" />
+                    <span className="font-bold text-sm">Enviar Invitación</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={handleToggleStatus} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
                     {isActive ? (
                         <>
-                            <Ban className="mr-2 h-4 w-4" />
-                            Desactivar Acceso
+                            <Ban className="mr-2 h-4 w-4 text-rose-500" />
+                            <span className="font-bold text-sm">Desactivar Acceso</span>
                         </>
                     ) : (
                         <>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Activar Acceso
+                            <CheckCircle className="mr-2 h-4 w-4 text-emerald-500" />
+                            <span className="font-bold text-sm">Activar Acceso</span>
                         </>
                     )}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600">
+
+                <DropdownMenuSeparator className="bg-white/5" />
+
+                <DropdownMenuItem onClick={handleDelete} className="px-4 py-3 cursor-pointer text-rose-500 focus:text-rose-500 hover:bg-rose-500/5 focus:bg-rose-500/5 transition-colors">
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Eliminar Usuario
+                    <span className="font-bold text-sm">Eliminar Usuario</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

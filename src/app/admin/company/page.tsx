@@ -53,9 +53,30 @@ export default async function CompanyAdminDashboard() {
             }
         } else {
             return (
-                <div className="p-8 text-center">
-                    <h2 className="text-xl font-bold text-rose-600">Error de Configuración</h2>
-                    <p className="text-muted-foreground">No tienes una empresa asignada. Contacta al soporte.</p>
+                <div className="flex min-h-[400px] w-full items-center justify-center p-6 text-center">
+                    <div className="max-w-md p-10 glass-card rounded-[32px] border border-white/40 shadow-xl animate-in fade-in zoom-in duration-500">
+                        <div className="w-20 h-20 rounded-3xl bg-rose-100 flex items-center justify-center mx-auto mb-6">
+                            <Building2 className="w-10 h-10 text-rose-600" />
+                        </div>
+                        <h2 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Acceso Limitado</h2>
+                        <p className="text-gray-500 font-medium leading-relaxed mb-8">
+                            Tu cuenta de administrador aún no tiene una empresa asociada. Por favor, contacta al soporte de EBI 360 para completar tu configuración.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <a
+                                href="mailto:soporte@bs360.com.ar"
+                                className="w-full bg-primary text-white font-bold py-4 rounded-2xl transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                            >
+                                Contactar Soporte
+                            </a>
+                            <a
+                                href="/perfil"
+                                className="w-full bg-gray-100 text-gray-600 font-bold py-4 rounded-2xl hover:bg-gray-200 transition-colors"
+                            >
+                                Ir a mi Perfil
+                            </a>
+                        </div>
+                    </div>
                 </div>
             );
         }
