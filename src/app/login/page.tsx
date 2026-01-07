@@ -7,7 +7,9 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export default function LoginPage() {
+import { Suspense } from "react";
+
+function LoginFormContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [authMode, setAuthMode] = useState<"login" | "signup" | "google">("google");
     const [email, setEmail] = useState("");
@@ -246,5 +248,17 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen flex-col items-center justify-center bg-mesh-gradient p-4">
+                <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
+            </div>
+        }>
+            <LoginFormContent />
+        </Suspense>
     );
 }
