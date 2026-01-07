@@ -22,13 +22,21 @@ export default function CompanyEmailModule() {
     }, []);
 
     const loadTemplate = async () => {
-        setIsLoading(true);
-        const result = await getCompanyInvitationTemplate();
-        if (result.data) {
-            setSubject(result.data.subject);
-            setBodyHtml(result.data.body_html);
+        try {
+            setIsLoading(true);
+            const result = await getCompanyInvitationTemplate();
+            if (result && 'data' in result && result.data) {
+                setSubject(result.data.subject);
+                setBodyHtml(result.data.body_html);
+            } else if (result && 'error' in result) {
+                setMessage({ type: 'error', text: result.error as string });
+            }
+        } catch (error) {
+            console.error("Error loading template:", error);
+            setMessage({ type: 'error', text: "Error al conectar con el servidor" });
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     const handleSave = async () => {

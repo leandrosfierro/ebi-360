@@ -14,7 +14,7 @@ export async function getCompanyInvitationTemplate() {
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
     if (!profile?.company_id) return { error: "Sin empresa asignada" };
 
@@ -48,7 +48,7 @@ export async function updateCompanyInvitationTemplate(subject: string, bodyHtml:
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
     if (!profile?.company_id) return { error: "Sin empresa asignada" };
 
@@ -102,7 +102,7 @@ export async function sendManualInvitations(employeeIds: string[]) {
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
     if (!profile?.company_id) return { error: "Sin empresa asignada" };
 
@@ -111,7 +111,7 @@ export async function sendManualInvitations(employeeIds: string[]) {
         .from('companies')
         .select('name, logo_url')
         .eq('id', profile.company_id)
-        .single();
+        .maybeSingle();
 
     // Get template
     const { data: templateResponse } = await getCompanyInvitationTemplate();
