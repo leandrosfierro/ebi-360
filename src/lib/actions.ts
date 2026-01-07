@@ -849,9 +849,11 @@ export async function inviteEmployee(email: string, fullName: string) {
         let emailSent = false;
         try {
             const result = await sendManualInvitations([authUser.user.id]);
-            if (result.success && result.sent > 0) {
+            if ('success' in result && result.success && result.sent > 0) {
                 emailSent = true;
-            } else {
+            } else if ('error' in result) {
+                console.warn("Branded email invitation failed (non-critical):", result.error);
+            } else if ('errors' in result) {
                 console.warn("Branded email invitation failed (non-critical):", result.errors);
             }
         } catch (emailError) {

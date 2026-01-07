@@ -43,10 +43,11 @@ export default function CompanyEmailModule() {
         setIsSaving(true);
         setMessage(null);
         const result = await updateCompanyInvitationTemplate(subject, bodyHtml);
-        if (result.success) {
+        if ('success' in result && result.success) {
             setMessage({ type: 'success', text: "Plantilla actualizada correctamente" });
         } else {
-            setMessage({ type: 'error', text: result.error || "Error al guardar" });
+            const errorText = (result as { error?: string }).error || "Error al guardar";
+            setMessage({ type: 'error', text: errorText });
         }
         setIsSaving(false);
     };

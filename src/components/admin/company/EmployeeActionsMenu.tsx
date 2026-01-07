@@ -48,12 +48,14 @@ export function EmployeeActionsMenu({ employee }: EmployeeActionsMenuProps) {
 
     const handleSendInvitation = async () => {
         setIsLoading(true);
-        const result = await sendManualInvitations([employee.id]) as any;
+        const result = await sendManualInvitations([employee.id]);
 
-        if (result.success) {
+        if ('success' in result && result.success) {
             alert("✓ Invitación enviada correctamente");
         } else {
-            alert(`Error: ${result.errors?.[0] || result.error || 'No se pudo enviar la invitación'}`);
+            const errorMsg = 'error' in result ? result.error :
+                ('errors' in result && Array.isArray(result.errors) ? (result.errors as string[])[0] : 'No se pudo enviar la invitación');
+            alert(`Error: ${errorMsg}`);
         }
         setIsLoading(false);
         router.refresh();
