@@ -6,37 +6,61 @@ import { resend } from "@/lib/resend";
 import { logEmail } from "@/lib/email-actions";
 
 export async function getCompanyInvitationTemplate() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "No autenticado" };
+    try {
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .maybeSingle();
+        if (authError || !user) {
+            console.error("Auth error in getCompanyInvitationTemplate:", authError);
+            return { error: "No autenticado" };
+        }
 
-    if (!profile?.company_id) return { error: "Sin empresa asignada" };
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('id', user.id)
+            .maybeSingle();
 
-    // Try to find company specific template
-    const { data: customTemplate } = await supabase
-        .from('email_templates')
-        .select('*')
-        .eq('type', 'employee_invitation')
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
+        if (profileError) {
+            console.error("Profile error in getCompanyInvitationTemplate:", profileError);
+            return { error: "Error al obtener perfil: " + profileError.message };
+        }
 
-    if (customTemplate) return { data: customTemplate };
+        if (!profile?.company_id) return { error: "Sin empresa asignada" };
 
-    // Fallback to global template
-    const { data: globalTemplate } = await supabase
-        .from('email_templates')
-        .select('*')
-        .eq('type', 'employee_invitation')
-        .is('company_id', null)
-        .maybeSingle();
+        // Try to find company specific template
+        const { data: customTemplate, error: customError } = await supabase
+            .from('email_templates')
+            .select('*')
+            .eq('type', 'employee_invitation')
+            .eq('company_id', profile.company_id)
+            .maybeSingle();
 
-    return { data: globalTemplate };
+        if (customError) {
+            console.error("Custom template error:", customError);
+            // Don't return yet, try global
+        }
+
+        if (customTemplate) return { data: customTemplate };
+
+        // Fallback to global template
+        const { data: globalTemplate, error: globalError } = await supabase
+            .from('email_templates')
+            .select('*')
+            .eq('type', 'employee_invitation')
+            .is('company_id', null)
+            .maybeSingle();
+
+        if (globalError) {
+            console.error("Global template error:", globalError);
+            return { error: "Error en base de datos: " + globalError.message };
+        }
+
+        return { data: globalTemplate };
+    } catch (err: any) {
+        console.error("Unexpected error in getCompanyInvitationTemplate:", err);
+        return { error: "Error inesperado del servidor: " + err.message };
+    }
 }
 
 export async function updateCompanyInvitationTemplate(subject: string, bodyHtml: string) {
