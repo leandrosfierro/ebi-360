@@ -1,8 +1,11 @@
-import { createClient } from '@/lib/supabase/client';
+'use server';
+
+import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 import { SurveyImportData, SurveyStatus } from './types';
 
 export async function saveSurvey(data: SurveyImportData) {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // 1. Insert Metadata
     const { data: survey, error: surveyError } = await supabase
@@ -50,7 +53,7 @@ export async function saveSurvey(data: SurveyImportData) {
 }
 
 export async function getSurveys(filters: { status?: SurveyStatus, type?: string } = {}) {
-    const supabase = createClient();
+    const supabase = await createClient();
     let query = supabase.from('surveys').select('*').order('created_at', { ascending: false });
 
     if (filters.status) query = query.eq('status', filters.status);
@@ -62,7 +65,7 @@ export async function getSurveys(filters: { status?: SurveyStatus, type?: string
 }
 
 export async function updateSurveyStatus(id: string, status: SurveyStatus) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { error } = await supabase
         .from('surveys')
         .update({ status, published_at: status === 'active' ? new Date().toISOString() : null })
@@ -72,11 +75,93 @@ export async function updateSurveyStatus(id: string, status: SurveyStatus) {
 }
 
 export async function deleteSurvey(id: string) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { error } = await supabase
         .from('surveys')
         .delete()
         .eq('id', id);
 
     if (error) throw error;
+}
+
+export async function assignSurveyToCompany(companyId: string, surveyId: string) {
+    try {
+        // 1. Verify Super Admin status (Extra security check)
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) return { error: 'No autenticado' };
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.role !== 'super_admin') {
+            return { error: 'Permisos insuficientes (Super Admin requerido)' };
+        }
+
+        // 2. Perform assignment using Admin Client to bypass RLS
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            console.error('SUPABASE_SERVICE_ROLE_KEY is missing');
+            return { error: 'Error de configuración del servidor' };
+        }
+
+        const adminSupabase = createAdminClient();
+        const { error: insertError } = await adminSupabase
+            .from('company_surveys')
+            .insert({
+                company_id: companyId,
+                survey_id: surveyId,
+                is_active: true,
+                is_mandatory: true,
+                assigned_by: user.id
+            });
+
+        if (insertError) {
+            console.error('Insert error details:', insertError);
+            return { error: `Error de base de datos: ${insertError.message}` };
+        }
+
+        revalidatePath('/admin/super/companies');
+        return { success: true };
+    } catch (e: any) {
+        console.error('Critical internal error during assignment:', e);
+        return { error: `Error interno: ${e.message || 'Desconocido'}` };
+    }
+}
+
+export async function removeSurveyFromCompany(assignmentId: string) {
+    try {
+        // 1. Verify Super Admin status
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) return { error: 'No autenticado' };
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.role !== 'super_admin') {
+            return { error: 'Permisos insuficientes' };
+        }
+
+        // 2. Perform removal using Admin Client
+        const adminSupabase = createAdminClient();
+        const { error: deleteError } = await adminSupabase
+            .from('company_surveys')
+            .delete()
+            .eq('id', assignmentId);
+
+        if (deleteError) return { error: deleteError.message };
+
+        revalidatePath('/admin/super/companies');
+        return { success: true };
+    } catch (e: any) {
+        return { error: e.message || 'Error interno al desvincular' };
+    }
 }

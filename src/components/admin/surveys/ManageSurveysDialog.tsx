@@ -22,6 +22,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { assignSurveyToCompany, removeSurveyFromCompany } from '@/lib/surveys/actions';
 
 interface ManageSurveysDialogProps {
     companyId: string;
@@ -76,19 +77,15 @@ export function ManageSurveysDialog({ companyId, companyName, open, onOpenChange
     async function handleAssign(surveyId: string) {
         setAssigning(true);
         try {
-            const { error } = await supabase
-                .from('company_surveys')
-                .insert({
-                    company_id: companyId,
-                    survey_id: surveyId,
-                    is_active: true,
-                    is_mandatory: true
-                });
-
-            if (error) throw error;
-            await loadData();
-        } catch (error) {
-            alert('Error al asignar la encuesta');
+            const result = await assignSurveyToCompany(companyId, surveyId);
+            if (result?.error) {
+                alert(`[v2] Error al asignar: ${result.error}`);
+            } else {
+                await loadData();
+            }
+        } catch (error: any) {
+            console.error('Error assigning survey:', error);
+            alert(`[v2] Error de conexión: ${error.message || 'Error desconocido'}`);
         } finally {
             setAssigning(false);
         }
@@ -99,15 +96,15 @@ export function ManageSurveysDialog({ companyId, companyName, open, onOpenChange
 
         setAssigning(true);
         try {
-            const { error } = await supabase
-                .from('company_surveys')
-                .delete()
-                .eq('id', assignmentId);
-
-            if (error) throw error;
-            await loadData();
-        } catch (error) {
-            alert('Error al desvincular la encuesta');
+            const result = await removeSurveyFromCompany(assignmentId);
+            if (result?.error) {
+                alert(`[v2] Error al desvincular: ${result.error}`);
+            } else {
+                await loadData();
+            }
+        } catch (error: any) {
+            console.error('Error removing assignment:', error);
+            alert(`[v2] Error de conexión: ${error.message || 'Error desconocido'}`);
         } finally {
             setAssigning(false);
         }
