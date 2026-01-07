@@ -3,6 +3,7 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { resend } from "@/lib/resend";
+import { sendManualInvitations } from "@/lib/invitation-actions";
 
 export async function saveDiagnosticResult(
     globalScore: number,
@@ -120,6 +121,7 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
 
     const errors: string[] = [];
     let created = 0;
+    const createdIds: string[] = [];
 
     for (const userData of users) {
         try {
@@ -128,45 +130,54 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
                 .from('profiles')
                 .select('id')
                 .eq('email', userData.email)
-                .single();
+                .maybeSingle();
 
             if (existingUser) {
                 errors.push(`${userData.email}: Usuario ya existe`);
                 continue;
             }
 
-            // Send invitation email via Supabase Auth
-            const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-                userData.email,
-                {
-                    data: {
-                        full_name: userData.full_name,
-                        company_id: companyId,
-                        role: 'employee',
-                    },
-                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
-                }
-            );
+            const supabaseAdmin = createAdminClient();
 
-            if (inviteError) {
-                // Fallback: Create profile manually if invite fails
-                const { error: profileError } = await supabase.from('profiles').insert({
+            // Create user silently (without default invite email)
+            const { data: authUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+                email: userData.email,
+                email_confirm: false,
+                user_metadata: {
+                    full_name: userData.full_name,
+                    company_id: companyId,
+                    role: 'employee'
+                }
+            });
+
+            if (createError) {
+                errors.push(`${userData.email}: ${createError.message}`);
+                continue;
+            }
+
+            if (authUser.user) {
+                // Ensure profile exists (it should be created by trigger, but we upsert for safety)
+                await supabaseAdmin.from('profiles').upsert({
+                    id: authUser.user.id,
                     email: userData.email,
                     full_name: userData.full_name,
                     role: 'employee',
                     company_id: companyId,
+                    admin_status: 'invited'
                 });
 
-                if (profileError) {
-                    errors.push(`${userData.email}: ${profileError.message}`);
-                    continue;
-                }
+                createdIds.push(authUser.user.id);
             }
 
             created++;
         } catch (error: any) {
             errors.push(`${userData.email}: ${error.message || 'Error desconocido'}`);
         }
+    }
+
+    // Send branded invitations in batch
+    if (createdIds.length > 0) {
+        await sendManualInvitations(createdIds);
     }
 
     revalidatePath("/admin/company/employees");
@@ -834,28 +845,17 @@ export async function inviteEmployee(email: string, fullName: string) {
             throw new Error(`Error al crear perfil: ${profileError.message}`);
         }
 
-        // 4. Optionally try to send invitation email (non-blocking)
+        // 4. Send branded invitation email
         let emailSent = false;
         try {
-            const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-                email,
-                {
-                    data: {
-                        full_name: fullName,
-                        company_id: companyId,
-                        role: 'employee',
-                    },
-                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
-                }
-            );
-
-            if (!inviteError) {
+            const result = await sendManualInvitations([authUser.user.id]);
+            if (result.success && result.sent > 0) {
                 emailSent = true;
             } else {
-                console.warn("Email invitation failed (non-critical):", inviteError.message);
+                console.warn("Branded email invitation failed (non-critical):", result.errors);
             }
         } catch (emailError) {
-            console.warn("Email invitation failed (non-critical):", emailError);
+            console.warn("Branded email invitation unexpected failure (non-critical):", emailError);
         }
 
         revalidatePath("/admin/company/employees");
