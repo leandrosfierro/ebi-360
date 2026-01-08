@@ -32,6 +32,7 @@ export default async function AdminLayout({
         { href: "/admin/super/surveys", label: "Encuestas", icon: "ClipboardCheck" },
         { href: "/admin/super/docs", label: "Documentación", icon: "BookOpen" },
         { href: "/admin/super/settings", label: "Configuración", icon: "Settings" },
+        { href: "/wellbeing", label: "Mi Rueda", icon: "Activity" },
     ];
 
     return (

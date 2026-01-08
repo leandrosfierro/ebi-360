@@ -37,6 +37,7 @@ export default function CompanyAdminLayoutClient({
 
     const navLinks = [
         { href: "/admin/company", label: "Dashboard", icon: "LayoutDashboard" },
+        { href: "/wellbeing", label: "Mi Rueda", icon: "Activity" },
         { href: "/admin/company/employees", label: "Colaboradores", icon: "Users" },
         { href: "/admin/company/emails", label: "Invitaciones", icon: "Mail" },
         { href: "/admin/company/reports", label: "Reportes", icon: "FileText" },

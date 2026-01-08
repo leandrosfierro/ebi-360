@@ -10,7 +10,20 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
-    // Fetch latest diagnostic result safely
+    // 1. Fetch profile to check company/role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('company_id, role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    // 2. If no company assigned, redirect to Wellbeing Wheel (Express Flow)
+    if (!profile?.company_id && profile?.role !== 'super_admin') {
+      const { redirect } = await import("next/navigation");
+      redirect("/wellbeing");
+    }
+
+    // 3. Fetch latest diagnostic result safely
     const { data: latestResult } = await supabase
       .from('results')
       .select('*')

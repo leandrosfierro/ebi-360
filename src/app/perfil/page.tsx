@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award } from "lucide-react";
+import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award, ArrowRight } from "lucide-react";
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
@@ -213,6 +213,27 @@ export default function ProfilePage() {
                             </p>
                             <p className="text-xs text-gray-500">Último</p>
                         </div>
+                    </div>
+
+                    {/* Wellbeing Wheel Banner */}
+                    <div className="mt-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#7e22ce] to-[#3b82f6] p-6 text-white shadow-xl shadow-purple-200">
+                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="space-y-2 text-center md:text-left">
+                                <h3 className="text-lg font-black uppercase tracking-tight italic">Rueda de Bienestar Bs360</h3>
+                                <p className="text-xs font-bold text-white/80 max-w-xs">
+                                    Realizá un check-in rápido y recibí recomendaciones de nuestra IA hoy.
+                                </p>
+                            </div>
+                            <a
+                                href="/wellbeing"
+                                className="group flex items-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-black text-primary transition-all hover:scale-105 active:scale-95 shadow-lg"
+                            >
+                                IR A MI RUEDA
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </a>
+                        </div>
+                        <div className="absolute -bottom-6 -right-6 h-32 w-32 bg-white/10 blur-3xl" />
+                        <div className="absolute -top-6 -left-6 h-32 w-32 bg-white/10 blur-3xl" />
                     </div>
                 </div>
 
