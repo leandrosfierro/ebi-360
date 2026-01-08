@@ -11,23 +11,21 @@ interface MobileLayoutProps {
 export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith("/admin");
-
-    // For admin routes, we want full width and no bottom nav
-    const isFullWidth = isAdmin;
     const isDiagnostic = pathname?.startsWith("/diagnostico");
     const shouldShowNav = showNav && !isAdmin && !isDiagnostic;
 
     return (
-        <div className="flex min-h-screen flex-col">
-            <main
-                className={`flex flex-1 flex-col overflow-x-hidden ${isFullWidth ? "w-full min-w-full" : "mx-auto w-full max-w-md"
-                    }`}
-            >
-                <div className="flex-1">
+        <div className="flex min-h-screen flex-col bg-background">
+            <main className="flex flex-1 flex-col overflow-x-hidden w-full max-w-md md:max-w-none mx-auto">
+                <div className="flex-1 w-full">
                     {children}
                 </div>
             </main>
-            {shouldShowNav && <BottomNav />}
+            {shouldShowNav && (
+                <div className="md:hidden">
+                    <BottomNav />
+                </div>
+            )}
         </div>
     );
 }
