@@ -62,13 +62,13 @@ export function WellbeingForm({ onSave, isLoading: parentLoading }: WellbeingFor
                             )}
                         </div>
 
-                        <div className="flex justify-between items-center gap-1">
+                        <div className="flex flex-wrap justify-center sm:justify-between items-center gap-1.5">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
                                 <button
                                     key={val}
                                     onClick={() => handleScoreChange(domain.id as WellbeingDomainId, val)}
                                     className={`
-                                        w-8 h-8 md:w-10 md:h-10 rounded-xl font-bold text-xs transition-all flex items-center justify-center
+                                        w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-xl font-bold text-xs transition-all flex items-center justify-center
                                         ${scores[domain.id] === val
                                             ? "bg-primary text-white shadow-lg shadow-primary/30 scale-110"
                                             : "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/10"}

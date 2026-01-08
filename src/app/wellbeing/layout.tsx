@@ -87,7 +87,7 @@ export default async function WellbeingLayout({
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 p-4 md:p-12 overflow-y-auto h-screen relative no-scrollbar">
+            <main className="flex-1 p-4 sm:p-6 lg:p-12 overflow-y-auto h-screen relative no-scrollbar">
                 <div className="mx-auto max-w-7xl animate-fadeIn">
                     {children}
                 </div>

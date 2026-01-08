@@ -34,10 +34,10 @@ export function WellbeingDashboard({ checkIn, onNewCheckIn, onViewHistory }: Wel
                             <div>
                                 <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground italic">Estado de Bienestar</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-7xl font-black text-primary italic tracking-tighter">
+                                    <span className="text-5xl sm:text-6xl md:text-7xl font-black text-primary italic tracking-tighter">
                                         {checkIn.average_score.toFixed(1)}
                                     </span>
-                                    <span className="text-xl font-bold text-muted-foreground uppercase tracking-widest">Promedio</span>
+                                    <span className="text-lg md:text-xl font-bold text-muted-foreground uppercase tracking-widest">Promedio</span>
                                 </div>
                             </div>
                             <div className="flex gap-4">
@@ -59,11 +59,11 @@ export function WellbeingDashboard({ checkIn, onNewCheckIn, onViewHistory }: Wel
 
                         <WellbeingRadar scores={checkIn.scores} />
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 mt-8">
                             {Object.entries(checkIn.scores).map(([domain, score]) => (
-                                <div key={domain} className="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col items-center">
-                                    <span className="text-[10px] font-black uppercase text-muted-foreground">{DOMAIN_LABELS[domain]}</span>
-                                    <span className="text-xl font-black text-primary italic">{score}</span>
+                                <div key={domain} className="bg-white/5 rounded-2xl p-2 sm:p-3 border border-white/5 flex flex-col items-center">
+                                    <span className="text-[9px] sm:text-[10px] font-black uppercase text-muted-foreground text-center line-clamp-1">{DOMAIN_LABELS[domain]}</span>
+                                    <span className="text-lg sm:text-xl font-black text-primary italic">{score}</span>
                                 </div>
                             ))}
                         </div>

@@ -79,7 +79,7 @@ export default function WellbeingWheelPage() {
                         <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner">
                             <Target className="h-6 w-6 text-primary" />
                         </div>
-                        <h2 className="text-4xl font-black tracking-tight text-foreground italic uppercase italic">Rueda de Bienestar</h2>
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-foreground italic uppercase italic">Rueda de Bienestar</h2>
                     </div>
                     <p className="text-muted-foreground font-medium max-w-xl text-sm italic">
                         Realizá tu check-in diario para entender cómo estás hoy y recibir recomendaciones personalizadas de Bs360.
