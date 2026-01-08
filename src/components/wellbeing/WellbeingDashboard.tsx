@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { WellbeingRadar } from "./WellbeingRadar";
 import { WellbeingCheckIn } from "@/lib/wellbeing/actions";
 import { DOMAIN_LABELS } from "@/lib/wellbeing/constants";
-import { ArrowUpCircle, ArrowDownCircle, Sparkles, History, PlusCircle, CheckCircle2 } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Sparkles, History, PlusCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface WellbeingDashboardProps {
