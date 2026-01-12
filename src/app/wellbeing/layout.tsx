@@ -1,9 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { LogOut, Home, Activity, User, Target } from "lucide-react";
-import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 
 export default async function WellbeingLayout({
     children,

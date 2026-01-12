@@ -4,7 +4,6 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
-import { AppLayoutWrapper } from "@/components/layout/AppLayoutWrapper";
 import { AppleDashboard } from "@/components/dashboard/AppleDashboard";
 
 export default async function Home() {
