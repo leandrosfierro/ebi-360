@@ -32,11 +32,9 @@ export default async function WellbeingLayout({
     const isAdmin = profile?.role === 'super_admin' || profile?.role === 'company_admin' || (profile?.roles || []).includes('super_admin');
     const adminPath = (profile?.active_role === 'super_admin' || profile?.role === 'super_admin') ? "/admin/super" : "/admin/company";
 
-    const { AppLayoutWrapper } = await import("@/components/layout/AppLayoutWrapper");
-
     return (
-        <AppLayoutWrapper>
+        <>
             {children}
-        </AppLayoutWrapper>
+        </>
     );
 }

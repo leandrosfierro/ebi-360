@@ -34,11 +34,7 @@ export default async function Home() {
       .limit(1)
       .maybeSingle();
 
-    return (
-      <AppLayoutWrapper>
-        <AppleDashboard user={user} diagnosticData={latestResult} />
-      </AppLayoutWrapper>
-    );
+    return <AppleDashboard user={user} diagnosticData={latestResult} />;
   }
 
   // Landing Page for non-authenticated users
