@@ -5,6 +5,7 @@ import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award, Arro
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
+import { AppLayoutWrapper } from "@/components/layout/AppLayoutWrapper";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -150,7 +151,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col bg-mesh-gradient text-foreground" suppressHydrationWarning>
+        <AppLayoutWrapper>
             <div className="px-6 py-8 pb-32">
                 <header className="mb-8 flex justify-between items-center">
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -387,6 +388,6 @@ export default function ProfilePage() {
                     </p>
                 </a>
             </div>
-        </div>
+        </AppLayoutWrapper>
     );
 }

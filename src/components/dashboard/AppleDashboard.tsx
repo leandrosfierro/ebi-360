@@ -23,7 +23,7 @@ export function AppleDashboard({ user, diagnosticData }: AppleDashboardProps) {
     const purposePercentage = (purposeScore / 10) * 100;
 
     return (
-        <div className="min-h-screen pb-32 bg-mesh-gradient text-foreground font-sans">
+        <div className="pb-32">
             {/* Header */}
             <header className="px-6 pt-12 pb-2 flex justify-between items-center">
                 <div>

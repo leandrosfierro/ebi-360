@@ -27,5 +27,11 @@ export default async function ResultsPage() {
         }
     }
 
-    return <ResultsPageClient companyBranding={companyBranding} />;
+    const { AppLayoutWrapper } = await import("@/components/layout/AppLayoutWrapper");
+
+    return (
+        <AppLayoutWrapper>
+            <ResultsPageClient companyBranding={companyBranding} />
+        </AppLayoutWrapper>
+    );
 }

@@ -15,7 +15,8 @@ import {
     Activity,
     TrendingUp,
     FileText,
-    User
+    User,
+    Home
 } from "lucide-react";
 
 // Register icons here
@@ -31,7 +32,8 @@ const IconMap: Record<string, any> = {
     Activity,
     TrendingUp,
     FileText,
-    User
+    User,
+    Home
 };
 
 interface AdminSidebarLinksProps {

@@ -32,7 +32,12 @@ export default async function Home() {
       .limit(1)
       .maybeSingle();
 
-    return <AppleDashboard user={user} diagnosticData={latestResult} />;
+    const { AppLayoutWrapper } = await import("@/components/layout/AppLayoutWrapper");
+    return (
+      <AppLayoutWrapper>
+        <AppleDashboard user={user} diagnosticData={latestResult} />
+      </AppLayoutWrapper>
+    );
   }
 
   // Landing Page for non-authenticated users
