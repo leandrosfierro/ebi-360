@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
+import { AppLayoutWrapper } from "@/components/layout/AppLayoutWrapper";
 import { AppleDashboard } from "@/components/dashboard/AppleDashboard";
 
 export default async function Home() {
@@ -32,7 +33,6 @@ export default async function Home() {
       .limit(1)
       .maybeSingle();
 
-    const { AppLayoutWrapper } = await import("@/components/layout/AppLayoutWrapper");
     return (
       <AppLayoutWrapper>
         <AppleDashboard user={user} diagnosticData={latestResult} />
