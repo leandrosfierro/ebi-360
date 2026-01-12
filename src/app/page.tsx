@@ -24,16 +24,48 @@ export default async function Home() {
       redirect("/wellbeing");
     }
 
-    // 3. Fetch latest diagnostic result safely
+    // 3. Fetch latest survey result safely
     const { data: latestResult } = await supabase
-      .from('results')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+      .from("results")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    return <AppleDashboard user={user} diagnosticData={latestResult} />;
+    // 4. Fetch latest wellbeing check-in
+    const { data: latestWheel } = await supabase
+      .from("wellbeing_checkins")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // 5. Fetch assigned surveys for the company
+    const assignedSurveys = [];
+    if (profile?.company_id) {
+      const { data: assignments } = await supabase
+        .from("company_surveys")
+        .select("*, survey:surveys(*)")
+        .eq("company_id", profile.company_id)
+        .eq("is_active", true);
+
+      if (assignments) {
+        assignedSurveys.push(...assignments
+          .filter((a: any) => a.survey)
+          .map((a: any) => a.survey));
+      }
+    }
+
+    return (
+      <AppleDashboard
+        user={user}
+        diagnosticData={latestResult}
+        latestWheel={latestWheel}
+        assignedSurveys={assignedSurveys}
+      />
+    );
   }
 
   // Landing Page for non-authenticated users
