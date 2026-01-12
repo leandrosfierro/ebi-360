@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,24 +19,25 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
     const [profile, setProfile] = useState<any>(null);
     const [primaryColor, setPrimaryColor] = useState<string | null>(null);
     const [isAuth, setIsAuth] = useState(false);
-    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
+    const checkUser = useCallback(async () => {
         const supabase = createClient();
 
-        async function fetchProfile() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                setIsAuth(true);
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('role, roles, active_role, company_id')
-                    .eq('id', user.id)
-                    .maybeSingle();
+        // Verificación rápida de sesión
+        const { data: { session } } = await supabase.auth.getSession();
 
+        if (session?.user) {
+            setIsAuth(true);
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('role, roles, active_role, company_id')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+            if (profileData) {
                 setProfile(profileData);
-
-                if (profileData?.company_id) {
+                if (profileData.company_id) {
                     const { data: companyData } = await supabase
                         .from('companies')
                         .select('primary_color')
@@ -44,18 +45,21 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                         .maybeSingle();
                     setPrimaryColor(companyData?.primary_color);
                 }
-            } else {
-                setIsAuth(false);
             }
-            setIsCheckingAuth(false);
+        } else {
+            setIsAuth(false);
         }
+        setIsLoading(false);
+    }, []);
 
-        fetchProfile();
+    useEffect(() => {
+        checkUser();
 
+        const supabase = createClient();
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 setIsAuth(true);
-                fetchProfile();
+                checkUser();
             } else {
                 setIsAuth(false);
                 setProfile(null);
@@ -63,7 +67,12 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
         });
 
         return () => subscription.unsubscribe();
-    }, [pathname]);
+    }, [checkUser]);
+
+    // Re-check on pathname changes just in case
+    useEffect(() => {
+        if (!isAuth) checkUser();
+    }, [pathname, isAuth, checkUser]);
 
     const isAdminRoute = pathname?.startsWith("/admin");
     const isDiagnostic = pathname?.startsWith("/diagnostico");
@@ -94,8 +103,8 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
 
     return (
         <div className="flex min-h-screen flex-col md:flex-row bg-background">
-            {/* Desktop Sidebar - Solo si hay sesión */}
-            {isAuth && (
+            {/* Desktop Sidebar */}
+            {(isAuth || profile) && (
                 <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                     <div className="p-8">
                         <div className="flex items-center gap-3 mb-2">
@@ -144,7 +153,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                 <div className="md:hidden flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border-b border-white/20 sticky top-0 z-30">
                     <Image src="/logo-bs360.png" alt="Bs360" width={100} height={30} className="object-contain logo-color-filter" />
                     <div className="flex gap-4">
-                        <Link href="/" className="p-2 relative group text-muted-foreground hover:text-primary transition-colors">
+                        <Link href="/" className="p-2 text-muted-foreground hover:text-primary transition-colors">
                             <Home className={`h-5 w-5 ${pathname === '/' ? 'text-primary' : ''}`} />
                         </Link>
                         <Link href="/wellbeing" className="p-2 text-muted-foreground hover:text-primary transition-colors">
