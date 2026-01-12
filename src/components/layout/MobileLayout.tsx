@@ -19,10 +19,12 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
     const [profile, setProfile] = useState<any>(null);
     const [primaryColor, setPrimaryColor] = useState<string | null>(null);
     const [isAuth, setIsAuth] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
     useEffect(() => {
+        const supabase = createClient();
+
         async function fetchProfile() {
-            const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setIsAuth(true);
@@ -45,16 +47,30 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
             } else {
                 setIsAuth(false);
             }
+            setIsCheckingAuth(false);
         }
+
         fetchProfile();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                setIsAuth(true);
+                fetchProfile();
+            } else {
+                setIsAuth(false);
+                setProfile(null);
+            }
+        });
+
+        return () => subscription.unsubscribe();
     }, [pathname]);
 
     const isAdminRoute = pathname?.startsWith("/admin");
     const isDiagnostic = pathname?.startsWith("/diagnostico");
     const isAuthRoute = pathname?.startsWith("/login") || pathname?.startsWith("/auth");
 
-    // Si no hay sesión o es ruta de auth, solo mostramos el contenido sin sidebar
-    if (!isAuth || isAuthRoute) {
+    // Si es ruta de auth, solo mostramos el contenido sin sidebar
+    if (isAuthRoute) {
         return (
             <div className="flex min-h-screen flex-col bg-background">
                 <main className="flex-1 w-full mx-auto max-w-md md:max-w-none">
@@ -74,66 +90,76 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
 
     const isAdmin = profile?.role === 'super_admin' || profile?.role === 'company_admin' || (profile?.roles || []).includes('super_admin');
     const adminPath = (profile?.active_role === 'super_admin' || profile?.role === 'super_admin') ? "/admin/super" : "/admin/company";
-    const shouldShowBottomNav = showNav && !isAdminRoute && !isDiagnostic;
+    const shouldShowBottomNav = showNav && !isAdminRoute && !isDiagnostic && isAuth;
 
     return (
         <div className="flex min-h-screen flex-col md:flex-row bg-background">
-            {/* Desktop Sidebar */}
-            <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
-                <div className="p-8">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Image
-                            src="/logo-bs360.png"
-                            alt="Bs360"
-                            width={140}
-                            height={40}
-                            className="object-contain logo-color-filter"
-                            priority
-                        />
-                    </div>
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">Bienestar Integral</p>
-                </div>
-
-                <nav className="flex-1 px-4 space-y-4">
-                    <div>
-                        <p className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Herramientas</p>
-                        <AdminSidebarLinks links={navLinks} primaryColor={primaryColor} />
-                    </div>
-
-                    {isAdmin && (
-                        <div>
-                            <p className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Administración</p>
-                            <Link href={adminPath} className="group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
-                                <Target className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
-                                <span>Panel Admin</span>
-                            </Link>
+            {/* Desktop Sidebar - Solo si hay sesión */}
+            {isAuth && (
+                <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
+                    <div className="p-8">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Image
+                                src="/logo-bs360.png"
+                                alt="Bs360"
+                                width={140}
+                                height={40}
+                                className="object-contain logo-color-filter"
+                                priority
+                            />
                         </div>
-                    )}
-                </nav>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">Bienestar Integral</p>
+                    </div>
 
-                <div className="p-4 border-t border-white/10">
-                    <form action="/auth/signout" method="post">
-                        <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95">
-                            <LogOut className="h-5 w-5" />
-                            <span>Cerrar Sesión</span>
-                        </button>
-                    </form>
-                </div>
-            </aside>
+                    <nav className="flex-1 px-4 space-y-4">
+                        <div>
+                            <p className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Herramientas</p>
+                            <AdminSidebarLinks links={navLinks} primaryColor={primaryColor} />
+                        </div>
 
-            {/* Mobile Header (Only visible on mobile) */}
-            <div className="md:hidden flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border-b border-white/20 sticky top-0 z-30">
-                <Image src="/logo-bs360.png" alt="Bs360" width={100} height={30} className="object-contain logo-color-filter" />
-                <div className="flex gap-4">
-                    <Link href="/" className="p-2"><Home className="h-5 w-5 text-muted-foreground" /></Link>
-                    <Link href="/wellbeing" className="p-2"><Activity className="h-5 w-5 text-primary" /></Link>
-                    <Link href="/perfil" className="p-2"><User className="h-5 w-5 text-muted-foreground" /></Link>
+                        {isAdmin && (
+                            <div>
+                                <p className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Administración</p>
+                                <Link href={adminPath} className="group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                                    <Target className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
+                                    <span>Panel Admin</span>
+                                </Link>
+                            </div>
+                        )}
+                    </nav>
+
+                    <div className="p-4 border-t border-white/10">
+                        <form action="/auth/signout" method="post">
+                            <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95">
+                                <LogOut className="h-5 w-5" />
+                                <span>Cerrar Sesión</span>
+                            </button>
+                        </form>
+                    </div>
+                </aside>
+            )}
+
+            {/* Mobile Header (Only visible on mobile if auth) */}
+            {isAuth && (
+                <div className="md:hidden flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border-b border-white/20 sticky top-0 z-30">
+                    <Image src="/logo-bs360.png" alt="Bs360" width={100} height={30} className="object-contain logo-color-filter" />
+                    <div className="flex gap-4">
+                        <Link href="/" className="p-2 relative group text-muted-foreground hover:text-primary transition-colors">
+                            <Home className={`h-5 w-5 ${pathname === '/' ? 'text-primary' : ''}`} />
+                        </Link>
+                        <Link href="/wellbeing" className="p-2 text-muted-foreground hover:text-primary transition-colors">
+                            <Activity className={`h-5 w-5 ${pathname === '/wellbeing' ? 'text-primary' : ''}`} />
+                        </Link>
+                        <Link href="/perfil" className="p-2 text-muted-foreground hover:text-primary transition-colors">
+                            <User className={`h-5 w-5 ${pathname === '/perfil' ? 'text-primary' : ''}`} />
+                        </Link>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-                <div className={`flex-1 w-full ${!isAdminRoute ? 'max-w-md md:max-w-none mx-auto' : ''}`}>
+                <div className={`flex-1 w-full ${(!isAuth || !isAdminRoute) && !pathname?.startsWith('/admin') ? 'max-w-md md:max-w-none mx-auto' : ''}`}>
                     {children}
                 </div>
             </main>
