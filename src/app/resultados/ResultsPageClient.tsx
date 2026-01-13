@@ -9,7 +9,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { RefreshCcw, Activity, Apple, Heart, Users, Home as HomeIcon, DollarSign, Share2, Lightbulb, ClipboardCheck, Loader2 } from "lucide-react";
+import { RefreshCcw, Activity, Apple, Heart, Users, Home as HomeIcon, DollarSign, Share2, Lightbulb, ClipboardCheck, Loader2, ArrowRight } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 import { getRecommendations as getFallbackRecommendations } from "@/lib/achievements";
 import { saveDiagnosticResult } from "@/lib/actions";
@@ -71,6 +71,8 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
     async function loadDynamicResults(surveyId: string) {
         setLoading(true);
         try {
+            const { data: { user } } = await supabase.auth.getUser();
+
             // 1. Fetch survey and questions
             const { data: surveyData, error: surveyError } = await supabase
                 .from('surveys')
@@ -88,16 +90,39 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
 
             if (questionsError) throw questionsError;
 
-            // 2. Load answers from localStorage
+            // 2. Try to load from DB first for persistence
+            if (user) {
+                const { data: dbResult } = await supabase
+                    .from('results')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('survey_id', surveyId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (dbResult) {
+                    setScores(dbResult.domain_scores || {});
+                    setGlobalScore(dbResult.global_score || 0);
+                    // Extract domain names from algorithm if missing in dbResult
+                    const algo = surveyData.calculation_algorithm || {};
+                    if (algo.domains) {
+                        setDynamicDomains(algo.domains.map((d: any) => d.name));
+                    }
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // 3. Fallback to localStorage (fresh results)
             const saved = localStorage.getItem(`ebi_answers_${surveyId}`);
             if (!saved) {
-                router.push("/diagnostico");
-                return;
+                setLoading(false);
+                return; // Will show empty state
             }
             const answers = JSON.parse(saved);
 
-            // 3. Calculate scores based on the survey algorithm
-            // The algorithm is stored in calculation_algorithm: JSONB
+            // 4. Calculate scores (same logic as before)
             const algo = surveyData.calculation_algorithm || {};
             const domainScores: Record<string, number> = {};
             let totalWeightedScore = 0;
@@ -107,27 +132,20 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
                 const domainList: string[] = [];
                 algo.domains.forEach((domainConfig: any) => {
                     domainList.push(domainConfig.name);
-
                     let domainSum = 0;
                     let domainMax = 0;
-
-                    // Get questions belonging to this domain
                     const domainQuestions = questions.filter(q =>
                         domainConfig.questions.includes(q.question_number)
                     );
-
                     domainQuestions.forEach(q => {
                         const val = answers[q.id] || 0;
                         if (val > 0) {
-                            // Calculation logic: (Answer/5) * Weight * Severity
                             domainSum += (val / 5) * q.weight * q.severity;
                             domainMax += 1 * q.weight * q.severity;
                         }
                     });
-
                     const normalized = domainMax > 0 ? (domainSum / domainMax) * 10 : 0;
                     domainScores[domainConfig.name] = Math.round(normalized * 10) / 10;
-
                     totalWeightedScore += normalized * (domainConfig.weight || 1);
                     totalDomainWeight += (domainConfig.weight || 1);
                 });
@@ -137,8 +155,6 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
                 const global = totalDomainWeight > 0 ? Math.round((totalWeightedScore / totalDomainWeight) * 10) / 10 : 0;
                 setGlobalScore(global);
 
-                // 4. Save to DB if logged in
-                const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
                     const savedFlag = localStorage.getItem(`ebi_saved_db_${surveyId}`);
                     if (!savedFlag) {
@@ -149,17 +165,14 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
             }
 
         } catch (error) {
-            console.error('Error loading dynamic results:', error);
-            loadLegacyResults(); // Fallback
+            console.error('Error loading results:', error);
         } finally {
             setLoading(false);
         }
     }
 
-    // Keep legacy logic for sessions that don't have surveyId
     function loadLegacyResults() {
-        // ... previous implementation ...
-        // (Simplified for brevity but should be full logic from previous version)
+        // Just stop loading, empty state will handle it
         setLoading(false);
     }
 
@@ -192,17 +205,49 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
 
     if (loading) return (
         <div className="flex h-screen w-full items-center justify-center bg-mesh-gradient flex-col gap-4">
-            <Loader2 className="h-12 w-12 animate-spin text-purple-400" />
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="text-gray-500 font-medium tracking-tight">Calculando tus resultados...</p>
         </div>
     );
 
+    const hasData = globalScore > 0 || Object.keys(scores).length > 0;
+
+    if (!hasData) {
+        return (
+            <div className="flex min-h-screen flex-col items-center justify-center bg-mesh-gradient p-6 text-center">
+                <div className="max-w-md p-10 glass-card rounded-[40px] border border-white/40 shadow-2xl animate-in fade-in zoom-in duration-500">
+                    <div className="w-24 h-24 rounded-[32px] bg-indigo-50 flex items-center justify-center mx-auto mb-8 shadow-inner">
+                        <ClipboardCheck className="w-12 h-12 text-indigo-500" />
+                    </div>
+                    <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Sin Diagnósticos</h2>
+                    <p className="text-gray-500 font-medium leading-relaxed mb-10 text-lg">
+                        Parece que aún no has completado un diagnóstico integral.
+                        Tus resultados aparecerán aquí una vez que finalices tu primera encuesta.
+                    </p>
+                    <button
+                        onClick={() => router.push('/diagnostico')}
+                        className="w-full bg-primary text-white font-black py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
+                    >
+                        Ir al Diagnóstico
+                        <ArrowRight className="h-5 w-5" />
+                    </button>
+                    <button
+                        onClick={() => router.push('/')}
+                        className="w-full mt-4 bg-gray-100 text-gray-600 font-bold py-4 rounded-2xl transition-colors hover:bg-gray-200"
+                    >
+                        Volver al Inicio
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     const pieData = [
         { name: "Score", value: globalScore },
-        { name: "Remaining", value: 10 - globalScore },
+        { name: "Remaining", value: Math.max(0, 10 - globalScore) },
     ];
 
-    const currentDomains = dynamicDomains.length > 0 ? dynamicDomains : ["Físico", "Nutricional", "Emocional", "Social", "Familiar", "Económico"];
+    const currentDomains = dynamicDomains.length > 0 ? dynamicDomains : Object.keys(scores);
 
     return (
         <div className="min-h-screen bg-mesh-gradient px-6 py-8 pb-32">

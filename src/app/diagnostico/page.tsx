@@ -48,7 +48,7 @@ export default function DiagnosticPage() {
                 .from('profiles')
                 .select('company_id, full_name')
                 .eq('id', user.id)
-                .single();
+                .maybeSingle();
 
             if (profileError || !profile?.company_id) {
                 setLoadingSurveys(false);
@@ -64,7 +64,7 @@ export default function DiagnosticPage() {
                 .from('companies')
                 .select('name, logo_url, primary_color, secondary_color, font')
                 .eq('id', profile.company_id)
-                .single();
+                .maybeSingle();
 
             if (!companyError && company) {
                 setCompanyBranding(company);

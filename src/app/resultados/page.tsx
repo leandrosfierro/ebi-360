@@ -13,7 +13,7 @@ export default async function ResultsPage() {
             .from('profiles')
             .select('company_id')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         if (profile?.company_id) {
             // Get company branding
