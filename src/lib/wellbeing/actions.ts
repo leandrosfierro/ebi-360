@@ -209,51 +209,51 @@ async function generateAiFeedback(input: {
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: {
+                responseMimeType: "application/json",
+            }
+        });
 
-        const historyContext = input.history && input.history.length >= 3
+        const historyContext = input.history && input.history.length >= 2
             ? `\nHistorial Reciente (Tendencias):\n${input.history.slice(0, 5).map(h => `- ${new Date(h.created_at).toLocaleDateString()}: Promedio ${h.average_score}`).join('\n')}`
             : "";
 
         const prompt = `
-            Actuá como un Consorcio de Especialistas de Bienestar de Bs360. 
-            Tu equipo está compuesto por:
-            - Un Médico Deportólogo (Dominio Físico)
-            - Un Psicólogo Cognitivo (Dominio Emocional/Mental)
-            - Un Nutricionista Funcional (Dominio Nutricional)
-            - Un Mentor de Finanzas (Dominio Económico/Financiero)
-            - Un Especialista en Dinámicas Vinculares (Dominio Familiar/Social)
+            Actuá como un Consorcio de Especialistas de Bienestar de Bs360 liderado por un Director de Salud Integral. 
+            Tu equipo está compuesto por especialistas en dominios: Físico (Médico), Emocional (Psicólogo), Nutricional (Nutricionista), Financiero (Asesor), Familiar/Social (Especialista en Vínculos).
 
             Información actual del usuario (1-10):
             ${JSON.stringify(input.scores)}
             Promedio General: ${input.average.toFixed(1)}
             Dimensión con mayor necesidad: ${input.minDomain} (${input.scores[input.minDomain]}/10)
             Fortaleza actual: ${input.maxDomain} (${input.scores[input.maxDomain]}/10)
-            ${input.note ? `Nota personal: "${input.note}"` : ""}
+            ${input.note ? `Nota personal/contexto: "${input.note}"` : ""}
             ${historyContext}
 
-            Tu tarea es generar un "Plan de Acción del Día" profesional, empático y técnico (pero accesible).
+            Tu tarea es generar un "Plan de Acción del Día" profesional, empático y técnico.
             REGLAS CRÍTICAS:
-            1. NO menciones que sos una IA. Hablá como "Nuestro equipo" o "Seguimos tu evolución".
+            1. NO menciones que sos una IA. Hablá como "Nuestro equipo".
             2. Usá español (Argentina), tuteo ("vos").
-            3. Si hay historial (${input.history?.length || 0} registros), analizá si hay una tendencia positiva o si un dominio se mantiene estancado y hacé una observación profesional al respecto.
-            4. Generá un plan con sustento técnico para cada dominio, pero priorizá el de menor puntaje.
+            3. Analizá el historial para detectar tendencias.
+            4. Generá un plan con sustento técnico para CADA dominio evaluado, pero el especialista del dominio más bajo (${input.minDomain}) debe ser quien dé el consejo más detallado.
 
-            Retorná EXCLUSIVAMENTE un JSON con este esquema:
+            Retorná EXCLUSIVAMENTE un JSON con este esquema exacto:
             {
-                "summary": "Resumen ejecutivo del estado de bienestar actual (3-4 líneas)",
-                "trendAnalysis": "Breve nota sobre la evolución comparada con registros previos (si los hay)",
-                "planTitle": "Título motivacional para el día",
+                "summary": "Resumen ejecutivo del estado actual (3-4 líneas)",
+                "trendAnalysis": "Nota sobre la evolución profesional (si hay historial)",
+                "planTitle": "Título motivacional corto",
                 "specializedActions": [
                   {
-                    "domain": "dominio",
-                    "role": "Especialista que habla (ej: Nutricionista Funcional)",
-                    "technicalObservation": "Análisis profesional del puntaje",
-                    "actionPlan": ["Paso 1", "Paso 2"],
+                    "domain": "nombre del dominio",
+                    "role": "Título del Especialista",
+                    "technicalObservation": "Análisis profesional breve",
+                    "actionPlan": ["Paso concreto 1", "Paso concreto 2"],
                     "focus": "Mantenimiento|Mejora|Crisis"
                   }
                 ],
-                "dailyMantra": "Una frase corta de enfoque"
+                "dailyMantra": "Frase de enfoque corta"
             }
         `;
 
@@ -261,14 +261,71 @@ async function generateAiFeedback(input: {
         const response = await result.response;
         const text = response.text();
 
-        const jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
-        return JSON.parse(jsonStr);
+        return JSON.parse(text);
     } catch (error) {
         console.error("AI Generation Error:", error);
         return {
-            summary: "Hoy registraste tu rueda. El equipo de Bs360 sugiere enfocarte en tu bienestar general.",
-            priorities: ["Mantener la constancia en tus registros"],
-            actions: []
+            summary: "Hoy registraste tu rueda. El equipo de Bs360 sugiere enfocarte en tu bienestar general mientras estabilizamos el análisis detallado.",
+            trendAnalysis: "Estamos recopilando más datos para tu análisis de tendencias.",
+            planTitle: "Tu enfoque para hoy",
+            specializedActions: [
+                {
+                    "domain": "Bienestar General",
+                    "role": "Coordinador de Salud",
+                    "technicalObservation": "Tu promedio es sólido. Seguí registrando para un análisis profundo.",
+                    "actionPlan": ["Mantené la hidratación", "Hacé una pausa de 5 minutos"],
+                    "focus": "Mantenimiento"
+                }
+            ],
+            dailyMantra: "La constancia es la clave del bienestar."
         };
     }
+}
+
+export async function regenerateWellbeingPlan(checkInId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: "No autenticado" };
+
+    // 1. Get the check-in
+    const { data: checkIn } = await supabase
+        .from('wellbeing_checkins')
+        .select('*')
+        .eq('id', checkInId)
+        .eq('user_id', user.id)
+        .single();
+
+    if (!checkIn) return { error: "Check-in no encontrado" };
+
+    // 2. Get history
+    const { data: history } = await supabase
+        .from('wellbeing_checkins')
+        .select('*')
+        .eq('user_id', user.id)
+        .lt('created_at', checkIn.created_at)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+    // 3. Re-generate
+    const aiFeedback = await generateAiFeedback({
+        scores: checkIn.scores,
+        average: checkIn.average_score,
+        minDomain: checkIn.min_domain,
+        maxDomain: checkIn.max_domain,
+        note: checkIn.note,
+        history: history || []
+    });
+
+    // 4. Update
+    const supabaseAdmin = createAdminClient();
+    const { error: updateError } = await supabaseAdmin
+        .from('wellbeing_checkins')
+        .update({ ai_feedback: aiFeedback })
+        .eq('id', checkInId);
+
+    if (updateError) return { error: updateError.message };
+
+    revalidatePath("/wellbeing/plan");
+    return { success: true, aiFeedback };
 }

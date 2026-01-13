@@ -16,11 +16,13 @@ import {
     ChevronRight,
     CheckCircle2,
     Calendar,
-    Quote
+    Quote,
+    RefreshCcw
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { WellbeingCheckIn } from "@/lib/wellbeing/actions";
+import { WellbeingCheckIn, regenerateWellbeingPlan } from "@/lib/wellbeing/actions";
+import { useRouter } from "next/navigation";
 
 interface WellbeingPlanClientProps {
     latestCheckIn: WellbeingCheckIn;
@@ -28,8 +30,24 @@ interface WellbeingPlanClientProps {
 }
 
 export function WellbeingPlanClient({ latestCheckIn, history }: WellbeingPlanClientProps) {
+    const router = useRouter();
     const [exporting, setExporting] = useState(false);
+    const [regenerating, setRegenerating] = useState(false);
     const feedback = latestCheckIn.ai_feedback || {};
+
+    const handleRegenerate = async () => {
+        setRegenerating(true);
+        try {
+            const res = await regenerateWellbeingPlan(latestCheckIn.id);
+            if (res.success) {
+                router.refresh();
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setRegenerating(false);
+        }
+    };
 
     const domainIcons: Record<string, any> = {
         fisico: <Zap className="h-6 w-6" />,
@@ -171,14 +189,24 @@ export function WellbeingPlanClient({ latestCheckIn, history }: WellbeingPlanCli
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={handleExportPDF}
-                        disabled={exporting}
-                        className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
-                    >
-                        {exporting ? <Sparkles className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                        {exporting ? "Generando..." : "Exportar PDF"}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleRegenerate}
+                            disabled={regenerating}
+                            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            <RefreshCcw className={cn("h-4 w-4", regenerating && "animate-spin")} />
+                            {regenerating ? "Actualizando..." : "Actualizar Plan"}
+                        </button>
+                        <button
+                            onClick={handleExportPDF}
+                            disabled={exporting}
+                            className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {exporting ? <Sparkles className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            {exporting ? "Generando..." : "Exportar PDF"}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -225,7 +253,7 @@ export function WellbeingPlanClient({ latestCheckIn, history }: WellbeingPlanCli
 
                 {/* Specialist Actions Grid */}
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {actions.map((action: any, idx: number) => (
+                    {actions.length > 0 ? actions.map((action: any, idx: number) => (
                         <div
                             key={idx}
                             className="bg-white border border-slate-200 p-8 rounded-[40px] shadow-sm hover:shadow-md transition-all group flex flex-col"
@@ -268,7 +296,23 @@ export function WellbeingPlanClient({ latestCheckIn, history }: WellbeingPlanCli
                                 ))}
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <div className="col-span-full bg-white border-2 border-dashed border-slate-200 rounded-[48px] p-20 text-center">
+                            <Sparkles className="h-12 w-12 text-slate-300 mx-auto mb-6" />
+                            <h3 className="text-xl font-black text-slate-900 mb-2">Análisis Detallado Pendiente</h3>
+                            <p className="text-slate-500 max-w-sm mx-auto mb-8 font-medium">
+                                Tu plan aún no tiene el desglose por especialistas. Hacé clic en "Actualizar Plan" para generarlo ahora.
+                            </p>
+                            <button
+                                onClick={handleRegenerate}
+                                disabled={regenerating}
+                                className="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-[22px] font-black text-sm active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-slate-200"
+                            >
+                                <RefreshCcw className={cn("h-4 w-4", regenerating && "animate-spin")} />
+                                {regenerating ? "Procesando..." : "Generar Plan Ahora"}
+                            </button>
+                        </div>
+                    )}
                 </section>
 
                 {/* Footer Insight */}
