@@ -60,13 +60,22 @@ export async function saveWellbeingCheckIn(data: {
         }
     }
 
-    // 1. Generate AI Feedback
+    // 1. Get history for context if available
+    const { data: history } = await supabase
+        .from('wellbeing_checkins')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+    // 2. Generate AI Feedback
     const aiFeedback = await generateAiFeedback({
         scores: data.scores,
         average: averageScore,
         minDomain,
         maxDomain,
-        note: data.note
+        note: data.note,
+        history: history || []
     });
 
     const supabaseAdmin = createAdminClient();
@@ -189,10 +198,11 @@ async function generateAiFeedback(input: {
     minDomain: string;
     maxDomain: string;
     note?: string;
+    history?: WellbeingCheckIn[];
 }) {
     if (!process.env.GEMINI_API_KEY) {
         return {
-            summary: "Hoy registraste tu rueda. Elegí una prioridad y hacé un paso chico. Podés volver a intentar generar el feedback más tarde.",
+            summary: "Hoy registraste tu rueda. Elegí una prioridad y hacé un paso chico.",
             priorities: ["Enfocarte en lo que hoy necesita más atención"],
             actions: []
         };
@@ -201,53 +211,63 @@ async function generateAiFeedback(input: {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+        const historyContext = input.history && input.history.length >= 3
+            ? `\nHistorial Reciente (Tendencias):\n${input.history.slice(0, 5).map(h => `- ${new Date(h.created_at).toLocaleDateString()}: Promedio ${h.average_score}`).join('\n')}`
+            : "";
+
         const prompt = `
-            Sos un coach de bienestar experto de la plataforma Bs360. 
-            El usuario realizó un check-in de bienestar con los siguientes puntajes (1-10):
+            Actuá como un Consorcio de Especialistas de Bienestar de Bs360. 
+            Tu equipo está compuesto por:
+            - Un Médico Deportólogo (Dominio Físico)
+            - Un Psicólogo Cognitivo (Dominio Emocional/Mental)
+            - Un Nutricionista Funcional (Dominio Nutricional)
+            - Un Mentor de Finanzas (Dominio Económico/Financiero)
+            - Un Especialista en Dinámicas Vinculares (Dominio Familiar/Social)
+
+            Información actual del usuario (1-10):
             ${JSON.stringify(input.scores)}
             Promedio General: ${input.average.toFixed(1)}
-            Punto más bajo (Prioridad): ${input.minDomain}
-            Punto más alto (Fortaleza): ${input.maxDomain}
-            Nota del usuario: ${input.note || "Ninguna"}
+            Dimensión con mayor necesidad: ${input.minDomain} (${input.scores[input.minDomain]}/10)
+            Fortaleza actual: ${input.maxDomain} (${input.scores[input.maxDomain]}/10)
+            ${input.note ? `Nota personal: "${input.note}"` : ""}
+            ${historyContext}
 
-            Generá un feedback cálido, cercano y accionable en español (Argentina), usando "vos".
-            No menciones que sos una IA. No seas dramático con puntajes bajos.
-            
+            Tu tarea es generar un "Plan de Acción del Día" profesional, empático y técnico (pero accesible).
+            REGLAS CRÍTICAS:
+            1. NO menciones que sos una IA. Hablá como "Nuestro equipo" o "Seguimos tu evolución".
+            2. Usá español (Argentina), tuteo ("vos").
+            3. Si hay historial (${input.history?.length || 0} registros), analizá si hay una tendencia positiva o si un dominio se mantiene estancado y hacé una observación profesional al respecto.
+            4. Generá un plan con sustento técnico para cada dominio, pero priorizá el de menor puntaje.
+
             Retorná EXCLUSIVAMENTE un JSON con este esquema:
             {
-                "summary": "texto corto 3-5 líneas",
-                "priorities": ["bullet 1", "bullet 2"],
-                "actions": [
-                    {
-                        "domain": "emocional|fisico|nutricional|social|familiar|financiero",
-                        "score": 1-10,
-                        "message": "1 frase de apoyo contextual",
-                        "microActions": ["acción 1 (5-10 min)", "acción 2 (10-20 min)"]
-                    }
+                "summary": "Resumen ejecutivo del estado de bienestar actual (3-4 líneas)",
+                "trendAnalysis": "Breve nota sobre la evolución comparada con registros previos (si los hay)",
+                "planTitle": "Título motivacional para el día",
+                "specializedActions": [
+                  {
+                    "domain": "dominio",
+                    "role": "Especialista que habla (ej: Nutricionista Funcional)",
+                    "technicalObservation": "Análisis profesional del puntaje",
+                    "actionPlan": ["Paso 1", "Paso 2"],
+                    "focus": "Mantenimiento|Mejora|Crisis"
+                  }
                 ],
-                "celebrations": ["refuerzo positivo sobre fortalezas (1-2 bullets)"],
-                "nextCheckIn": "sugerencia breve para el próximo check-in"
+                "dailyMantra": "Una frase corta de enfoque"
             }
-
-            Reglas:
-            - Si el score es <=4, sugerí acciones ultra simples (5-10 min).
-            - Si el score es 5-7, sugerí mantenimiento y mejora.
-            - Si el score es >=8, sugerí sostén y prevención.
-            - Evitá diagnósticos médicos.
         `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
 
-        // Clean up markdown if present
         const jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
         return JSON.parse(jsonStr);
     } catch (error) {
         console.error("AI Generation Error:", error);
         return {
-            summary: "Hoy registraste tu rueda. Elegí una prioridad y hacé un paso chico.",
-            priorities: ["Enfocarte en lo que hoy necesita más atención"],
+            summary: "Hoy registraste tu rueda. El equipo de Bs360 sugiere enfocarte en tu bienestar general.",
+            priorities: ["Mantener la constancia en tus registros"],
             actions: []
         };
     }

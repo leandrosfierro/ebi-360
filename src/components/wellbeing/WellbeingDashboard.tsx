@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import { WellbeingRadar } from "./WellbeingRadar";
 import { WellbeingCheckIn } from "@/lib/wellbeing/actions";
 import { DOMAIN_LABELS } from "@/lib/wellbeing/constants";
-import { ArrowUpCircle, ArrowDownCircle, Sparkles, History, PlusCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Sparkles, History, PlusCircle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface WellbeingDashboardProps {
     checkIn: WellbeingCheckIn;
@@ -152,8 +153,13 @@ export function WellbeingDashboard({ checkIn, onNewCheckIn, onViewHistory }: Wel
                                     </div>
                                 )}
 
-                                <div className="pt-6 border-t border-primary/10">
-                                    <p className="text-[11px] text-primary font-black uppercase tracking-widest italic">
+                                <div className="pt-6 border-t border-primary/10 space-y-4">
+                                    <Link href="/wellbeing/plan" className="block">
+                                        <Button className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg shadow-primary/20">
+                                            Ver Plan de Acción Completo <ArrowRight className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                    <p className="text-[11px] text-primary font-black uppercase tracking-widest italic text-center">
                                         ✨ {feedback.nextCheckIn}
                                     </p>
                                 </div>

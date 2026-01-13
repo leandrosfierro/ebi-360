@@ -235,27 +235,30 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                         </div>
                     </div>
 
-                    {/* AI Recommendation Widget */}
-                    <div className="lg:col-span-2 bg-gradient-to-br from-gray-900 to-primary p-7 rounded-[32px] shadow-xl flex items-center justify-between text-white relative overflow-hidden group">
+                    {/* Daily Recommendation Widget */}
+                    <Link
+                        href={hasWheel ? "/wellbeing/plan" : "/wellbeing"}
+                        className="lg:col-span-2 bg-gradient-to-br from-gray-900 to-primary p-7 rounded-[32px] shadow-xl flex items-center justify-between text-white relative overflow-hidden group transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                    >
                         <div className="relative z-10 flex items-center gap-5 max-w-[80%]">
                             <div className="h-14 w-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white shrink-0">
-                                <Sparkles className="h-7 w-7 animate-pulse" />
+                                <Sparkles className="h-7 w-7 animate-pulse text-primary-foreground" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">Recomendación IA</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">Recomendación del día</p>
                                 <h4 className="text-lg font-bold leading-tight">
                                     {hasWheel
-                                        ? `Hoy tenés un gran potencial en tu bienestar ${latestWheel.min_domain}. ¿Hacemos algo hoy?`
-                                        : "Completá tu rueda para recibir sugerencias personalizadas el día de hoy."}
+                                        ? `Tu equipo de especialistas sugiere enfocarse en tu bienestar ${latestWheel.min_domain}. ¿Hacemos algo hoy?`
+                                        : "Completá tu rueda para recibir tu plan de acción personalizado."}
                                 </h4>
                             </div>
                         </div>
-                        <div className="relative z-10 p-3 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition-all active:scale-90 cursor-pointer">
+                        <div className="relative z-10 p-3 rounded-full bg-white/20 backdrop-blur-md group-hover:bg-white/30 transition-all">
                             <ArrowRight className="h-6 w-6" />
                         </div>
                         {/* Background flare */}
                         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/30 rounded-full blur-[60px] translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-1000"></div>
-                    </div>
+                    </Link>
                 </div>
 
                 {/* 4. Secondary Quick Links */}
