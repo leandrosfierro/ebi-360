@@ -104,7 +104,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
     return (
         <div className="flex min-h-screen flex-col md:flex-row bg-background">
             {/* Desktop Sidebar */}
-            {(isAuth || profile) && (
+            {(isAuth || profile) && !isAdminRoute && (
                 <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                     <div className="p-8">
                         <div className="flex items-center gap-3 mb-2">
@@ -149,7 +149,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
             )}
 
             {/* Mobile Header (Only visible on mobile if auth) */}
-            {isAuth && (
+            {isAuth && !isAdminRoute && (
                 <div className="md:hidden flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border-b border-white/20 sticky top-0 z-30">
                     <Image src="/logo-bs360.png" alt="Bs360" width={100} height={30} className="object-contain logo-color-filter" />
                     <div className="flex gap-4">
