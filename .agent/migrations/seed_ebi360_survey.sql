@@ -1,42 +1,79 @@
--- 🛠️ Migración de Encuesta Base EBI 360
+-- 🛠️ Migración de Encuesta Base EBI 360 (GENERADO AUTOMÁTICAMENTE DESDE EXCEL)
+-- Origen: EBI_MVP_Algoritmo_v1.xlsx
 BEGIN;
 
--- 1. Insertar Encuesta
-INSERT INTO surveys (code, name, description, survey_type, version, status, is_base, calculation_algorithm)
-VALUES ('EBI360', 'EBI 360 v2.0', 'Evaluación de Bienestar Integral 360', 'base', '2.0', 'active', true, '{"scoring_method": "weighted_average", "domains": [{"name": "F\u00edsico", "weight": 1.0, "questions": [0, 1, 2, 3]}, {"name": "Nutricional", "weight": 1.0, "questions": [4, 5]}, {"name": "Emocional", "weight": 1.0, "questions": [6, 7, 8, 9, 10, 11]}, {"name": "Social", "weight": 1.0, "questions": [12, 13, 14, 15]}, {"name": "Familiar", "weight": 1.0, "questions": [16, 17, 18, 19]}, {"name": "Econ\u00f3mico", "weight": 1.0, "questions": [20, 21, 22, 23]}], "thresholds": {"low": 0, "medium": 5, "high": 7, "excellent": 9}}');
+-- 1. Eliminar si ya existe para evitar duplicados (limpieza controlada)
+DELETE FROM surveys WHERE code = 'EBI360';
 
--- 2. Obtener ID de la encuesta
+-- 2. Insertar Encuesta
+INSERT INTO surveys (code, name, description, survey_type, version, status, is_base, calculation_algorithm)
+VALUES (
+    'EBI360', 
+    'EBI 360 v2.0', 
+    'Evaluación de Bienestar Integral 360 (Fuente Oficial Excel)', 
+    'base', 
+    '2.0', 
+    'active', 
+    true, 
+    '{"scoring_method":"weighted_average","domains":[{"name":"Físico","weight":1,"questions":[0,1,2,3]},{"name":"Nutricional","weight":1,"questions":[4,5]},{"name":"Emocional","weight":1,"questions":[6,7,8,9,10,11]},{"name":"Social","weight":1,"questions":[12,13,14,15]},{"name":"Familiar","weight":1,"questions":[16,17,18,19]},{"name":"Económico","weight":1,"questions":[20,21,22,23]}],"thresholds":{"critical":1,"low":3,"medium":5,"high":7,"excellent":9}}'
+);
+
+-- 3. Obtener ID de la encuesta y cargar preguntas
 DO $$
 DECLARE
     v_survey_id UUID;
 BEGIN
     SELECT id INTO v_survey_id FROM surveys WHERE code = 'EBI360';
 
-    -- 3. Insertar Preguntas
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 0, 'Físico', 'Bienestar corporal básico', 'RP', '¿Dormís lo suficiente como para sentirte descansado/a la mayoría de los días?', 0.6, 0.9, 1, 0, 0);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 1, 'Físico', 'Bienestar corporal básico', 'FO', '¿Tu jornada laboral permite mantener horarios regulares de descanso?', 0.6, 0.9, 0, 1, 1);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 2, 'Físico', 'Cuidado físico diario', 'RP', '¿Te tomás pequeñas pausas o te movés unos minutos durante tu jornada?', 0.4, 0.8, 1, 0, 2);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 3, 'Físico', 'Cuidado físico diario', 'FO', '¿El ritmo de trabajo permite hacer pausas breves cuando las necesitás?', 0.4, 0.8, 0, 1, 3);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 4, 'Nutricional', 'Hábitos alimentarios básicos', 'RP', '¿Mantenés horarios mínimos para comer sin saltearte comidas?', 1.0, 0.7, 1, 0, 4);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 5, 'Nutricional', 'Hábitos alimentarios básicos', 'FO', '¿Podés comer sin apuros durante tu jornada laboral?', 1.0, 0.7, 0, 1, 5);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 6, 'Emocional', 'Tensión mental/emocional', 'RP', '¿Podés manejar el estrés diario sin sentirte desbordado/a?', 0.4, 0.9, 1, 0, 6);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 7, 'Emocional', 'Tensión mental/emocional', 'FO', '¿Las exigencias del trabajo mantienen tu nivel de estrés en algo manejable?', 0.4, 0.9, 0, 1, 7);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 8, 'Emocional', 'Manejo emocional', 'RP', '¿Lográs regular tus emociones en situaciones tensas?', 0.35, 0.85, 1, 0, 8);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 9, 'Emocional', 'Manejo emocional', 'FO', '¿El ambiente laboral favorece un clima emocional saludable?', 0.35, 0.85, 0, 1, 9);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 10, 'Emocional', 'Satisfacción emocional', 'RP', '¿Disfrutás al menos una parte de tu trabajo en el día a día?', 0.25, 0.7, 1, 0, 10);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 11, 'Emocional', 'Satisfacción emocional', 'FO', '¿El entorno laboral favorece experiencias positivas durante la jornada?', 0.25, 0.7, 0, 1, 11);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 12, 'Social', 'Vínculos sociales', 'RP', '¿Te involucrás activamente para mantener relaciones positivas con tu equipo?', 0.55, 0.8, 1, 0, 12);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 13, 'Social', 'Vínculos sociales', 'FO', '¿Te sentís incluido/a y bien tratado/a por tu equipo?', 0.55, 0.8, 0, 1, 13);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 14, 'Social', 'Intercambio humano', 'RP', '¿Pedís ayuda cuando realmente la necesitás?', 0.45, 0.7, 1, 0, 14);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 15, 'Social', 'Intercambio humano', 'FO', '¿Tus compañeros suelen brindarte apoyo cuando lo necesitás?', 0.45, 0.7, 0, 1, 15);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 16, 'Familiar', 'Armonía trabajo–vida', 'RP', '¿Lográs organizar tu vida personal sin que se vea afectada constantemente por el trabajo?', 0.6, 0.85, 1, 0, 16);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 17, 'Familiar', 'Armonía trabajo–vida', 'FO', '¿La empresa respeta tus horarios y límites personales fuera del trabajo?', 0.6, 0.85, 0, 1, 17);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 18, 'Familiar', 'Soporte del entorno', 'RP', '¿Sentís apoyo de tu entorno para cumplir tus responsabilidades laborales?', 0.4, 0.7, 1, 0, 18);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 19, 'Familiar', 'Soporte del entorno', 'FO', '¿La empresa comprende y acompaña situaciones personales cuando es necesario?', 0.4, 0.7, 0, 1, 19);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 20, 'Económico', 'Seguridad económica', 'RP', '¿Sentís tranquilidad en cómo manejás tus finanzas personales?', 0.6, 0.85, 1, 0, 20);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 21, 'Económico', 'Seguridad económica', 'FO', '¿La estabilidad de tu ingreso te permite sentir tranquilidad mes a mes?', 0.6, 0.85, 0, 1, 21);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 22, 'Económico', 'Gestión económica personal', 'RP', '¿Tenés tus finanzas personales organizadas de manera clara?', 0.4, 0.8, 1, 0, 22);
-    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) VALUES (v_survey_id, 23, 'Económico', 'Gestión económica personal', 'FO', '¿Recibís tu información salarial de forma clara y confiable?', 0.4, 0.8, 0, 1, 23);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 0, 'Físico', 'Bienestar corporal básico', 'RP', '¿Dormís lo suficiente como para sentirte descansado/a la mayoría de los días?', 0.6, 0.9, 1, 0, 0);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 1, 'Físico', 'Bienestar corporal básico', 'FO', '¿Tu jornada laboral permite mantener horarios regulares de descanso?', 0.6, 0.9, 0, 1, 1);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 2, 'Físico', 'Cuidado físico diario', 'RP', '¿Te tomás pequeñas pausas o te movés unos minutos durante tu jornada?', 0.4, 0.8, 1, 0, 2);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 3, 'Físico', 'Cuidado físico diario', 'FO', '¿El ritmo de trabajo permite hacer pausas breves cuando las necesitás?', 0.4, 0.8, 0, 1, 3);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 4, 'Nutricional', 'Hábitos alimentarios básicos', 'RP', '¿Mantenés horarios mínimos para comer sin saltearte comidas?', 1, 0.7, 1, 0, 4);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 5, 'Nutricional', 'Hábitos alimentarios básicos', 'FO', '¿Podés comer sin apuros durante tu jornada laboral?', 1, 0.7, 0, 1, 5);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 6, 'Emocional', 'Tensión mental/emocional', 'RP', '¿Podés manejar el estrés diario sin sentirte desbordado/a?', 0.4, 0.9, 1, 0, 6);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 7, 'Emocional', 'Tensión mental/emocional', 'FO', '¿Las exigencias del trabajo mantienen tu nivel de estrés en algo manejable?', 0.4, 0.9, 0, 1, 7);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 8, 'Emocional', 'Manejo emocional', 'RP', '¿Lográs regular tus emociones en situaciones tensas?', 0.35, 0.85, 1, 0, 8);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 9, 'Emocional', 'Manejo emocional', 'FO', '¿El ambiente laboral favorece un clima emocional saludable?', 0.35, 0.85, 0, 1, 9);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 10, 'Emocional', 'Satisfacción emocional', 'RP', '¿Disfrutás al menos una parte de tu trabajo en el día a día?', 0.25, 0.7, 1, 0, 10);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 11, 'Emocional', 'Satisfacción emocional', 'FO', '¿El entorno laboral favorece experiencias positivas durante la jornada?', 0.25, 0.7, 0, 1, 11);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 12, 'Social', 'Vínculos sociales', 'RP', '¿Te involucrás activamente para mantener relaciones positivas con tu equipo?', 0.55, 0.8, 1, 0, 12);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 13, 'Social', 'Vínculos sociales', 'FO', '¿Te sentís incluido/a y bien tratado/a por tu equipo?', 0.55, 0.8, 0, 1, 13);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 14, 'Social', 'Intercambio humano', 'RP', '¿Pedís ayuda cuando realmente la necesitás?', 0.45, 0.7, 1, 0, 14);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 15, 'Social', 'Intercambio humano', 'FO', '¿Tus compañeros suelen brindarte apoyo cuando lo necesitás?', 0.45, 0.7, 0, 1, 15);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 16, 'Familiar', 'Armonía trabajo–vida', 'RP', '¿Lográs organizar tu vida personal sin que se vea afectada constantemente por el trabajo?', 0.6, 0.85, 1, 0, 16);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 17, 'Familiar', 'Armonía trabajo–vida', 'FO', '¿La empresa respeta tus horarios y límites personales fuera del trabajo?', 0.6, 0.85, 0, 1, 17);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 18, 'Familiar', 'Soporte del entorno', 'RP', '¿Sentís apoyo de tu entorno para cumplir tus responsabilidades laborales?', 0.4, 0.7, 1, 0, 18);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 19, 'Familiar', 'Soporte del entorno', 'FO', '¿La empresa comprende y acompaña situaciones personales cuando es necesario?', 0.4, 0.7, 0, 1, 19);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 20, 'Económico', 'Seguridad económica', 'RP', '¿Sentís tranquilidad en cómo manejás tus finanzas personales?', 0.6, 0.85, 1, 0, 20);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 21, 'Económico', 'Seguridad económica', 'FO', '¿La estabilidad de tu ingreso te permite sentir tranquilidad mes a mes?', 0.6, 0.85, 0, 1, 21);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 22, 'Económico', 'Gestión económica personal', 'RP', '¿Tenés tus finanzas personales organizadas de manera clara?', 0.4, 0.8, 1, 0, 22);
+    INSERT INTO survey_questions (survey_id, question_number, domain, construct, question_type, question_text, weight, severity, personal_weight, org_weight, display_order) 
+    VALUES (v_survey_id, 23, 'Económico', 'Gestión económica personal', 'FO', '¿Recibís tu información salarial de forma clara y confiable?', 0.4, 0.8, 0, 1, 23);
+
 END $$;
 
 COMMIT;

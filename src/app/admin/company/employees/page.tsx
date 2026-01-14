@@ -20,9 +20,22 @@ export default async function EmployeesPage() {
     // Fetch employees for this company
     const { data: employees } = await supabase
         .from("profiles")
-        .select("*")
+        .select(`
+            *,
+            areas (
+                id,
+                name
+            )
+        `)
         .eq("company_id", companyId)
         .order("created_at", { ascending: false });
+
+    // Fetch areas for the selection dialog
+    const { data: areas } = await supabase
+        .from("areas")
+        .select("*")
+        .eq("company_id", companyId)
+        .order("name");
 
     return (
         <div className="space-y-6">
@@ -48,7 +61,7 @@ export default async function EmployeesPage() {
 
             {/* Client Component for filtering, selection and bulk actions */}
             {employees && employees.length > 0 ? (
-                <EmployeeTableClient employees={employees} />
+                <EmployeeTableClient employees={employees} areas={areas || []} />
             ) : (
                 <div className="glass-card rounded-[32px] overflow-hidden shadow-xl border-none">
                     <div className="px-6 py-20 text-center">

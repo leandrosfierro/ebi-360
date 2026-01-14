@@ -165,3 +165,29 @@ export async function removeSurveyFromCompany(assignmentId: string) {
         return { error: e.message || 'Error interno al desvincular' };
     }
 }
+
+export async function closeEvaluation(evaluationId: string) {
+    try {
+        const supabase = await createClient();
+
+        // 1. Update status to closed
+        const { error: updateError } = await supabase
+            .from('company_surveys')
+            .update({
+                status: 'closed',
+                end_date: new Date().toISOString()
+            })
+            .eq('id', evaluationId);
+
+        if (updateError) throw updateError;
+
+        // 2. Here we would trigger report generation and AI persistence.
+        // For now, we'll mark it as closed.
+
+        revalidatePath('/admin/company');
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error closing evaluation:', error);
+        return { error: error.message };
+    }
+}

@@ -41,6 +41,9 @@ export function isSuperAdminEmail(email: string): boolean {
 export const DEFAULT_ROLES = {
     SUPER_ADMIN: 'super_admin',
     COMPANY_ADMIN: 'company_admin',
+    RRHH: 'rrhh',
+    DIRECCION: 'direccion',
+    CONSULTOR_BS360: 'consultor_bs360',
     EMPLOYEE: 'employee',
 } as const;
 

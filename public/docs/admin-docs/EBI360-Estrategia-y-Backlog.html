@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EBI 360 - Estrategia y Backlog Técnico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #6366f1;
+            --bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            color: #1e293b;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 5rem 3rem;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 { font-size: 3.5rem; font-weight: 900; letter-spacing: -0.05em; margin-bottom: 1rem; }
+        .header p { font-size: 1.25rem; opacity: 0.9; font-weight: 500; }
+        
+        .content { padding: 4rem 3rem; }
+        
+        h1 { font-size: 2.5rem; margin-top: 3rem; margin-bottom: 1.5rem; border-bottom: 4px solid var(--primary); padding-bottom: 0.5rem; }
+        h2 { font-size: 2rem; margin-top: 2.5rem; margin-bottom: 1rem; color: var(--primary); }
+        h3 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+        
+        p { margin-bottom: 1.2rem; }
+        
+        ul { margin-left: 2rem; margin-bottom: 1.5rem; }
+        li { margin-bottom: 0.5rem; }
+        
+        li.checkbox { list-style: none; margin-left: -1rem; display: flex; align-items: center; gap: 0.5rem; }
+        li.checkbox.checked { color: #10b981; font-weight: 700; }
+        
+        hr { border: none; border-top: 1px solid #e2e8f0; margin: 3rem 0; }
+        
+        .footer { background: #f8fafc; padding: 3rem; text-align: center; color: #64748b; font-size: 0.9rem; border-top: 1px solid #e2e8f0; }
+        
+        .print-btn {
+            position: fixed; bottom: 2rem; right: 2rem;
+            background: var(--primary); color: white; border: none;
+            padding: 1rem 2rem; border-radius: 50px; font-weight: 800;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s ease; z-index: 100;
+        }
+        .print-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(139, 92, 246, 0.6); }
+
+        @media print {
+            .print-btn { display: none; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border-radius: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">🖨️ Exportar a PDF</button>
+    <div class="container">
+        <div class="header">
+            <h1>EBI 360</h1>
+            <p>Estrategia de Producto y Backlog Técnico Evolutivo</p>
+            <p style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.7;">Generado el 14 de January, 2026</p>
+        </div>
+        <div class="content">
+            <h1>Proyecto EBI 360 - Bienestar Integral</h1>
+<h2>Visión General del Proyecto</h2>
+<p>EBI 360 es una plataforma SaaS diseñada para monitorear, diagnosticar y mejorar el bienestar integral de los colaboradores dentro de diversas organizaciones. Utiliza un enfoque basado en la "Rueda de Bienestar" y sistemas de diagnósticos modulares para proporcionar planes de acción personalizados impulsados por IA.</p>
+<p>---</p>
+<h2>📂 Estructura de Documentación Técnica</h2>
+<ul>
+<li>[<strong>Génesis y Evolución</strong>](./PROJECT-EVOLUTION.md): De dónde venimos (Excel/Algoritmo) y cómo llegamos hasta aquí.</li>
+<li>[<strong>Backlog Histórico (Step-by-Step)</strong>](./backlog/HISTORICAL-BACKLOG.md): Hoja de ruta técnica detallada desde el día 0 hasta el estado actual.</li>
+<li>[<strong>Flujos de Usuario y de Trabajo</strong>](./flows/USER-FLOWS.md): Análisis detallado de los caminos que siguen los distintos roles.</li>
+<li>[<strong>Backlog de Upgrades y Roadmap</strong>](./backlog/TECHNICAL-BACKLOG.md): Funcionalidades actuales y planes futuros.</li>
+<li>[<strong>Reglas de Negocio</strong>](./business-rules/BUSINESS-RULES.md): Definición de parámetros, lógica de cálculos y permisos.</li>
+</ul>
+<p>---</p>
+<h2>🛠️ Stack Tecnológico</h2>
+<ul>
+<li><strong>Framework</strong>: Next.js 14 (App Router)</li>
+<li><strong>Lenguaje</strong>: TypeScript</li>
+<li><strong>Estilo</strong>: CSS Premium Customizado (Glassmorphismo, Gradientes de Malla)</li>
+<li><strong>Backend/Base de Datos</strong>: Supabase (PostgreSQL + RLS)</li>
+<li><strong>Autenticación</strong>: Supabase Auth</li>
+<li><strong>IA</strong>: Google Gemini 1.5 Flash (Generación de Planes de Acción)</li>
+<li><strong>Correos</strong>: Resend (Invitaciones Brandeadas)</li>
+<li><strong>Icons</strong>: Lucide React</li>
+<li><strong>Gráficos</strong>: Recharts (Wellbeing Radar & History)</li>
+</ul>
+<p>---</p>
+<h2>👥 Roles del Sistema</h2>
+<p>1. <strong>Super Administrador (Global)</strong>: Visionario del ecosistema. Gestiona empresas, planes de suscripción, plantillas globales y usuarios maestros.</p>
+<p>2. <strong>Administrador de Empresa</strong>: Gestor operativo de una cuenta cliente. Administra nómina de empleados, asigna diagnósticos, personaliza marca y analiza reportes de su organización.</p>
+<p>3. <strong>Usuario Final (Colaborador)</strong>: Centro de la plataforma. Realiza check-ins de bienestar, completa encuestas asignadas, visualiza su evolución y descarga su plan de acción personalizado.</p>
+<p>---</p>
+<h2>📋 Secciones Críticas</h2>
+<ul>
+<li><strong>Dashboard Inteligente (Home)</strong>: Vista bento optimizada con acceso rápido a las herramientas principales.</li>
+<li><strong>Rueda de Bienestar (Mi Rueda)</strong>: Herramienta de autodiagnóstico diario en 8 dominios de la vida.</li>
+<li><strong>Sistemas de Diagnóstico</strong>: Encuestas modulares personalizables enviadas por la empresa.</li>
+<li><strong>Plan de Acción IA</strong>: Recomendación diaria generada por un consorcio de especialistas virtuales.</li>
+<li><strong>Panel Administrativo</strong>: Centro de gestión de datos y configuraciones.</li>
+</ul>
+<p>---</p>
+<em>Este documento es dinámico y se actualiza con cada hito del proyecto.</em>
+<h1>Evolución del Proyecto EBI 360: De la Planilla al SaaS</h1>
+<p>Este documento detalla la metamorfosis técnica de la plataforma, desde sus cimientos en algoritmos basados en Excel hasta la arquitectura modular e inteligente actual.</p>
+<p>---</p>
+<h2>🏁 Origen: El Núcleo de la Planilla (V0)</h2>
+<p>El proyecto nació de la necesidad de digitalizar un modelo de diagnóstico complejo que residía en archivos Excel. </p>
+<h3>El Algoritmo Base</h3>
+<ul>
+<li><strong>Fuente</strong>: El modelo original utilizaba una estructura de 24 preguntas divididas en 6 dominios principales.</li>
+<li><strong>Lógica de Cálculo</strong>: Promedios ponderados (`weighted_average`) con pesos específicos por pregunta (`weight`), severidad (`severity`) e impacto personal/organizacional.</li>
+<li><strong>Umbrales Tecnicos (Thresholds)</strong>:</li>
+<li>Bajo: 0-5</li>
+<li>Medio: 5-7</li>
+<li>Alto: 7-9</li>
+<li>Excelente: 9-10</li>
+</ul>
+<h3>La Estructura "Flat" Inicial</h3>
+<p>En el comienzo, la encuesta era estática. La base de datos era simple: una tabla de usuarios y una tabla de resultados que guardaba promedios finales, sin granularidad por pregunta.</p>
+<p>---</p>
+<h2>🏗️ Fase 1: La Fundación de Datos (MVP)</h2>
+<p>Se migró la lógica del algoritmo a una base de datos relacional (PostgreSQL en Supabase).</p>
+<ul>
+<li><strong>Tablas de Cimentación</strong>: `companies`, `profiles`, `surveys`.</li>
+<li><strong>Hito Técnico</strong>: Implementación del primer script de "Seed" (`seed_ebi360_survey.sql`) que tradujo las preguntas del Excel a registros SQL, manteniendo el `calculation_algorithm` como un objeto JSON dentro de la encuesta.</li>
+</ul>
+<p>---</p>
+<h2>🧩 Fase 2: El Salto a la Modularidad</h2>
+<p>Para escalar a múltiples empresas y diferentes tipos de encuestas (Regulatorias, Clima, etc.), el sistema se rediseñó por completo el <strong>23 de Diciembre de 2025</strong>.</p>
+<h3>Cambios de Paradigma</h3>
+<ul>
+<li><strong>Encuestas Dinámicas</strong>: Las encuestas pasaron de ser fijas a ser objetos configurables con códigos únicos (`code`) y versiones (`version`).</li>
+<li><strong>Granularidad de Respuestas</strong>: Creación de la tabla `survey_responses`. Ya no solo guardamos el promedio, sino cada respuesta individual vinculada a una pregunta (`question_id`).</li>
+<li><strong>Asignación Corporativa</strong>: Se introdujo `company_surveys`, permitiendo que el Super Admin decida qué encuestas ve cada empresa cliente.</li>
+<li><strong>Evolución del Esquema</strong>: Se reemplazaron columnas booleanas simples (`active`) por estados de ciclo de vida (`draft`, `active`, `archived`).</li>
+</ul>
+<p>---</p>
+<h2>📊 Fase 3: Gestión de Encuestas e Informes</h2>
+<p>A medida que la plataforma creció en volumen de datos, el foco se desplazó hacia la capacidad del Administrador para procesar esa información.</p>
+<ul>
+<li><strong>Control Operativo</strong>: Implementación de dashboards para el seguimiento de participación y estados de encuestas (Publicadas vs Archivadas).</li>
+<li><strong>Reportabilidad</strong>: Desarrollo de módulos de exportación agregada que permiten al Admin de Empresa descargar la "foto" del bienestar organizacional sin comprometer la privacidad individual.</li>
+<li><strong>Carga Masiva</strong>: Optimización de algoritmos de ingesta de datos para nóminas grandes vía Excel.</li>
+</ul>
+<p>---</p>
+<h2>🧠 Fase 4: Inteligencia y Especialización (Actual)</h2>
+<p>La versión actual profesionaliza la plataforma añadiendo capas de experiencia de usuario e IA.</p>
+<ul>
+<li><strong>Rueda de Bienestar</strong>: Un sistema de check-in diario (8 dominios) independiente de las encuestas formales.</li>
+<li><strong>Consorcio de Especialistas</strong>: Implementación de Gemini 1.5 Flash para analizar datos históricos y generar planes de acción firmados por roles técnicos (Médicos, Psicólogos, Nutricionistas).</li>
+<li><strong>Diseño Premium</strong>: Interfaz Glassmorphism y branding dinámico por empresa.</li>
+</ul>
+<p>---</p>
+<em>Este documento permite entender que EBI 360 no es solo un software de encuestas, sino un motor de inteligencia de bienestar que evolucionó de un modelo matemático estático a un ecosistema dinámico.</em>
+<h1>Backlog Técnico Histórico (Retrospectivo)</h1>
+<p>Este documento organiza el desarrollo del proyecto como una hoja de ruta lógica desde cero. Sirve para entender la secuencia técnica necesaria para replicar o escalar la plataforma.</p>
+<p>---</p>
+<h2>🏁 Etapa 0: Definición del Núcleo (El Algoritmo)</h2>
+<strong>Objetivo</strong>: Traducir el conocimiento de dominio (Excel) a lógica computacional.
+<ul>
+<li class="checkbox">☐ <strong>Análisis de Variables</strong>: Identificar los 6/8 dominios base y sus fórmulas de peso.
+<li class="checkbox">☐ <strong>Mapeo de Preguntas</strong>: Definir el set de 24 preguntas originales con sus tags de severidad.
+<li class="checkbox">☐ <strong>Prototipo de Cálculo</strong>: Desarrollar la función de JavaScript/TypeScript que reciba un objeto de respuestas y devuelva el promedio ponderado.
+</ul>
+<p>---</p>
+<h2>🏗️ Etapa 1: Arquitectura Base y Datos</h2>
+<strong>Objetivo</strong>: Establecer el cimiento sobre el cual correrá el algoritmo.
+<ul>
+<li class="checkbox">☐ <strong>Setup de Supabase</strong>: Configurar tablas de `Auth`, `Profiles` y `Companies`.
+<li class="checkbox">☐ <strong>Esquema de Encuestas V1</strong>:
+<li>Crear tablas `surveys` y `survey_questions`.</li>
+<li>Realizar la migración inicial de datos (Seed) desde el Excel mapeado.</li>
+<li class="checkbox">☐ <strong>API de Resultados</strong>: Crear la tabla `results` para persistir la primera versión del diagnóstico.
+</ul>
+<p>---</p>
+<h2>🧩 Etapa 2: Transformación a Sistema Modular (El Motor)</h2>
+<strong>Objetivo</strong>: Convertir el MVP estático en un SaaS escalable y multi-proposito.
+<ul>
+<li class="checkbox">☐ <strong>Refactor de Base de Datos</strong>:
+<li>Implementar UUIDs universales.</li>
+<li>Separar la configuración de la encuesta (`json_config`) de su contenido.</li>
+<li class="checkbox">☐ <strong>Sistema de Asignaciones</strong>: Desarrollar la tabla pivot `company_surveys` para permitir planes diferenciados por cliente.
+<li class="checkbox">☐ <strong>Navegación Dinámica</strong>: Implementar rutas en Next.js que carguen encuestas basadas en el `code` de la URL.
+<li class="checkbox">☐ <strong>Branding Engine</strong>: Crear el contexto de marca que inyecta colores y logos dinámicos.
+</ul>
+<p>---</p>
+<h2>📋 Etapa 3: Gestión de Encuestas e Informes (Operación Admin)</h2>
+<strong>Objetivo</strong>: Implementar las herramientas de control y análisis para los administradores.
+<ul>
+<li class="checkbox">☐ <strong>Control del Ciclo de Vida</strong>:
+<li>Workflow de publicación/archivado de encuestas.</li>
+<li>Seguimiento de tasas de respuesta en tiempo real.</li>
+<li class="checkbox">☐ <strong>Panel de Gestión de Empresa</strong>:
+<li>Herramientas de carga masiva de empleados (CSV/Excel).</li>
+<li>Gestión de nómina y asignación de encuestas por departamento.</li>
+<li class="checkbox">☐ <strong>Módulo de Informes Administrativos</strong>:
+<li>Generación de reportes agregados por empresa.</li>
+<li>Exportación de resultados a formatos legibles (HTML/PDF) para el Admin.</li>
+</ul>
+<p>---</p>
+<h2>🎨 Etapa 4: Capa de Experiencia y Bienestar (El Frontend Premium)</h2>
+<strong>Objetivo</strong>: Dar vida a los datos mediante una interfaz que genere "wow" y fidelidad.
+<ul>
+<li class="checkbox">☐ <strong>Dashboard Bento</strong>: Diseñar el home con widgets interactivos (Radar, estadísticas rápidas).
+<li class="checkbox">☐ <strong>Módulo "Mi Rueda"</strong>: Implementar el check-in diario simplificado con el radar de bienestar.
+<li class="checkbox">☐ <strong>Refactor Visual</strong>: Aplicar el sistema de diseño Glassmorphism (paneles traslúcidos, gradientes de malla).
+</ul>
+<p>---</p>
+<h2>🤖 Etapa 5: Inteligencia AI y Valor Agregado</h2>
+<strong>Objetivo</strong>: Transformar el diagnóstico en acción mediante tecnología de punta.
+<ul>
+<li class="checkbox">☐ <strong>Integración Gemini AI</strong>: Desarrollar el Server Action para consultar el modelo de lenguaje.
+<li class="checkbox">☐ <strong>Consorcio de Especialistas</strong>: Configurar los Prompts para que la IA actúe como un equipo técnico.
+<li class="checkbox">☐ <strong>Motor de Exportación de Planes</strong>: Implementar `jspdf` para que el Usuario tenga su documento de bienestar personalizado.
+<li class="checkbox">☐ <strong>Análisis de Tendencias</strong>: Desarrollar la lógica de base de datos para detectar mejoras históricas.
+</ul>
+<h1>Flujos de Usuario y de Trabajo (Admin Focus)</h1>
+<h2>1. Flujo de Configuración Inicial (Super Admin)</h2>
+<em>Este flujo es realizado por el operador maestro de la plataforma para onbordear una nueva empresa.</em>
+<p>1. <strong>Creación de Entidad</strong>: Registro de la empresa en el sistema (Nombre, Dominio, Plan).</p>
+<p>2. <strong>Definición de Marca</strong>: Configuración del logo y color primario que heredará el portal de la empresa.</p>
+<p>3. <strong>Asignación de Admin Empresa</strong>: Creación o asociación de un usuario con rol `company_admin`.</p>
+<p>4. <strong>Activación de Suscripción</strong>: Habilitación de módulos (Ej: "Mi Rueda" activo, encuestas ilimitadas, etc.).</p>
+<p>---</p>
+<h2>2. Flujo de Operación de Empresa (Admin Empresa)</h2>
+<em>El camino diario del administrador de una cuenta corporativa.</em>
+<h3>A. Gestión de Nómina</h3>
+<p>1. <strong>Carga de Empleados</strong>: Importación masiva o manual de usuarios.</p>
+<p>2. <strong>Invitación Brandeada</strong>: Disparo de correos vía Resend con el color y logo de la empresa.</p>
+<p>3. <strong>Monitoreo de Acceso</strong>: Control de quiénes han activado su cuenta.</p>
+<h3>B. Ciclo de Diagnóstico</h3>
+<p>1. <strong>Selección de Encuesta</strong>: Elección del sistema de diagnóstico a aplicar.</p>
+<p>2. <strong>Asignación</strong>: Definición de qué colaboradores o departamentos deben responder.</p>
+<p>3. <strong>Seguimiento</strong>: Visualización de tasas de participación en tiempo real.</p>
+<p>4. <strong>Análisis de Resultados</strong>: Exportación de reportes agregados para toma de decisiones.</p>
+<p>---</p>
+<h2>3. Flujo de Experiencia del Colaborador (Usuario Final)</h2>
+<em>Visto desde la perspectiva de qué datos genera para el Admin.</em>
+<p>1. <strong>Check-in "Mi Rueda"</strong>: Entrada diaria de autopercepción en 8 dominios.</p>
+<ul>
+<li><em>Input de Negocio</em>: Genera datos para el índice de bienestar organizacional.</li>
+</ul>
+<p>2. <strong>Completado de Diagnóstico</strong>: Resolución de encuestas formales asignadas.</p>
+<ul>
+<li><em>Input de Negocio</em>: Alimenta el Dashboard de Resultados de la empresa.</li>
+</ul>
+<p>3. <strong>Consumo de Plan de Acción</strong>: Lectura y descarga de recomendaciones.</p>
+<p>---</p>
+<h2>4. Workflows Técnicos (Lógica Detrás de Escena)</h2>
+<h3>Generación de Plan IA</h3>
+<p>1. <strong>Trigger</strong>: El usuario envía su check-in.</p>
+<p>2. <strong>Context Fetching</strong>: El sistema busca los últimos 10 registros del usuario para análisis de tendencias.</p>
+<p>3. <strong>Prompt Engineering</strong>: Se envía a Gemini 1.5 Flash el estado actual + historial + rol de especialistas.</p>
+<p>4. <strong>Parsing & Storage</strong>: Se valida el JSON resultante y se guarda en la tabla `wellbeing_checkins`.</p>
+<p>5. <strong>PDF Assembly</strong>: Generación dinámica en cliente usando `jspdf` con la estructura del plan.</p>
+<h3>Sistema de Invitación Automatizada</h3>
+<p>1. <strong>Webhook/Action</strong>: El Admin hace clic en "Invitar".</p>
+<p>2. <strong>Branding Fetch</strong>: Se obtienen los activos visuales de la empresa asociada.</p>
+<p>3. <strong>Email Template Parsing</strong>: Inyección de variables en la plantilla de correo.</p>
+<p>4. <strong>Dispatch</strong>: Envío vía API de Resend.</p>
+<h1>Reglas de Negocio - Plataforma EBI 360</h1>
+<h2>1. Jerarquía de Roles y Permisos</h2>
+<ul>
+<li><strong>Super Admin</strong>:</li>
+<li>Acceso total a todas las tablas de Supabase (vía Admin Client).</li>
+<li>Puede crear/borrar empresas.</li>
+<li>Define los diagnósticos globales disponibles.</li>
+<li><strong>Company Admin</strong>:</li>
+<li>Solo accede a datos (`profiles`, `results`, `wellbeing_checkins`) de su propia `company_id`.</li>
+<li>No puede modificar la configuración del sistema global.</li>
+<li>Controla su propio branding (logo/color) dentro de los límites del diseño.</li>
+<li><strong>Collaborator (User)</strong>:</li>
+<li>Acceso solo a sus propios datos personales y resultados de encuestas.</li>
+<li>No puede ver datos agregados de la empresa sin permiso explícito (reportes).</li>
+</ul>
+<p>---</p>
+<h2>2. Lógica de "Mi Rueda" (Wellbeing Wheel)</h2>
+<ul>
+<li><strong>Frecuencia</strong>: Un check-in permitido por día (Regla de negocio para evitar spam de datos, aunque el sistema técnico permite más, se recomienda 1).</li>
+<li><strong>Dominios</strong>: 8 dimensiones fijas (Físico, Emocional, Nutricional, Social, Familiar, Financiero, Mental, Profesional).</li>
+<li><strong>Puntuación</strong>: Escala de 1 a 10.</li>
+<li><strong>Cálculo de Promedio</strong>: Sumatoria de los 8 dominios dividida por 8.</li>
+<li><strong>Identificación de Prioridad</strong>: El sistema selecciona automáticamente el dominio con el puntaje más bajo para priorizarlo en el Plan de Acción.</li>
+</ul>
+<p>---</p>
+<h2>3. Plan de Acción del Día (IA)</h2>
+<ul>
+<li><strong>Consorcio de Especialistas</strong>: La IA debe personificar roles específicos según el dominio para dar autoridad al mensaje.</li>
+<li><strong>Análisis de Tendencias</strong>: Requiere al menos 2 registros previos para activar el bloque de "Evolución".</li>
+<li><strong>Privacidad</strong>: El contenido del Plan de Acción IA es privado para el colaborador y no es visible para el Admin de la Empresa (Directiva de Confidencialidad).</li>
+</ul>
+<p>---</p>
+<h2>4. Gestión de Diagnósticos Corporativos</h2>
+<ul>
+<li><strong>Segmentación</strong>: Las encuestas solo aparecen a usuarios cuya `company_id` coincide con la asignación de la encuesta.</li>
+<li><strong>Estado de Encuesta</strong>:</li>
+<li><em>Pendiente</em>: Asignada pero no respondida.</li>
+<li><em>Completada</em>: Registro en la tabla `results`. Una vez completada, no se puede volver a editar (Inmutabilidad de datos).</li>
+</ul>
+<p>---</p>
+<h2>5. Sistema de Invitaciones</h2>
+<ul>
+<li><strong>Vigencia</strong>: (Pendiente definir si el link expira).</li>
+<li><strong>Branding</strong>: Los correos deben reflejar el color de la empresa para evitar percepción de "Phishing" y mejorar el sentido de pertenencia.</li>
+</ul>
+<h1>Backlog Técnico y Roadmap del Proyecto</h1>
+<h2>Etapa 1: Cimientos y Estándar Visual (100% Completado)</h2>
+<ul>
+<li class="checkbox checked">☑ Configuración inicial Next.js + Supabase.
+<li class="checkbox checked">☑ Implementación de Diseño Premium (Glassmorphismo) en toda la UI.
+<li class="checkbox checked">☑ Refactorización de layouts para evitar duplicaciones en el Panel Admin.
+<li class="checkbox checked">☑ Sistema de branding dinámico (Color primario por empresa).
+</ul>
+<h2>Etapa 2: Módulos Core (90% Completado)</h2>
+<ul>
+<li class="checkbox checked">☑ <strong>Rueda de Bienestar</strong>: Formulario, Radar y Dashboard.
+<li class="checkbox checked">☑ <strong>Plan de Acción IA</strong>: Integración con Gemini, Consorcio de Especialistas y Exportación PDF.
+<li class="checkbox checked">☑ <strong>Dashboard Home</strong>: Vista unificada y bento grid funcional.
+<li class="checkbox checked">☑ <strong>Gestión de Empresas</strong>: CRUD básico en el Super Admin.
+<li class="checkbox checked">☑ <strong>Gestión de Empleados</strong>: Carga manual e invitaciones por correo.
+<li class="checkbox">☐ <strong>Importación Masiva</strong>: Refinar la lógica de carga masiva de usuarios desde CSV/Excel (En progreso).
+</ul>
+<h2>Etapa 3: Gestión de Encuestas e Informes (90% Completado)</h2>
+<ul>
+<li class="checkbox checked">☑ <strong>Control de Ciclo de Vida</strong>: Dashboard para el Super Admin con estados de encuesta.
+<li class="checkbox checked">☑ <strong>Asignación Corporativa</strong>: Lógica de asignación de sistemas a empresas.
+<li class="checkbox checked">☑ <strong>Filtros y Seguimiento</strong>: Vista de participación en tiempo real para el Admin.
+<li class="checkbox">☐ <strong>Generación de Informes</strong>: Exportación de reportes administrativos agregados (En desarrollo).
+</ul>
+<h2>Etapa 4: Bienestar, IA y Experiencia Premium (En desarrollo)</h2>
+<ul>
+<li class="checkbox checked">☑ <strong>Rueda de Bienestar</strong>: Check-in diario y radar interactivo.
+<li class="checkbox checked">☑ <strong>Plan de Acción IA</strong>: Consorcio de especialistas y consejos dinámicos.
+<li class="checkbox checked">☑ <strong>Exportación PDF Usuario</strong>: Plan de acción descargable.
+<li class="checkbox">☐ <strong>Análisis de Tendencias</strong>: Comparativa histórica automática.
+</ul>
+<h2>Etapa 5: Engagement y Gamificación (En backlog)</h2>
+<ul>
+<li class="checkbox">☐ <strong>Sistema de Insignias</strong>: Logros por constancia en el bienestar.
+<li class="checkbox">☐ <strong>Retos Organizacionales</strong>: Desafíos lanzados por el Admin de Empresa.
+</ul>
+<h2>🛠️ Deuda Técnica y Mantenimiento</h2>
+<ul>
+<li class="checkbox">☐ <strong>Optimización de PDF</strong>: Reducir el peso de los archivos generados.
+<li class="checkbox">☐ <strong>Unit Testing</strong>: Implementar pruebas para la lógica de cálculo de promedios.
+<li class="checkbox">☐ <strong>Documentación de API</strong>: Documentar los Server Actions para futuros desarrolladores.
+<li class="checkbox">☐ <strong>RLS Audit</strong>: Revisión exhaustiva de las políticas de seguridad en Supabase para asegurar aislamiento total entre empresas.
+</ul>
+        </div>
+        <div class="footer">
+            <p>© 2026 EBI 360 - Plataforma de Bienestar Integral</p>
+        </div>
+    </div>
+</body>
+</html>

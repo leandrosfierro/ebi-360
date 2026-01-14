@@ -26,11 +26,11 @@ export default function SurveysPage() {
                 {!isUploading && (
                     <div className="flex gap-3 w-full md:w-auto">
                         <a
-                            href="/docs/plantilla_encuesta.xlsx"
+                            href="/docs/EBI360-Plantilla-Oficial.xlsx"
                             className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-semibold flex items-center justify-center gap-2"
                         >
                             <Download className="w-4 h-4" />
-                            Descargar Plantilla
+                            Descargar Plantilla Oficial
                         </a>
                         <button
                             onClick={() => setIsUploading(true)}

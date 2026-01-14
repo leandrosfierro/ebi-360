@@ -41,6 +41,18 @@ const documents = [
         file: '/docs/Sistema-Encuestas-DISEÑO.html'
     },
     {
+        id: 'estrategia',
+        title: 'Estrategia y Backlog',
+        subtitle: 'Génesis y Roadmap Técnico',
+        description: 'Documentación integral para el Administrador. Incluye el origen del proyecto, flujos de usuario, reglas de negocio y el backlog evolutivo desde el día 0.',
+        icon: '🎯',
+        color: '#f59e0b',
+        pages: 35,
+        time: '30-45 min',
+        audience: 'Administradores',
+        file: '/docs/admin-docs/EBI360-Estrategia-y-Backlog.html'
+    },
+    {
         id: 'excel',
         title: 'Guía de Excel',
         subtitle: 'Formato y Validaciones',

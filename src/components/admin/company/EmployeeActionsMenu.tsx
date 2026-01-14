@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Pencil, Trash2, Ban, CheckCircle, Mail } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Ban, CheckCircle, Mail, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -14,6 +14,7 @@ import { toggleEmployeeStatus, deleteEmployee } from "@/lib/actions";
 import { sendManualInvitations } from "@/lib/invitation-actions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AssignAreaDialog } from "./areas/AssignAreaDialog";
 
 interface EmployeeActionsMenuProps {
     employee: {
@@ -21,10 +22,12 @@ interface EmployeeActionsMenuProps {
         email: string;
         full_name: string;
         admin_status?: string;
+        area_id?: string;
     };
+    areas: any[];
 }
 
-export function EmployeeActionsMenu({ employee }: EmployeeActionsMenuProps) {
+export function EmployeeActionsMenu({ employee, areas }: EmployeeActionsMenuProps) {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -74,45 +77,60 @@ export function EmployeeActionsMenu({ employee }: EmployeeActionsMenuProps) {
         router.refresh();
     };
 
+    const [showAssignArea, setShowAssignArea] = useState(false);
     const isActive = employee.admin_status === 'active';
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0" disabled={isLoading}>
-                    <span className="sr-only">Abrir menú</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 glass-card border border-white/10 rounded-2xl shadow-xl">
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Acciones Usuario</DropdownMenuLabel>
+        <>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={isLoading}>
+                        <span className="sr-only">Abrir menú</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 glass-card border border-white/10 rounded-2xl shadow-xl">
+                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">Acciones Usuario</DropdownMenuLabel>
 
-                <DropdownMenuItem onClick={handleSendInvitation} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
-                    <Mail className="mr-2 h-4 w-4 text-primary" />
-                    <span className="font-bold text-sm">Enviar Invitación</span>
-                </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowAssignArea(true)} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
+                        <Building2 className="mr-2 h-4 w-4 text-primary" />
+                        <span className="font-bold text-sm">Cambiar Área</span>
+                    </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={handleToggleStatus} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
-                    {isActive ? (
-                        <>
-                            <Ban className="mr-2 h-4 w-4 text-rose-500" />
-                            <span className="font-bold text-sm">Desactivar Acceso</span>
-                        </>
-                    ) : (
-                        <>
-                            <CheckCircle className="mr-2 h-4 w-4 text-emerald-500" />
-                            <span className="font-bold text-sm">Activar Acceso</span>
-                        </>
-                    )}
-                </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSendInvitation} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
+                        <Mail className="mr-2 h-4 w-4 text-primary" />
+                        <span className="font-bold text-sm">Enviar Invitación</span>
+                    </DropdownMenuItem>
 
-                <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuItem onClick={handleToggleStatus} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
+                        {isActive ? (
+                            <>
+                                <Ban className="mr-2 h-4 w-4 text-rose-500" />
+                                <span className="font-bold text-sm">Desactivar Acceso</span>
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle className="mr-2 h-4 w-4 text-emerald-500" />
+                                <span className="font-bold text-sm">Activar Acceso</span>
+                            </>
+                        )}
+                    </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={handleDelete} className="px-4 py-3 cursor-pointer text-rose-500 focus:text-rose-500 hover:bg-rose-500/5 focus:bg-rose-500/5 transition-colors">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span className="font-bold text-sm">Eliminar Usuario</span>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+                    <DropdownMenuSeparator className="bg-white/5" />
+
+                    <DropdownMenuItem onClick={handleDelete} className="px-4 py-3 cursor-pointer text-rose-500 focus:text-rose-500 hover:bg-rose-500/5 focus:bg-rose-500/5 transition-colors">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span className="font-bold text-sm">Eliminar Usuario</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AssignAreaDialog
+                open={showAssignArea}
+                onOpenChange={setShowAssignArea}
+                employee={employee}
+                areas={areas}
+            />
+        </>
     );
 }

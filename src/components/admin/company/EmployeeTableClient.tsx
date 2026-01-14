@@ -10,9 +10,10 @@ import { useRouter } from "next/navigation";
 
 interface EmployeeTableClientProps {
     employees: any[];
+    areas: any[];
 }
 
-export function EmployeeTableClient({ employees: initialEmployees }: EmployeeTableClientProps) {
+export function EmployeeTableClient({ employees: initialEmployees, areas }: EmployeeTableClientProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isBulkSending, setIsBulkSending] = useState(false);
@@ -125,6 +126,7 @@ export function EmployeeTableClient({ employees: initialEmployees }: EmployeeTab
                                     </button>
                                 </th>
                                 <th className="px-6 py-5 font-bold uppercase tracking-widest text-[10px]">Colaborador</th>
+                                <th className="px-6 py-5 font-bold uppercase tracking-widest text-[10px]">Área</th>
                                 <th className="px-6 py-5 font-bold uppercase tracking-widest text-[10px]">Rol</th>
                                 <th className="px-6 py-5 font-bold uppercase tracking-widest text-[10px]">Estado</th>
                                 <th className="px-6 py-5 font-bold uppercase tracking-widest text-[10px]">Último Acceso</th>
@@ -161,6 +163,11 @@ export function EmployeeTableClient({ employees: initialEmployees }: EmployeeTab
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
+                                                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                                                    {employee.areas?.name || "Sin Área"}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
                                                 <span className="inline-flex items-center rounded-full bg-primary/5 border border-primary/10 px-3 py-1 text-[10px] font-bold text-primary uppercase tracking-wider">
                                                     {employee.role === 'company_admin' ? 'Administrador' : 'Colaborador'}
                                                 </span>
@@ -176,7 +183,7 @@ export function EmployeeTableClient({ employees: initialEmployees }: EmployeeTab
                                                 })}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <EmployeeActionsMenu employee={employee} />
+                                                <EmployeeActionsMenu employee={employee} areas={areas} />
                                             </td>
                                         </tr>
                                     );

@@ -7,6 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings, TrendingUp, Users, AlertTriangle, Activity } from "lucide-react";
 import Link from "next/link";
 import { CompanyReportExport } from "@/components/CompanyReportExport";
+import { HistoricReportsList } from "@/components/admin/company/reports/HistoricReportsList";
+import { getReports } from "@/lib/reports-db-actions";
+import { RecommendationsList } from "@/components/admin/company/reports/RecommendationsList";
+import { getRecommendations } from "@/lib/recommendations-actions";
 
 // Dynamically import Recharts components to avoid SSR issues
 const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
@@ -33,6 +37,8 @@ export default function ReportsPage() {
     const [uniqueParticipants, setUniqueParticipants] = useState(0);
     const [domainChartData, setDomainChartData] = useState<any[]>([]);
     const [trendData, setTrendData] = useState<any[]>([]);
+    const [historicReports, setHistoricReports] = useState<any[]>([]);
+    const [recommendations, setRecommendations] = useState<any[]>([]);
 
     // Survey Filter State
     const [assignedSurveys, setAssignedSurveys] = useState<any[]>([]);
@@ -131,6 +137,17 @@ export default function ReportsPage() {
         }
 
         const { data: allResults } = await query;
+
+        // Fetch historic reports
+        try {
+            const reports = await getReports(companyId, selectedSurveyId === "all" ? undefined : selectedSurveyId);
+            setHistoricReports(reports || []);
+
+            const recs = await getRecommendations(companyId, selectedSurveyId === "all" ? undefined : selectedSurveyId);
+            setRecommendations(recs || []);
+        } catch (error) {
+            console.error("Error fetching reports/recommendations:", error);
+        }
 
         // Calculate metrics
         const totalEmployees = await supabase
@@ -397,6 +414,26 @@ export default function ReportsPage() {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* AI Recommendations Section */}
+                <div className="pt-8">
+                    <RecommendationsList
+                        recommendations={recommendations}
+                        evaluationId={selectedSurveyId}
+                        companyId={companyInfo?.id}
+                    />
+                </div>
+
+                {/* Historic Reports Section */}
+                <div className="pt-8 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-xl font-bold text-foreground italic uppercase">Archivo de Reportes</h3>
+                            <p className="text-sm text-muted-foreground italic">Versiones finales y snapshots generados previamente.</p>
+                        </div>
+                    </div>
+                    <HistoricReportsList reports={historicReports} />
+                </div>
             </div>
         </div>
     );
