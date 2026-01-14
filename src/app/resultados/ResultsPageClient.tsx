@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-    PieChart,
-    Pie,
-    Cell,
-    ResponsiveContainer,
-} from "recharts";
+import dynamic from "next/dynamic";
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false });
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), { ssr: false });
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false });
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
+
 import { cn } from "@/lib/utils";
 import { RefreshCcw, Activity, Apple, Heart, Users, Home as HomeIcon, DollarSign, Share2, Lightbulb, ClipboardCheck, Loader2, ArrowRight } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
@@ -341,7 +341,10 @@ export default function ResultsPageClient({ companyBranding }: ResultsPageClient
                                 <div className="mb-4 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}10` }}>
-                                            {(domainIcons[d] || domainIcons["default"])({ className: "w-5 h-5", style: { color: color } })}
+                                            {(() => {
+                                                const Icon = domainIcons[d] || domainIcons["default"];
+                                                return <Icon className="w-5 h-5" style={{ color: color }} />;
+                                            })()}
                                         </div>
                                         <h3 className="font-extrabold text-gray-900 tracking-tight">{d}</h3>
                                     </div>
