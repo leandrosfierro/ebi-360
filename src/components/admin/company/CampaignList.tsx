@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Campaign } from "@/lib/surveys/types";
-import { ClipboardCheck, Calendar, Lock, Unlock, Loader2, FileText, CheckCircle2 } from "lucide-react";
+import { ClipboardCheck, Calendar, Lock, Unlock, Loader2, FileText, CheckCircle2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { closeEvaluation } from "@/lib/surveys/actions";
 import { useRouter } from "next/navigation";
@@ -64,8 +65,8 @@ export function CampaignList({ campaigns }: CampaignListProps) {
                                             {survey?.name || "Evaluación"}
                                         </h4>
                                         <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isClosed
-                                                ? 'bg-rose-500/10 border-rose-500/20 text-rose-500'
-                                                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                                            ? 'bg-rose-500/10 border-rose-500/20 text-rose-500'
+                                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                                             }`}>
                                             {isClosed ? 'Cerrada' : 'Abierta'}
                                         </div>
@@ -140,4 +141,3 @@ export function CampaignList({ campaigns }: CampaignListProps) {
     );
 }
 
-import Link from "next/link";
