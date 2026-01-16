@@ -1,6 +1,4 @@
--- Fix: Agregar columna 'roles
-
-' array para soporte multi-rol
+-- Fix: Agregar columna roles array para soporte multi-rol
 -- Fecha: 16 de enero de 2026
 
 -- Agregar columna roles si no existe
@@ -19,6 +17,6 @@ UPDATE public.profiles
 SET active_role = role 
 WHERE active_role IS NULL;
 
--- Comentario
+-- Comentarios
 COMMENT ON COLUMN public.profiles.roles IS 'Array de roles disponibles para el usuario (multi-rol)';
 COMMENT ON COLUMN public.profiles.active_role IS 'Rol actualmente activo del usuario';
