@@ -18,6 +18,8 @@ export default function ProfilePage() {
     const [activeRole, setActiveRole] = useState<string | null>(null);
     const [companyName, setCompanyName] = useState<string>("");
 
+    const [debugInfo, setDebugInfo] = useState<any>(null);
+
     useEffect(() => {
         setMounted(true);
 
@@ -31,6 +33,7 @@ export default function ProfilePage() {
 
                 if (user) {
                     setIsAuthenticated(true);
+                    const userEmail = user.email?.toLowerCase() || '';
 
                     // 2. Fetch profile with cache-busting
                     const { data: profile, error: profileError } = await supabase
@@ -45,42 +48,46 @@ export default function ProfilePage() {
                         .eq("id", user.id)
                         .single();
 
-                    if (profileError) {
-                        console.error("Profile fetch error:", profileError);
+                    // DETERMINE IF MASTER ADMIN (Hardcoded Override)
+                    const isMasterEmail = userEmail.includes('leandro.fierro') ||
+                        userEmail.includes('leandrofierro') ||
+                        userEmail.includes('carlos.menvielle') ||
+                        userEmail.includes('admin@bs360');
+
+                    const effectiveProfile = profile || {};
+
+                    // Force roles if Master Email
+                    if (isMasterEmail) {
+                        console.log(">>> [PROFILE] Master Admin detected. Forcing permissions.");
+                        effectiveProfile.role = 'super_admin';
+                        effectiveProfile.active_role = 'super_admin';
+                        effectiveProfile.roles = ['super_admin', 'company_admin', 'employee'];
                     }
 
-                    if (profile) {
-                        // Store full state
-                        if (profile.role) setUserRole(profile.role);
-                        if (profile.roles) setUserRoles(profile.roles);
-                        if (profile.active_role) setActiveRole(profile.active_role);
+                    if (effectiveProfile) {
+                        if (effectiveProfile.role) setUserRole(effectiveProfile.role);
+                        if (effectiveProfile.roles) setUserRoles(effectiveProfile.roles);
+                        if (effectiveProfile.active_role) setActiveRole(effectiveProfile.active_role);
 
-                        const userEmail = user.email?.toLowerCase() || '';
-                        const isMasterEmail = userEmail.includes('leandro.fierro') ||
-                            userEmail.includes('leandrofierro') ||
-                            userEmail.includes('admin@bs360');
-
-                        const isSA = profile.roles?.includes('super_admin') || profile.role === 'super_admin' || isMasterEmail;
-
-                        if (isSA) {
-                            console.log(">>> [PROFILE] Super Admin detected. Syncing local state...");
-                            // Force local state to include admin roles if they are missing
-                            if (!profile.roles?.includes('super_admin')) {
-                                console.log(">>> [PROFILE] Repairing missing roles in state...");
-                                setUserRoles(['super_admin', 'company_admin', 'employee']);
-                                if (!profile.active_role || profile.active_role === 'employee') {
-                                    setActiveRole('super_admin');
-                                }
-                            }
+                        if (effectiveProfile.company && typeof effectiveProfile.company === 'object' && 'name' in effectiveProfile.company) {
+                            setCompanyName((effectiveProfile.company as any).name);
                         }
 
-                        if (profile.company && typeof profile.company === 'object' && 'name' in profile.company) {
-                            setCompanyName((profile.company as any).name);
+                        if (effectiveProfile.full_name) {
+                            setUserName(effectiveProfile.full_name);
+                        } else if (user.user_metadata?.full_name) {
+                            setUserName(user.user_metadata.full_name);
                         }
 
-                        if (profile.full_name) {
-                            setUserName(profile.full_name);
-                        }
+                        // Set debug info
+                        setDebugInfo({
+                            email: user.email,
+                            dbRole: profile?.role,
+                            dbRoles: profile?.roles,
+                            forcedRole: effectiveProfile.role,
+                            forcedRoles: effectiveProfile.roles,
+                            isMaster: isMasterEmail
+                        });
                     }
 
                     // 3. Fetch results
@@ -386,6 +393,19 @@ export default function ProfilePage() {
                         Versión 1.0.0
                     </p>
                 </a>
+
+                {/* Debug Info (Only in dev or for master users) */}
+                {debugInfo && (debugInfo.isMaster || process.env.NODE_ENV === 'development') && (
+                    <div className="mt-8 p-4 bg-black/5 rounded-xl text-[10px] font-mono break-all opacity-50 hover:opacity-100 transition-opacity">
+                        <p><strong>DEBUG INFO:</strong></p>
+                        <p>Email: {debugInfo.email}</p>
+                        <p>DB Role: {debugInfo.dbRole}</p>
+                        <p>DB Roles: {JSON.stringify(debugInfo.dbRoles)}</p>
+                        <p>Effective Role: {debugInfo.forcedRole}</p>
+                        <p>Effective Roles: {JSON.stringify(debugInfo.forcedRoles)}</p>
+                        <p>Is Master: {debugInfo.isMaster ? 'YES' : 'NO'}</p>
+                    </div>
+                )}
             </div>
         </div>
     );
