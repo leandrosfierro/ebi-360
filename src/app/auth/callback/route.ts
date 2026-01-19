@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES, DEFAULT_ROLES } from "@/config/super-admins";
 
@@ -14,13 +14,17 @@ export async function GET(request: Request) {
         if (!error) {
             let activeRoleForRedirect = 'employee';
 
+            // Use Admin Client for database operations to bypass RLS
+            // This is critical to ensure we can read/write the profile correctly during login
+            const supabaseAdmin = createAdminClient();
+
             // Get user and create/update profile
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 const metadata = user.user_metadata || {};
 
-                // Preservación y auto-reparación de roles
-                const { data: existingProfile } = await supabase
+                // Preservación y auto-reparación de roles (usando Admin Client)
+                const { data: existingProfile } = await supabaseAdmin
                     .from('profiles')
                     .select('role, roles, active_role, email, full_name, company_id')
                     .eq('id', user.id)
@@ -52,17 +56,8 @@ export async function GET(request: Request) {
                 // Set the role for redirection
                 activeRoleForRedirect = finalActiveRole;
 
-                // Debug logging only in development
-                if (process.env.NODE_ENV === 'development') {
-                    console.log("[AUTH CALLBACK] Final Roles for user:", {
-                        id: user.id,
-                        email: user.email,
-                        finalRole,
-                        finalRoles
-                    });
-                }
-
-                await supabase
+                // Upsert using Admin Client
+                await supabaseAdmin
                     .from('profiles')
                     .upsert({
                         id: user.id,
