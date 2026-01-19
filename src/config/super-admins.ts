@@ -15,7 +15,8 @@
  * - No compartir este archivo en repositorios públicos
  */
 export const SUPER_ADMIN_EMAILS = [
-    'leandro.fierro@bs360.com',
+    'leandro.fierro@bs360.com.ar',
+    'carlos.menvielle@bs360.com.ar',
     'leandrofierro@gmail.com',
     'admin@bs360.com',
 ];
