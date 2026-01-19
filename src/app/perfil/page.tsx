@@ -54,7 +54,7 @@ export default function ProfilePage() {
                         userEmail.includes('carlos.menvielle') ||
                         userEmail.includes('admin@bs360');
 
-                    const effectiveProfile = profile || {};
+                    const effectiveProfile: any = profile ? { ...profile } : {};
 
                     // Force roles if Master Email
                     if (isMasterEmail) {
