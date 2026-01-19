@@ -48,21 +48,12 @@ export default function ProfilePage() {
                         .eq("id", user.id)
                         .single();
 
-                    // DETERMINE IF MASTER ADMIN (Hardcoded Override)
-                    const isMasterEmail = userEmail.includes('leandro.fierro') ||
-                        userEmail.includes('leandrofierro') ||
-                        userEmail.includes('carlos.menvielle') ||
-                        userEmail.includes('admin@bs360');
-
-                    const effectiveProfile: any = profile ? { ...profile } : {};
-
-                    // Force roles if Master Email
-                    if (isMasterEmail) {
-                        console.log(">>> [PROFILE] Master Admin detected. Forcing permissions.");
-                        effectiveProfile.role = 'super_admin';
-                        effectiveProfile.active_role = 'super_admin';
-                        effectiveProfile.roles = ['super_admin', 'company_admin', 'employee'];
-                    }
+                    const effectiveProfile: any = profile ? { ...profile } : {
+                        full_name: user.user_metadata?.full_name || '',
+                        role: 'employee',
+                        roles: ['employee'],
+                        active_role: 'employee'
+                    };
 
                     if (effectiveProfile) {
                         if (effectiveProfile.role) setUserRole(effectiveProfile.role);
