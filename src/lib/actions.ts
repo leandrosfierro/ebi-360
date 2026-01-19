@@ -4,6 +4,53 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { resend } from "@/lib/resend";
 import { sendManualInvitations } from "@/lib/invitation-actions";
+import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES } from "@/config/super-admins";
+
+export async function restoreSuperAdminAccess() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user || !user.email) return { success: false };
+
+    // Check if email is directly in the authorized list
+    if (isSuperAdminEmail(user.email)) {
+        const supabaseAdmin = createAdminClient();
+
+        // 1. Get current profile to avoid unnecessary updates
+        const { data: currentProfile } = await supabaseAdmin
+            .from('profiles')
+            .select('role, roles')
+            .eq('id', user.id)
+            .single();
+
+        // 2. Update only if needed
+        const needsUpdate = currentProfile?.role !== 'super_admin' ||
+            !currentProfile?.roles?.includes('super_admin');
+
+        if (needsUpdate) {
+            console.log("[AUTO-FIX] Restoring Super Admin access for:", user.email);
+
+            const { error } = await supabaseAdmin
+                .from('profiles')
+                .update({
+                    role: 'super_admin',
+                    roles: SUPER_ADMIN_FULL_ROLES,
+                    active_role: 'super_admin'
+                })
+                .eq('id', user.id);
+
+            if (error) {
+                console.error("[AUTO-FIX] Failed:", error);
+                return { success: false, error: error.message };
+            }
+
+            revalidatePath("/", "layout");
+            return { success: true, fixed: true };
+        }
+        return { success: true, fixed: false };
+    }
+    return { success: false };
+}
 
 export async function saveDiagnosticResult(
     globalScore: number,

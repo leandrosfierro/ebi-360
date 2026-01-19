@@ -8,6 +8,7 @@ import { LogOut, Home, Activity, User, Target, ClipboardCheck, TrendingUp } from
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import { BottomNav } from "./BottomNav";
 import { createClient } from "@/lib/supabase/client";
+import { restoreSuperAdminAccess } from "@/lib/actions";
 
 interface MobileLayoutProps {
     children: React.ReactNode;
@@ -36,6 +37,17 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                 .maybeSingle();
 
             if (profileData) {
+                // Auto-fix: Check if role is out of sync for super admins
+                if (profileData.role !== 'super_admin') {
+                    // Try to restore access quietly in the background
+                    restoreSuperAdminAccess().then(result => {
+                        if (result.fixed) {
+                            console.log("Super Admin role restored. Reloading...");
+                            window.location.reload();
+                        }
+                    });
+                }
+
                 setProfile(profileData);
                 if (profileData.company_id) {
                     const { data: companyData } = await supabase
