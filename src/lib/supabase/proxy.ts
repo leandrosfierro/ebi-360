@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isSuperAdminEmail } from '@/config/super-admins'
 
 export async function updateSession(request: NextRequest) {
     try {
@@ -54,25 +55,28 @@ export async function updateSession(request: NextRequest) {
 
         // 2. Admin Routes - Role Check
         if (request.nextUrl.pathname.startsWith('/admin') && user) {
-            let profile = null;
-            try {
-                // Fetch profile to check role - be very conservative with columns
-                const { data: profileData, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .maybeSingle();
+            // ALWAYS check email first for Super Admin privileges
+            const isMaster = isSuperAdminEmail(user.email || '');
 
-                if (profileError) {
-                    console.error("Middleware profile fetch error:", profileError);
-                } else {
-                    profile = profileData;
+            let profile = null;
+            if (!isMaster) {
+                try {
+                    // Fetch profile to check role - be very conservative with columns
+                    const { data: profileData, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', user.id)
+                        .maybeSingle();
+
+                    if (!profileError) {
+                        profile = profileData;
+                    }
+                } catch (e) {
+                    console.error("Middleware profile fetch conflict:", e);
                 }
-            } catch (e) {
-                console.error("Middleware inner profile fetch crash:", e);
             }
 
-            const role = profile?.role || 'employee';
+            const role = isMaster ? 'super_admin' : (profile?.role || 'employee');
             const isSuperAdmin = role === 'super_admin';
 
             // Super Admin area
