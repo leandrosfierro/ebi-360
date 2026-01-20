@@ -9,6 +9,7 @@ import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import { BottomNav } from "./BottomNav";
 import { createClient } from "@/lib/supabase/client";
 import { restoreSuperAdminAccess } from "@/lib/actions";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 interface MobileLayoutProps {
     children: React.ReactNode;
@@ -22,14 +23,15 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
     const [isAuth, setIsAuth] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+
     const checkUser = useCallback(async () => {
         const supabase = createClient();
-
-        // Verificación rápida de sesión
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
             setIsAuth(true);
+            setUserEmail(session.user.email || null);
             const { data: profileData } = await supabase
                 .from('profiles')
                 .select('role, roles, active_role, company_id')
@@ -109,8 +111,9 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
         { href: "/perfil", label: "Mi Perfil", icon: "User" },
     ];
 
-    const isAdmin = profile?.role === 'super_admin' || profile?.role === 'company_admin' || (profile?.roles || []).includes('super_admin');
-    const adminPath = (profile?.active_role === 'super_admin' || profile?.role === 'super_admin') ? "/admin/super" : "/admin/company";
+    const isMaster = userEmail ? isSuperAdminEmail(userEmail) : false;
+    const isAdmin = isMaster || profile?.role === 'super_admin' || profile?.role === 'company_admin' || (profile?.roles || []).includes('super_admin');
+    const adminPath = (isMaster || profile?.active_role === 'super_admin' || profile?.role === 'super_admin') ? "/admin/super" : "/admin/company";
     const shouldShowBottomNav = showNav && !isAdminRoute && !isDiagnostic && isAuth;
 
     return (

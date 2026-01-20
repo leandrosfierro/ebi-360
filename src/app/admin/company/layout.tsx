@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import CompanyAdminLayoutClient from "./layout-client";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default async function CompanyAdminLayout({
     children,
@@ -20,8 +21,19 @@ export default async function CompanyAdminLayout({
             .eq('id', user.id)
             .single();
 
-        userRoles = profile?.roles || [profile?.role || 'employee'];
+        const isMaster = isSuperAdminEmail(user.email || '');
+
+        userRoles = profile?.roles || (profile?.role ? [profile.role] : ['employee']);
         activeRole = profile?.active_role || profile?.role || 'employee';
+
+        if (isMaster) {
+            if (!userRoles.includes('super_admin')) {
+                userRoles = ['super_admin', 'company_admin', 'employee'];
+            }
+            if (activeRole !== 'super_admin' && activeRole !== 'company_admin') {
+                activeRole = 'super_admin';
+            }
+        }
 
         if (profile?.company_id) {
             const { data: company } = await supabase
@@ -30,6 +42,14 @@ export default async function CompanyAdminLayout({
                 .eq('id', profile.company_id)
                 .single();
             companyBranding = company;
+        } else if (isMaster) {
+            // Master Admins get a default "Global" view if no company assigned
+            companyBranding = {
+                name: "Bs360 Global",
+                logo_url: null,
+                primary_color: "#7e22ce",
+                secondary_color: null
+            };
         }
     }
 

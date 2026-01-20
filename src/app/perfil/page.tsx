@@ -5,6 +5,7 @@ import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award, Arro
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -34,6 +35,7 @@ export default function ProfilePage() {
                 if (user) {
                     setIsAuthenticated(true);
                     const userEmail = user.email?.toLowerCase() || '';
+                    const isMaster = isSuperAdminEmail(userEmail);
 
                     // 2. Fetch profile with cache-busting
                     const { data: profile, error: profileError } = await supabase
@@ -54,6 +56,14 @@ export default function ProfilePage() {
                         roles: ['employee'],
                         active_role: 'employee'
                     };
+
+                    // Force roles if Master Email
+                    if (isMaster) {
+                        console.log(">>> [PROFILE] Master Admin detected. Forcing permissions.");
+                        effectiveProfile.role = 'super_admin';
+                        effectiveProfile.active_role = 'super_admin';
+                        effectiveProfile.roles = ['super_admin', 'company_admin', 'employee'];
+                    }
 
                     if (effectiveProfile) {
                         if (effectiveProfile.role) setUserRole(effectiveProfile.role);
@@ -77,7 +87,8 @@ export default function ProfilePage() {
                             dbRoles: profile?.roles,
                             forcedRole: effectiveProfile.role,
                             forcedRoles: effectiveProfile.roles,
-                            isMaster: isMasterEmail
+                            isMaster: isMaster,
+                            hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
                         });
                     }
 

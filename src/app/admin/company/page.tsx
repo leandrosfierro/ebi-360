@@ -5,6 +5,7 @@ import { DashboardStats } from "@/components/admin/DashboardStats";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default async function CompanyAdminDashboard() {
     const supabase = await createClient();
@@ -23,8 +24,10 @@ export default async function CompanyAdminDashboard() {
         .single();
 
     // Allow Super Admin to pass even without company_id (View Mode)
-    // Check if 'super_admin' exists in the roles array OR if it's the current role
-    const hasSuperAdminPrivileges = profile?.roles?.includes('super_admin') ||
+    // Check if 'super_admin' exists in the roles array OR if it's the current role OR if master email
+    const isMaster = isSuperAdminEmail(user.email || '');
+    const hasSuperAdminPrivileges = isMaster ||
+        profile?.roles?.includes('super_admin') ||
         profile?.role === 'super_admin' ||
         profile?.active_role === 'super_admin';
 

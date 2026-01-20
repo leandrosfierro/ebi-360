@@ -64,7 +64,7 @@ export async function updateSession(request: NextRequest) {
                     // Fetch profile to check role - be very conservative with columns
                     const { data: profileData, error: profileError } = await supabase
                         .from('profiles')
-                        .select('role')
+                        .select('role, roles, active_role')
                         .eq('id', user.id)
                         .maybeSingle();
 
@@ -76,8 +76,12 @@ export async function updateSession(request: NextRequest) {
                 }
             }
 
-            const role = isMaster ? 'super_admin' : (profile?.role || 'employee');
-            const isSuperAdmin = role === 'super_admin';
+            // Determine effective role
+            const userRoles = profile?.roles || [];
+            const activeRole = profile?.active_role || profile?.role || 'employee';
+
+            const role = isMaster ? 'super_admin' : activeRole;
+            const isSuperAdmin = role === 'super_admin' || userRoles.includes('super_admin');
 
             // Super Admin area
             if (request.nextUrl.pathname.startsWith('/admin/super')) {

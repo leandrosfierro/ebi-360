@@ -46,8 +46,11 @@ export async function GET(request: Request) {
                 // Si es super_admin (por email o por DB), asegurar que tenga el array completo
                 if (finalRole === DEFAULT_ROLES.SUPER_ADMIN || finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN) || isMaster) {
                     finalRole = DEFAULT_ROLES.SUPER_ADMIN;
-                    if (!finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN) || !finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN)) {
-                        finalRoles = [...SUPER_ADMIN_FULL_ROLES];
+                    finalRoles = [...SUPER_ADMIN_FULL_ROLES];
+                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN || finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN)) {
+                    // Ensure company admins also have employee role
+                    if (!finalRoles.includes(DEFAULT_ROLES.EMPLOYEE)) {
+                        finalRoles = [DEFAULT_ROLES.COMPANY_ADMIN, DEFAULT_ROLES.EMPLOYEE];
                     }
                 }
 

@@ -19,13 +19,14 @@ export async function restoreSuperAdminAccess() {
         // 1. Get current profile to avoid unnecessary updates
         const { data: currentProfile } = await supabaseAdmin
             .from('profiles')
-            .select('role, roles')
+            .select('role, roles, active_role')
             .eq('id', user.id)
             .single();
 
         // 2. Update only if needed
         const needsUpdate = currentProfile?.role !== 'super_admin' ||
-            !currentProfile?.roles?.includes('super_admin');
+            !currentProfile?.roles?.includes('super_admin') ||
+            currentProfile?.active_role !== 'super_admin';
 
         if (needsUpdate) {
             console.log("[AUTO-FIX] Restoring Super Admin access for:", user.email);
@@ -35,7 +36,8 @@ export async function restoreSuperAdminAccess() {
                 .update({
                     role: 'super_admin',
                     roles: SUPER_ADMIN_FULL_ROLES,
-                    active_role: 'super_admin'
+                    active_role: 'super_admin',
+                    admin_status: 'active'
                 })
                 .eq('id', user.id);
 
@@ -209,6 +211,8 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
                     email: userData.email,
                     full_name: userData.full_name,
                     role: 'employee',
+                    active_role: 'employee',
+                    roles: ['employee'],
                     company_id: companyId,
                     admin_status: 'invited'
                 });
@@ -309,7 +313,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                 .update({
                     role: 'company_admin',
                     active_role: 'company_admin',
-                    roles: ['company_admin'],
+                    roles: ['company_admin', 'employee'], // Allow both
                     company_id: companyId
                 })
                 .eq('id', existingUser.id);
@@ -484,7 +488,7 @@ export async function inviteSuperAdmin(email: string, fullName: string) {
                 full_name: fullName,
                 role: 'super_admin',
                 active_role: 'super_admin',
-                roles: ['super_admin', 'company_admin'],
+                roles: SUPER_ADMIN_FULL_ROLES,
                 admin_status: 'invited',
                 company_id: null
             });
@@ -769,9 +773,7 @@ export async function switchRole(newRole: 'super_admin' | 'company_admin' | 'emp
 
         // Auto-fix for Master Admins if roles are missing
         const userEmail = user.email?.toLowerCase() || '';
-        const isMaster = userEmail.includes('leandro.fierro') ||
-            userEmail.includes('leandrofierro') ||
-            userEmail.includes('admin@bs360');
+        const isMaster = isSuperAdminEmail(userEmail);
 
         if (isMaster && !userRolesList.includes('super_admin')) {
             userRolesList = ['super_admin', 'company_admin', 'employee'];
@@ -784,10 +786,13 @@ export async function switchRole(newRole: 'super_admin' | 'company_admin' | 'emp
             return { error: "No tienes acceso a este rol" };
         }
 
-        // Update active role
+        // Update active role and main role for consistency
         const { error: updateError } = await supabase
             .from('profiles')
-            .update({ active_role: newRole })
+            .update({
+                active_role: newRole,
+                role: newRole // Sync main role column as well
+            })
             .eq('id', user.id);
 
         if (updateError) throw updateError;
