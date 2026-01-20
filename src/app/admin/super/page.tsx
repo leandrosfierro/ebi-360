@@ -1,11 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, FileText, TrendingUp, Activity } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default async function SuperAdminDashboard() {
     try {
-        const supabase = await createClient();
+        let supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Si es master admin, usar cliente admin para asegurar estadísticas correctas
+        if (user && isSuperAdminEmail(user.email || '')) {
+            supabase = createAdminClient();
+        }
 
         // Fetch real stats with individual error handling to prevent total failure
         const getCompanies = async () => {

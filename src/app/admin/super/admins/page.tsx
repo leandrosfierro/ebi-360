@@ -1,9 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { InviteSuperAdminDialog } from "@/components/admin/InviteSuperAdminDialog";
 import { Shield } from "lucide-react";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default async function SuperAdminsPage() {
-    const supabase = await createClient();
+    let supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user && isSuperAdminEmail(user.email || '')) {
+        supabase = createAdminClient();
+    }
 
     // Fetch all super admin users
     const { data: superAdmins } = await supabase

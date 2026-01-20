@@ -1,27 +1,52 @@
-import { createClient } from "@/lib/supabase/server";
-import { Plus, Search, Building2 } from "lucide-react";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { Plus, Search, Building2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { InviteAdminDialog } from "@/components/admin/InviteAdminDialog";
 import { CompanyActionsMenu } from "@/components/admin/CompanyActionsMenu";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default async function CompaniesPage() {
-    const supabase = await createClient();
+    let supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const isMaster = user && isSuperAdminEmail(user.email || '');
+
+    console.log(">>> [COMPANIES PAGE] Current user email:", user?.email);
+    console.log(">>> [COMPANIES PAGE] Is Master Admin:", isMaster);
+
+    // Si es super admin por email, usar cliente admin para asegurar visibilidad total
+    if (isMaster) {
+        supabase = createAdminClient();
+    }
 
     // Fetch companies with their admin information
-    const { data: companies } = await supabase
+    const { data: companies, error: companiesError } = await supabase
         .from("companies")
         .select(`
             *,
-            admin:profiles!profiles_company_id_fkey(
+            profiles(
                 id,
                 email,
                 full_name,
                 admin_status,
-                last_active_at
+                last_active_at,
+                role
             )
         `)
         .order("created_at", { ascending: false });
+
+    if (companiesError) {
+        console.error(">>> [COMPANIES PAGE] Error fetching companies:", companiesError);
+    }
+
+    // Adapt the data structure to match what the UI expects (admin property)
+    const adaptedCompanies = companies?.map(company => ({
+        ...company,
+        admin: company.profiles?.find((p: any) => p.role === 'company_admin') || company.profiles?.[0] || null
+    })) || [];
+
+    console.log(">>> [COMPANIES PAGE] Companies found:", adaptedCompanies.length);
 
     return (
         <div className="space-y-6">
@@ -76,11 +101,9 @@ export default async function CompaniesPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {companies && companies.length > 0 ? (
-                                companies.map((company) => {
-                                    const admin = Array.isArray(company.admin)
-                                        ? company.admin.find((a: any) => a.id)
-                                        : company.admin;
+                            {adaptedCompanies && adaptedCompanies.length > 0 ? (
+                                adaptedCompanies.map((company: any) => {
+                                    const admin = company.admin;
 
                                     return (
                                         <tr key={company.id} className="group hover:bg-white/5 transition-colors">
@@ -150,17 +173,40 @@ export default async function CompaniesPage() {
                                 <tr>
                                     <td colSpan={7} className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center justify-center">
-                                            <div className="h-16 w-16 bg-primary/5 rounded-full flex items-center justify-center mb-4">
-                                                <Building2 className="h-8 w-8 text-primary/40" />
-                                            </div>
-                                            <p className="text-lg font-bold text-foreground">No hay empresas registradas</p>
-                                            <p className="text-sm text-muted-foreground mb-6">Comienza registrando la primera empresa cliente.</p>
-                                            <Link
-                                                href="/admin/super/companies/new"
-                                                className="text-primary hover:text-primary/80 font-bold uppercase tracking-widest text-xs border-b border-primary/30 pb-1"
-                                            >
-                                                Registrar Empresa
-                                            </Link>
+                                            {companiesError ? (
+                                                <>
+                                                    <div className="h-16 w-16 bg-rose-500/10 rounded-full flex items-center justify-center mb-4">
+                                                        <AlertCircle className="h-8 w-8 text-rose-500" />
+                                                    </div>
+                                                    <p className="text-lg font-bold text-foreground">Error al cargar empresas</p>
+                                                    <p className="text-sm text-muted-foreground mb-6">
+                                                        {companiesError.message}
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="h-16 w-16 bg-primary/5 rounded-full flex items-center justify-center mb-4">
+                                                        <Building2 className="h-8 w-8 text-primary/40" />
+                                                    </div>
+                                                    <p className="text-lg font-bold text-foreground">No hay empresas registradas</p>
+                                                    <p className="text-sm text-muted-foreground mb-6">Comienza registrando la primera empresa cliente.</p>
+
+                                                    {isMaster && (
+                                                        <div className="mt-4 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 text-[10px] text-blue-400 font-mono">
+                                                            <p>DEBUG: Email: {user?.email}</p>
+                                                            <p>Master Admin: {isMaster ? 'SI' : 'NO'}</p>
+                                                            <p className="mt-2 text-blue-300 italic">Nota: Tus datos están seguros en la base de datos (vistos en Dashboard). Esto es un problema de visualización de esta sección específica.</p>
+                                                        </div>
+                                                    )}
+
+                                                    <Link
+                                                        href="/admin/super/companies/new"
+                                                        className="mt-6 text-primary hover:text-primary/80 font-bold uppercase tracking-widest text-xs border-b border-primary/30 pb-1"
+                                                    >
+                                                        Registrar Empresa
+                                                    </Link>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
