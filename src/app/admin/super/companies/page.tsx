@@ -43,7 +43,7 @@ export default async function CompaniesPage() {
     // Adapt the data structure to match what the UI expects (admin property)
     const adaptedCompanies = companies?.map(company => ({
         ...company,
-        admin: company.profiles?.find((p: any) => p.role === 'company_admin') || company.profiles?.[0] || null
+        admins: company.profiles?.filter((p: any) => p.role === 'company_admin') || []
     })) || [];
 
     console.log(">>> [COMPANIES PAGE] Companies found:", adaptedCompanies.length);
@@ -94,16 +94,17 @@ export default async function CompaniesPage() {
                                 <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Empresa</th>
                                 <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Plan</th>
                                 <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Estado</th>
-                                <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Administrador</th>
-                                <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Estado Admin</th>
-                                <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Última Actividad</th>
+                                <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Administradores</th>
+                                <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Estado</th>
+                                <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px] text-center">Última Actividad</th>
                                 <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px] text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {adaptedCompanies && adaptedCompanies.length > 0 ? (
                                 adaptedCompanies.map((company: any) => {
-                                    const admin = company.admin;
+                                    const admins = company.admins;
+                                    const hasAdmins = admins && admins.length > 0;
 
                                     return (
                                         <tr key={company.id} className="group hover:bg-white/5 transition-colors">
@@ -137,10 +138,17 @@ export default async function CompaniesPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                {admin ? (
-                                                    <div>
-                                                        <p className="font-bold text-foreground">{admin.full_name || 'Sin nombre'}</p>
-                                                        <p className="text-[11px] text-muted-foreground">{admin.email}</p>
+                                                {hasAdmins ? (
+                                                    <div className="space-y-2">
+                                                        {admins.map((admin: any) => (
+                                                            <div key={admin.id}>
+                                                                <p className="font-bold text-foreground text-xs">{admin.full_name || 'Sin nombre'}</p>
+                                                                <p className="text-[10px] text-muted-foreground">{admin.email}</p>
+                                                            </div>
+                                                        ))}
+                                                        <div className="mt-2 pt-2 border-t border-white/5">
+                                                            <InviteAdminDialog companyId={company.id} companyName={company.name} triggerText="+ Agregar otro" />
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-2">
@@ -150,21 +158,37 @@ export default async function CompaniesPage() {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {admin ? (
-                                                    <StatusBadge status={admin.admin_status || 'invited'} />
+                                                {hasAdmins ? (
+                                                    <div className="space-y-4">
+                                                        {admins.map((admin: any) => (
+                                                            <div key={`${admin.id}-status`} className="h-8 flex items-center">
+                                                                <StatusBadge status={admin.admin_status || 'invited'} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 ) : (
                                                     <span className="text-muted-foreground text-sm">-</span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 text-muted-foreground text-sm">
-                                                {admin?.last_active_at ? (
-                                                    <span>{new Date(admin.last_active_at).toLocaleDateString()}</span>
+                                            <td className="px-6 py-4 text-muted-foreground text-sm text-center">
+                                                {hasAdmins ? (
+                                                    <div className="space-y-4">
+                                                        {admins.map((admin: any) => (
+                                                            <div key={`${admin.id}-activity`} className="h-8 flex items-center justify-center">
+                                                                {admin.last_active_at ? (
+                                                                    <span>{new Date(admin.last_active_at).toLocaleDateString()}</span>
+                                                                ) : (
+                                                                    <span className="text-muted-foreground/60 italic text-xs">Nunca</span>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 ) : (
-                                                    <span className="text-muted-foreground/60 italic">Nunca</span>
+                                                    <span className="text-muted-foreground/60 italic text-xs">Nunca</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <CompanyActionsMenu company={company} admin={admin} />
+                                                <CompanyActionsMenu company={company} admins={admins} />
                                             </td>
                                         </tr>
                                     );

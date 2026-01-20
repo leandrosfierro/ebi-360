@@ -280,7 +280,9 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         .eq('id', user.id)
         .single();
 
-    if (adminProfile?.role !== 'super_admin') {
+    const isMaster = isSuperAdminEmail(user.email || '');
+
+    if (adminProfile?.role !== 'super_admin' && !isMaster) {
         return { error: "Unauthorized: Super Admin only" };
     }
 
@@ -1159,4 +1161,33 @@ export async function updateCompanyBranding(formData: FormData) {
         console.error("Error updating company branding:", error);
         return { error: error.message || "Failed to update branding" };
     }
+}
+
+export async function removeCompanyAdmin(adminId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const isMaster = isSuperAdminEmail(user.email || '');
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+
+    if (profile?.role !== 'super_admin' && !isMaster) {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const { error } = await supabaseAdmin
+        .from('profiles')
+        .update({
+            role: 'employee',
+            active_role: 'employee',
+            company_id: null,
+            admin_status: null
+        })
+        .eq('id', adminId);
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/admin/super/companies");
+    return { success: true };
 }

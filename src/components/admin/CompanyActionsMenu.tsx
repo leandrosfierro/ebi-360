@@ -14,7 +14,7 @@ import {
 import { EditCompanyDialog } from "./EditCompanyDialog";
 import { DeleteCompanyAlert } from "./DeleteCompanyAlert";
 import { ManageSurveysDialog } from "./surveys/ManageSurveysDialog";
-import { updateAdminStatus, resendAdminInvitation } from "@/lib/actions";
+import { updateAdminStatus, resendAdminInvitation, removeCompanyAdmin } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 
 interface CompanyActionsMenuProps {
@@ -24,25 +24,24 @@ interface CompanyActionsMenuProps {
         subscription_plan: "basic" | "pro" | "enterprise";
         active: boolean;
     };
-    admin?: {
+    admins?: {
         id: string;
         email: string;
         full_name: string;
         admin_status: string;
-    } | null;
+    }[] | null;
 }
 
-export function CompanyActionsMenu({ company, admin }: CompanyActionsMenuProps) {
+export function CompanyActionsMenu({ company, admins }: CompanyActionsMenuProps) {
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showSurveysDialog, setShowSurveysDialog] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
-    const handleResendInvitation = async () => {
-        if (!admin) return;
+    const handleResendInvitation = async (adminId: string) => {
         setIsLoading(true);
-        const result = await resendAdminInvitation(admin.id);
+        const result = await resendAdminInvitation(adminId);
         if (result.error) {
             alert(`Error: ${result.error}`);
         } else {
@@ -52,14 +51,27 @@ export function CompanyActionsMenu({ company, admin }: CompanyActionsMenuProps) 
         router.refresh();
     };
 
-    const handleUpdateStatus = async (newStatus: 'active' | 'inactive' | 'suspended') => {
-        if (!admin) return;
+    const handleUpdateStatus = async (adminId: string, newStatus: 'active' | 'inactive' | 'suspended') => {
         setIsLoading(true);
-        const result = await updateAdminStatus(admin.id, newStatus);
+        const result = await updateAdminStatus(adminId, newStatus);
         if (result.error) {
             alert(`Error: ${result.error}`);
         } else {
             alert("Estado actualizado correctamente");
+        }
+        setIsLoading(false);
+        router.refresh();
+    };
+
+    const handleRemoveAdmin = async (adminId: string, adminName: string) => {
+        if (!confirm(`¿Estás seguro de que deseas desvincular a ${adminName} de esta empresa? Dejará de ser administrador.`)) return;
+
+        setIsLoading(true);
+        const result = await removeCompanyAdmin(adminId);
+        if (result.error) {
+            alert(`Error: ${result.error}`);
+        } else {
+            alert("Administrador desvinculado correctamente");
         }
         setIsLoading(false);
         router.refresh();
@@ -90,40 +102,48 @@ export function CompanyActionsMenu({ company, admin }: CompanyActionsMenuProps) 
                         Eliminar Empresa
                     </DropdownMenuItem>
 
-                    {admin && (
-                        <>
+                    {admins && admins.length > 0 && admins.map((admin, index) => (
+                        <div key={admin.id}>
                             <DropdownMenuSeparator />
-                            <DropdownMenuLabel>Acciones de Admin</DropdownMenuLabel>
+                            <DropdownMenuLabel className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground uppercase">Admin {index + 1}</span>
+                                <span className="truncate max-w-[150px]">{admin.full_name || admin.email}</span>
+                            </DropdownMenuLabel>
 
                             {admin.admin_status === 'invited' && (
-                                <DropdownMenuItem onClick={handleResendInvitation}>
+                                <DropdownMenuItem onClick={() => handleResendInvitation(admin.id)}>
                                     <Mail className="mr-2 h-4 w-4" />
                                     Reenviar Invitación
                                 </DropdownMenuItem>
                             )}
 
                             {admin.admin_status !== 'suspended' && (
-                                <DropdownMenuItem onClick={() => handleUpdateStatus('suspended')} className="text-red-600 focus:text-red-600">
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(admin.id, 'suspended')} className="text-red-500/70 focus:text-red-500">
                                     <Ban className="mr-2 h-4 w-4" />
-                                    Suspender Admin
+                                    Suspender
                                 </DropdownMenuItem>
                             )}
 
                             {admin.admin_status === 'suspended' && (
-                                <DropdownMenuItem onClick={() => handleUpdateStatus('active')} className="text-green-600 focus:text-green-600">
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(admin.id, 'active')} className="text-emerald-500/70 focus:text-emerald-500 font-bold">
                                     <CheckCircle className="mr-2 h-4 w-4" />
-                                    Reactivar Admin
+                                    Reactivar
                                 </DropdownMenuItem>
                             )}
 
                             {admin.admin_status === 'inactive' && (
-                                <DropdownMenuItem onClick={() => handleUpdateStatus('active')} className="text-green-600 focus:text-green-600">
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(admin.id, 'active')} className="text-emerald-500/70 focus:text-emerald-500">
                                     <RefreshCw className="mr-2 h-4 w-4" />
-                                    Marcar como Activo
+                                    Marcar Activo
                                 </DropdownMenuItem>
                             )}
-                        </>
-                    )}
+
+                            <DropdownMenuItem onClick={() => handleRemoveAdmin(admin.id, admin.full_name || admin.email)} className="text-rose-600 focus:text-rose-600">
+                                <Trash2 className="mr-2 h-4 w-4 text-rose-400" />
+                                Desvincular Admin
+                            </DropdownMenuItem>
+                        </div>
+                    ))}
                 </DropdownMenuContent>
             </DropdownMenu>
 

@@ -11,9 +11,10 @@ import { inviteCompanyAdmin } from "@/lib/actions";
 interface InviteAdminDialogProps {
     companyId: string;
     companyName: string;
+    triggerText?: string;
 }
 
-export function InviteAdminDialog({ companyId, companyName }: InviteAdminDialogProps) {
+export function InviteAdminDialog({ companyId, companyName, triggerText }: InviteAdminDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState("");
@@ -44,10 +45,16 @@ export function InviteAdminDialog({ companyId, companyName }: InviteAdminDialogP
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <UserPlus className="h-4 w-4 text-purple-600" />
-                    <span className="sr-only">Invitar Admin</span>
-                </Button>
+                {triggerText ? (
+                    <Button variant="link" size="sm" className="h-auto p-0 text-purple-600 font-bold uppercase tracking-widest text-[10px] hover:text-purple-700">
+                        {triggerText}
+                    </Button>
+                ) : (
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <UserPlus className="h-4 w-4 text-purple-600" />
+                        <span className="sr-only">Invitar Admin</span>
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
