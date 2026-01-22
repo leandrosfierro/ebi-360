@@ -20,22 +20,29 @@ export function InviteAdminDialog({ companyId, companyName, triggerText }: Invit
     const [email, setEmail] = useState("");
     const [fullName, setFullName] = useState("");
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
     const [inviteLink, setInviteLink] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [needsConfirmation, setNeedsConfirmation] = useState(false);
+    const [confirmationMessage, setConfirmationMessage] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent, force: boolean = false) => {
+        if (e) e.preventDefault();
         setIsLoading(true);
         setMessage(null);
         setInviteLink(null);
 
-        const result = await inviteCompanyAdmin(email, fullName, companyId);
+        const result = await inviteCompanyAdmin(email, fullName, companyId, force);
 
-        if (result.error) {
+        if (result.needsConfirmation) {
+            setNeedsConfirmation(true);
+            setConfirmationMessage(result.message || "Usuario ya registrado.");
+            setMessage(null);
+        } else if (result.error) {
             setMessage({ type: "error", text: result.error });
+            setNeedsConfirmation(false);
         } else {
-            setMessage({ type: "success", text: "Invitación procesada correctamente." });
+            setMessage({ type: "success", text: result.message || "Invitación procesada correctamente." });
+            setNeedsConfirmation(false);
             if (result.inviteLink) {
                 setInviteLink(result.inviteLink);
             } else {
@@ -45,6 +52,7 @@ export function InviteAdminDialog({ companyId, companyName, triggerText }: Invit
                     setEmail("");
                     setFullName("");
                     setMessage(null);
+                    setNeedsConfirmation(false);
                 }, 2000);
             }
         }
@@ -65,6 +73,7 @@ export function InviteAdminDialog({ companyId, companyName, triggerText }: Invit
                 setInviteLink(null);
                 setMessage(null);
                 setCopied(false);
+                setNeedsConfirmation(false);
             }
         }}>
             <DialogTrigger asChild>
@@ -89,7 +98,7 @@ export function InviteAdminDialog({ companyId, companyName, triggerText }: Invit
                 </DialogHeader>
 
                 {!inviteLink ? (
-                    <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+                    <form onSubmit={(e) => handleSubmit(e)} className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email del Administrador</Label>
                             <Input
@@ -99,16 +108,17 @@ export function InviteAdminDialog({ companyId, companyName, triggerText }: Invit
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                disabled={isLoading || needsConfirmation}
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Nombre Completo</Label>
+                            <Label htmlFor="name">Nombre Completo (Opcional si ya existe)</Label>
                             <Input
                                 id="name"
                                 placeholder="Juan Pérez"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
-                                required
+                                disabled={isLoading || needsConfirmation}
                             />
                         </div>
 
@@ -118,18 +128,46 @@ export function InviteAdminDialog({ companyId, companyName, triggerText }: Invit
                             </div>
                         )}
 
-                        <DialogFooter>
-                            <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700">
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Enviando...
-                                    </>
-                                ) : (
-                                    "Enviar Invitación"
-                                )}
-                            </Button>
-                        </DialogFooter>
+                        {needsConfirmation && (
+                            <div className="p-3 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 text-sm space-y-3">
+                                <p>{confirmationMessage}</p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full text-xs"
+                                        onClick={() => setNeedsConfirmation(false)}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        className="w-full text-xs bg-amber-600 hover:bg-amber-700 text-white"
+                                        onClick={() => handleSubmit(undefined, true)}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Confirmar y Asignar"}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        {!needsConfirmation && (
+                            <DialogFooter>
+                                <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700">
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Enviando...
+                                        </>
+                                    ) : (
+                                        "Enviar Invitación"
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        )}
                     </form>
                 ) : (
                     <div className="py-6 space-y-4">

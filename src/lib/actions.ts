@@ -267,7 +267,7 @@ export async function updateProfile(formData: FormData) {
     }
 }
 
-export async function inviteCompanyAdmin(email: string, fullName: string, companyId: string) {
+export async function inviteCompanyAdmin(email: string, fullName: string, companyId: string, force: boolean = false) {
     const supabase = await createClient();
 
     // Verify super admin role
@@ -297,15 +297,15 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
     let inviteLink: string | undefined;
 
     try {
-        // 1. Check if user already exists (using admin client to ensure visibility)
         // 1. Check if user already exists in profiles
         const { data: existingProfile } = await supabaseAdmin
             .from('profiles')
-            .select('id')
+            .select('id, company_id, email, full_name')
             .eq('email', email)
             .maybeSingle();
 
         let userId = existingProfile?.id;
+        let userBelongsToOtherCompany = existingProfile && existingProfile.company_id && existingProfile.company_id !== companyId;
 
         // 1.2 If no profile, check if user exists in Auth
         if (!userId) {
@@ -320,6 +320,14 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
             }
         }
 
+        // 1.3 Check if we need confirmation
+        if (userBelongsToOtherCompany && !force) {
+            return {
+                needsConfirmation: true,
+                message: `El usuario ya está registrado en otra empresa. ¿Deseas asignarlo como administrador de esta empresa también?`
+            };
+        }
+
         if (userId) {
             // Update or Create profile for existing auth user
             const { error: profileError } = await supabaseAdmin
@@ -327,18 +335,24 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                 .upsert({
                     id: userId,
                     email: email,
-                    full_name: fullName,
+                    full_name: fullName || existingProfile?.full_name || '',
                     role: 'company_admin',
                     active_role: 'company_admin',
                     roles: ['company_admin', 'employee'],
                     company_id: companyId,
-                    admin_status: 'active' // If they already have an account, they are active
+                    admin_status: 'active'
                 });
 
             if (profileError) {
                 console.error("Error updating/creating profile for existing user:", profileError);
                 throw new Error(`Error al actualizar perfil: ${profileError.message}`);
             }
+
+            revalidatePath("/admin/super/companies");
+            return {
+                success: true,
+                message: "Usuario existente asignado como administrador exitosamente."
+            };
         } else {
             // 2. Invite new user (since they don't exist in either place)
             const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
