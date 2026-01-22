@@ -50,7 +50,7 @@ export function SuperAdminActionsMenu({ admin }: SuperAdminActionsMenuProps) {
                     <span className="sr-only">Abrir menú</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
-            </DropdownTrigger>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 glass-card border border-white/10 rounded-2xl shadow-xl">
                 <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-3">
                     Acciones Super Admin
