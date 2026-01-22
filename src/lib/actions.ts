@@ -298,35 +298,49 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
 
     try {
         // 1. Check if user already exists (using admin client to ensure visibility)
-        const { data: existingUser, error: checkError } = await supabaseAdmin
+        // 1. Check if user already exists in profiles
+        const { data: existingProfile } = await supabaseAdmin
             .from('profiles')
             .select('id')
             .eq('email', email)
-            .single();
+            .maybeSingle();
 
-        if (checkError && checkError.code !== 'PGRST116') {
-            console.error("Error checking existing user:", checkError);
-            throw new Error(`Database error: ${checkError.message}`);
+        let userId = existingProfile?.id;
+
+        // 1.2 If no profile, check if user exists in Auth
+        if (!userId) {
+            const { data: authUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+            if (listError) {
+                console.error("Error listing users:", listError);
+            } else {
+                const existingAuthUser = authUsers.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+                if (existingAuthUser) {
+                    userId = existingAuthUser.id;
+                }
+            }
         }
 
-        if (existingUser) {
-            // Update existing user to be company admin
-            const { error: updateError } = await supabaseAdmin
+        if (userId) {
+            // Update or Create profile for existing auth user
+            const { error: profileError } = await supabaseAdmin
                 .from('profiles')
-                .update({
+                .upsert({
+                    id: userId,
+                    email: email,
+                    full_name: fullName,
                     role: 'company_admin',
                     active_role: 'company_admin',
-                    roles: ['company_admin', 'employee'], // Allow both
-                    company_id: companyId
-                })
-                .eq('id', existingUser.id);
+                    roles: ['company_admin', 'employee'],
+                    company_id: companyId,
+                    admin_status: 'active' // If they already have an account, they are active
+                });
 
-            if (updateError) {
-                console.error("Error updating user:", updateError);
-                throw new Error(`Failed to update user: ${updateError.message}`);
+            if (profileError) {
+                console.error("Error updating/creating profile for existing user:", profileError);
+                throw new Error(`Error al actualizar perfil: ${profileError.message}`);
             }
         } else {
-            // 2. Invite new user
+            // 2. Invite new user (since they don't exist in either place)
             const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
                 type: 'invite',
                 email: email,
@@ -344,7 +358,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
 
             if (linkError) {
                 console.error("Error generating link:", linkError);
-                throw new Error("No se pudo generar el enlace de invitación");
+                throw new Error(`Error al generar invitación: ${linkError.message}`);
             }
 
             const { user: newUser, properties } = linkData;
