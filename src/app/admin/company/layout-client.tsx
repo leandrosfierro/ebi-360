@@ -37,13 +37,13 @@ export default function CompanyAdminLayoutClient({
 
     const navLinks = [
         { href: "/admin/company", label: "Dashboard", icon: "LayoutDashboard" },
-        { href: "/wellbeing", label: "Mi Rueda", icon: "Activity" },
         { href: "/admin/company/employees", label: "Colaboradores", icon: "Users", roles: ['company_admin', 'super_admin', 'consultor_bs360', 'rrhh'] },
         { href: "/admin/company/areas", label: "Áreas", icon: "Building2", roles: ['company_admin', 'super_admin', 'consultor_bs360', 'rrhh'] },
         { href: "/admin/company/evaluations", label: "Evaluaciones", icon: "ClipboardCheck", roles: ['company_admin', 'super_admin', 'consultor_bs360', 'rrhh'] },
         { href: "/admin/company/emails", label: "Invitaciones", icon: "Mail", roles: ['company_admin', 'super_admin', 'consultor_bs360', 'rrhh'] },
         { href: "/admin/company/reports", label: "Reportes", icon: "FileText" },
         { href: "/admin/company/settings", label: "Configuración", icon: "Settings", roles: ['company_admin', 'super_admin', 'consultor_bs360'] },
+        { href: "/wellbeing", label: "Mi Rueda", icon: "Activity" },
     ].filter(link => !link.roles || link.roles.includes(activeRole));
 
     return (

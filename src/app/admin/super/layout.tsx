@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,15 @@ export default async function AdminLayout({
     if (error || !user) {
         redirect("/login");
     }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('roles, active_role, role')
+        .eq('id', user.id)
+        .single();
+
+    const userRoles = profile?.roles || (profile?.role ? [profile.role] : ['employee']);
+    const activeRole = profile?.active_role || profile?.role || 'employee';
 
     const navLinks = [
         { href: "/admin/super", label: "Dashboard", icon: "LayoutDashboard" },
@@ -50,7 +60,14 @@ export default async function AdminLayout({
                             priority
                         />
                     </div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Super Admin Panel</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-6">Super Admin Panel</p>
+
+                    <div className="mb-4">
+                        <RoleSwitcher
+                            currentRole={activeRole}
+                            availableRoles={userRoles}
+                        />
+                    </div>
                 </div>
 
                 <nav className="flex-1 px-4 space-y-4 overflow-y-auto no-scrollbar">
@@ -75,7 +92,12 @@ export default async function AdminLayout({
 
                     <div>
                         <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Configuración</p>
-                        <AdminSidebarLinks links={navLinks.slice(6)} />
+                        <AdminSidebarLinks links={navLinks.slice(6, 7)} />
+                    </div>
+
+                    <div>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Personal</p>
+                        <AdminSidebarLinks links={navLinks.slice(7)} />
                     </div>
                 </nav>
 

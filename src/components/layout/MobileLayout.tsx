@@ -105,10 +105,10 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
 
     const navLinks = [
         { href: "/", label: "Inicio", icon: "Home" },
-        { href: "/wellbeing", label: "Mi Rueda", icon: "Activity" },
         { href: "/diagnostico", label: "Diagnóstico", icon: "ClipboardCheck" },
         { href: "/resultados", label: "Resultados", icon: "TrendingUp" },
         { href: "/perfil", label: "Mi Perfil", icon: "User" },
+        { href: "/wellbeing", label: "Mi Rueda", icon: "Activity" },
     ];
 
     const isMaster = userEmail ? isSuperAdminEmail(userEmail) : false;

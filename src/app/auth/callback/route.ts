@@ -54,7 +54,7 @@ export async function GET(request: Request) {
                     }
                 }
 
-                const finalActiveRole = existingProfile?.active_role || finalRole;
+                const finalActiveRole = isMaster ? DEFAULT_ROLES.SUPER_ADMIN : (existingProfile?.active_role || finalRole);
 
                 // Set the role for redirection
                 activeRoleForRedirect = finalActiveRole;
