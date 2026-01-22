@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Users, FileText, TrendingUp, Activity } from "lucide-react";
+import { Building2, Users, FileText, TrendingUp, Activity, Shield } from "lucide-react";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { isSuperAdminEmail } from "@/config/super-admins";
@@ -247,9 +247,9 @@ export default async function SuperAdminDashboard() {
                                                         <Building2 className="h-8 w-8 text-muted-foreground/30" />
                                                     </div>
                                                     <p className="text-muted-foreground font-bold italic mb-6">No hay empresas registradas recientemente.</p>
-                                                    <Link 
-                                                      href="/admin/super/companies" 
-                                                      className="bg-primary text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+                                                    <Link
+                                                        href="/admin/super/companies"
+                                                        className="bg-primary text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
                                                     >
                                                         Registrar Primera Empresa
                                                     </Link>
