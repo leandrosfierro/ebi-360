@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { InviteSuperAdminDialog } from "@/components/admin/InviteSuperAdminDialog";
-import { Shield } from "lucide-react";
+import { Shield, MoreHorizontal } from "lucide-react";
+import { SuperAdminActionsMenu } from "@/components/admin/SuperAdminActionsMenu";
 import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default async function SuperAdminsPage() {
@@ -14,7 +15,7 @@ export default async function SuperAdminsPage() {
     // Fetch all super admin users
     const { data: superAdmins } = await supabase
         .from('profiles')
-        .select('id, email, full_name, created_at, admin_status')
+        .select('id, email, full_name, created_at, admin_status, invitation_link')
         .or('role.eq.super_admin,active_role.eq.super_admin')
         .order('created_at', { ascending: false });
 
@@ -44,6 +45,7 @@ export default async function SuperAdminsPage() {
                                     <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Email</th>
                                     <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Estado</th>
                                     <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px]">Fecha Registro</th>
+                                    <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px] text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -84,11 +86,14 @@ export default async function SuperAdminsPage() {
                                                     day: 'numeric'
                                                 })}
                                             </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <SuperAdminActionsMenu admin={admin as any} />
+                                            </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-20 text-center">
+                                        <td colSpan={5} className="px-6 py-20 text-center">
                                             <div className="h-16 w-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
                                                 <Shield className="h-8 w-8 text-primary/30" />
                                             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Pencil, Trash2, Ban, CheckCircle, Mail, Building2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Ban, CheckCircle, Mail, Building2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -23,13 +23,22 @@ interface EmployeeActionsMenuProps {
         full_name: string;
         admin_status?: string;
         area_id?: string;
+        invitation_link?: string | null;
     };
     areas: any[];
 }
 
 export function EmployeeActionsMenu({ employee, areas }: EmployeeActionsMenuProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
     const router = useRouter();
+
+    const handleCopyLink = () => {
+        if (!employee.invitation_link) return;
+        navigator.clipboard.writeText(employee.invitation_link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     const handleToggleStatus = async () => {
         const isActive = employee.admin_status === 'active';
@@ -101,6 +110,13 @@ export function EmployeeActionsMenu({ employee, areas }: EmployeeActionsMenuProp
                         <Mail className="mr-2 h-4 w-4 text-primary" />
                         <span className="font-bold text-sm">Enviar Invitación</span>
                     </DropdownMenuItem>
+
+                    {employee.invitation_link && (
+                        <DropdownMenuItem onClick={handleCopyLink} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors text-purple-600">
+                            <RefreshCw className={`mr-2 h-4 w-4 ${copied ? 'animate-bounce' : ''}`} />
+                            <span className="font-bold text-sm">{copied ? '¡Copiado!' : 'Copiar Link'}</span>
+                        </DropdownMenuItem>
+                    )}
 
                     <DropdownMenuItem onClick={handleToggleStatus} className="px-4 py-3 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors">
                         {isActive ? (

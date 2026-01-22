@@ -31,7 +31,8 @@ export default async function CompaniesPage() {
                 full_name,
                 admin_status,
                 last_active_at,
-                role
+                role,
+                invitation_link
             )
         `)
         .order("created_at", { ascending: false });

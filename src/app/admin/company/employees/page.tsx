@@ -25,7 +25,8 @@ export default async function EmployeesPage() {
             areas (
                 id,
                 name
-            )
+            ),
+            invitation_link
         `)
         .eq("company_id", companyId)
         .order("created_at", { ascending: false });

@@ -150,21 +150,45 @@ export async function sendManualInvitations(employeeIds: string[]) {
         try {
             const { data: employee } = await supabaseAdmin
                 .from('profiles')
-                .select('email, full_name')
+                .select('email, full_name, invitation_link')
                 .eq('id', id)
                 .eq('company_id', profile.company_id)
                 .single();
 
             if (!employee) continue;
 
-            const loginLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login`;
+            let inviteLink = employee.invitation_link;
+
+            // Generate new link if it doesn't exist
+            if (!inviteLink) {
+                const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+                    type: 'invite',
+                    email: employee.email,
+                    options: {
+                        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+                        data: {
+                            full_name: employee.full_name,
+                            company_id: profile.company_id,
+                            role: 'employee'
+                        }
+                    }
+                });
+
+                if (linkError) {
+                    console.error(`Error generating link for ${employee.email}:`, linkError);
+                    results.failed++;
+                    results.errors.push(`${employee.email}: Error al generar link`);
+                    continue;
+                }
+                inviteLink = linkData.properties.action_link;
+            }
 
             let htmlContent = template.body_html || "";
             htmlContent = htmlContent
                 .replace(/{{full_name}}/g, employee.full_name || "")
                 .replace(/{{company_name}}/g, company?.name || "")
                 .replace(/{{logo_url}}/g, company?.logo_url || "")
-                .replace(/{{login_link}}/g, loginLink);
+                .replace(/{{login_link}}/g, inviteLink || "");
 
             if (process.env.RESEND_API_KEY) {
                 const { error: emailError } = await resend.emails.send({
@@ -182,10 +206,13 @@ export async function sendManualInvitations(employeeIds: string[]) {
                     results.sent++;
                     await logEmail(employee.email, 'employee_invitation', 'sent', undefined, { employeeId: id });
 
-                    // Update status to invited
+                    // Update status to invited and save the link
                     await supabaseAdmin
                         .from('profiles')
-                        .update({ admin_status: 'invited' })
+                        .update({
+                            admin_status: 'invited',
+                            invitation_link: inviteLink
+                        })
                         .eq('id', id);
                 }
             } else {

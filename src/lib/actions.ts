@@ -294,6 +294,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
 
     // Use Admin Client for privileged operations
     const supabaseAdmin = createAdminClient();
+    let inviteLink: string | undefined;
 
     try {
         // 1. Check if user already exists (using admin client to ensure visibility)
@@ -347,7 +348,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
             }
 
             const { user: newUser, properties } = linkData;
-            const inviteLink = properties.action_link;
+            inviteLink = properties.action_link;
 
             // 2.2 Upsert profile
             const { error: profileError } = await supabaseAdmin
@@ -361,6 +362,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                     roles: ['company_admin'],
                     company_id: companyId,
                     admin_status: 'invited',
+                    invitation_link: inviteLink
                 });
 
             if (profileError) {
@@ -421,7 +423,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         }
 
         revalidatePath("/admin/super/companies");
-        return { success: true };
+        return { success: true, inviteLink };
     } catch (error: any) {
         console.error("Error in invitation:", error);
         return { error: error.message || "Failed to invite admin" };
@@ -492,7 +494,8 @@ export async function inviteSuperAdmin(email: string, fullName: string) {
                 active_role: 'super_admin',
                 roles: SUPER_ADMIN_FULL_ROLES,
                 admin_status: 'invited',
-                company_id: null
+                company_id: null,
+                invitation_link: inviteLink
             });
 
         if (profileError) {
@@ -574,7 +577,7 @@ export async function inviteSuperAdmin(email: string, fullName: string) {
             });
         }
         revalidatePath("/admin/super/admins");
-        return { success: true };
+        return { success: true, inviteLink };
     } catch (error: any) {
         console.error("Error inviting super admin:", error);
         return { error: error.message || "Failed to invite super admin" };
@@ -728,24 +731,43 @@ export async function resendAdminInvitation(adminId: string) {
             throw new Error("Admin not found");
         }
 
-        // Resend invitation
-        const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-            admin.email,
-            {
+        // 2. Generate NEW invitation link (refreshes the link)
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+            type: 'invite',
+            email: admin.email,
+            options: {
+                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
                 data: {
                     full_name: admin.full_name,
                     company_id: admin.company_id,
                     role: 'company_admin',
+                    active_role: 'company_admin',
                     admin_status: 'invited',
-                },
-                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+                }
             }
-        );
+        });
 
-        if (inviteError) throw inviteError;
+        if (linkError) {
+            console.error("Error generating link for resend:", linkError);
+            throw new Error(`Error al generar invitación: ${linkError.message}`);
+        }
+
+        const inviteLink = linkData.properties.action_link;
+
+        // 3. Update profile with NEW link
+        await supabaseAdmin
+            .from('profiles')
+            .update({
+                admin_status: 'invited',
+                invitation_link: inviteLink
+            })
+            .eq('id', adminId);
+
+        // 4. Send Email manually using Resend (to match the styling/template)
+        // (Optional: You could also reuse the email logic from inviteCompanyAdmin here if needed)
 
         revalidatePath("/admin/super/companies");
-        return { success: true };
+        return { success: true, inviteLink };
     } catch (error: any) {
         console.error("Error resending invitation:", error);
         return { error: error.message || "Failed to resend invitation" };
@@ -856,46 +878,46 @@ export async function inviteEmployee(email: string, fullName: string) {
             return { error: "Este email ya está registrado en el sistema." };
         }
 
-        // 2. Create user in auth.users first (this generates the ID)
-        // We create with email_confirm: false so they need to verify via Google login
-        const { data: authUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
+        // 2. Generate invitation link (this also creates the user in auth.users)
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+            type: 'invite',
             email: email,
-            email_confirm: false, // User must login with Google to confirm
-            user_metadata: {
-                full_name: fullName,
-                company_id: companyId,
-                role: 'employee'
+            options: {
+                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+                data: {
+                    full_name: fullName,
+                    company_id: companyId,
+                    role: 'employee'
+                }
             }
         });
 
-        if (createAuthError) {
-            console.error("Error creating auth user:", createAuthError);
-            throw new Error(`Error al crear usuario: ${createAuthError.message}`);
+        if (linkError) {
+            console.error("Error generating link:", linkError);
+            throw new Error(`Error al generar invitación: ${linkError.message}`);
         }
 
-        if (!authUser.user) {
-            throw new Error("No se pudo crear el usuario en auth");
-        }
+        const { user: newUser, properties } = linkData;
+        const inviteLink = properties.action_link;
 
         // 3. Create profile with the same ID from auth.users
-        // This should be handled by the trigger, but we'll ensure it exists
         const { error: profileError } = await supabaseAdmin
             .from('profiles')
             .upsert({
-                id: authUser.user.id, // Use the ID from auth.users
+                id: newUser.id,
                 email: email,
                 full_name: fullName,
                 role: 'employee',
                 company_id: companyId,
                 active_role: 'employee',
                 roles: ['employee'],
-                admin_status: 'invited'
+                admin_status: 'invited',
+                invitation_link: inviteLink
             });
 
         if (profileError) {
             console.error("Error creating profile:", profileError);
-            // Try to clean up the auth user if profile creation fails
-            await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+            await supabaseAdmin.auth.admin.deleteUser(newUser.id);
             throw new Error(`Error al crear perfil: ${profileError.message}`);
         }
 
@@ -919,9 +941,10 @@ export async function inviteEmployee(email: string, fullName: string) {
         return {
             success: true,
             emailSent,
+            inviteLink,
             message: emailSent
                 ? "Usuario registrado e invitación enviada por email."
-                : "Usuario registrado. Podrá ingresar con Google usando este email."
+                : "Usuario registrado. Puedes copiar el link de invitación o enviarlo manualmente."
         };
     } catch (error: any) {
         console.error("Error inviting employee:", error);

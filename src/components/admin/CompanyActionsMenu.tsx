@@ -29,6 +29,7 @@ interface CompanyActionsMenuProps {
         email: string;
         full_name: string;
         admin_status: string;
+        invitation_link?: string | null;
     }[] | null;
 }
 
@@ -37,7 +38,14 @@ export function CompanyActionsMenu({ company, admins }: CompanyActionsMenuProps)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showSurveysDialog, setShowSurveysDialog] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
     const router = useRouter();
+
+    const handleCopyLink = (link: string, adminId: string) => {
+        navigator.clipboard.writeText(link);
+        setCopiedId(adminId);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     const handleResendInvitation = async (adminId: string) => {
         setIsLoading(true);
@@ -111,10 +119,19 @@ export function CompanyActionsMenu({ company, admins }: CompanyActionsMenuProps)
                             </DropdownMenuLabel>
 
                             {admin.admin_status === 'invited' && (
-                                <DropdownMenuItem onClick={() => handleResendInvitation(admin.id)}>
-                                    <Mail className="mr-2 h-4 w-4" />
-                                    Reenviar Invitación
-                                </DropdownMenuItem>
+                                <>
+                                    <DropdownMenuItem onClick={() => handleResendInvitation(admin.id)}>
+                                        <Mail className="mr-2 h-4 w-4" />
+                                        Reenviar Invitación
+                                    </DropdownMenuItem>
+
+                                    {admin.invitation_link && (
+                                        <DropdownMenuItem onClick={() => handleCopyLink(admin.invitation_link!, admin.id)} className="text-purple-600 focus:text-purple-700 font-medium">
+                                            <RefreshCw className={`mr-2 h-4 w-4 ${copiedId === admin.id ? 'animate-bounce' : ''}`} />
+                                            {copiedId === admin.id ? '¡Link Copiado!' : 'Copiar Link Invitación'}
+                                        </DropdownMenuItem>
+                                    )}
+                                </>
                             )}
 
                             {admin.admin_status !== 'suspended' && (
