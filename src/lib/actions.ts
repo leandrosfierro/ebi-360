@@ -924,7 +924,7 @@ export async function inviteEmployee(email: string, fullName: string) {
         // 4. Send branded invitation email
         let emailSent = false;
         try {
-            const result = await sendManualInvitations([authUser.user.id]);
+            const result = await sendManualInvitations([newUser.id]);
             if ('success' in result && result.success && result.sent > 0) {
                 emailSent = true;
             } else if ('error' in result) {
