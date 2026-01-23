@@ -23,9 +23,6 @@ BEGIN
         END IF;
     END IF;
 
-    -- Asegurar que updated_at siempre se actualice
-    NEW.updated_at := NOW();
-
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -39,13 +36,22 @@ CREATE TRIGGER tr_sync_user_roles
     EXECUTE FUNCTION public.sync_user_roles();
 
 -- 3. Sanitización de Datos Existentes
--- Primero, normalizar active_role y role para todos
+-- Paso 1: Arreglar active_role null
 UPDATE public.profiles
-SET 
-    active_role = COALESCE(active_role, role, 'employee'::user_role),
-    role = COALESCE(role, active_role, 'employee'::user_role);
+SET active_role = role::user_role
+WHERE active_role IS NULL AND role IS NOT NULL;
 
--- Luego, arreglar los que no tienen roles array
+-- Paso 2: Arreglar role null
+UPDATE public.profiles
+SET role = 'employee'::user_role
+WHERE role IS NULL;
+
+-- Paso 3: Arreglar active_role que sigue null
+UPDATE public.profiles
+SET active_role = 'employee'::user_role
+WHERE active_role IS NULL;
+
+-- Paso 4: Arreglar los que no tienen roles array
 UPDATE public.profiles
 SET roles = ARRAY[role]
 WHERE roles IS NULL OR array_length(roles, 1) = 0 OR array_length(roles, 1) IS NULL;
