@@ -86,25 +86,26 @@
   }
 }
 
-:root {
-  --background: #0b1120;
-  --foreground: #f8fafc;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b1120;
+    --foreground: #f8fafc;
 
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
 
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
+    --accent: #1e293b;
+    --accent-foreground: #f8fafc;
 
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --card-bg: rgba(15, 23, 42, 0.7);
-  --card-border: rgba(255, 255, 255, 0.08);
+    --card: #0f172a;
+    --card-foreground: #f8fafc;
+    --card-bg: rgba(15, 23, 42, 0.7);
+    --card-border: rgba(255, 255, 255, 0.08);
 
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #1e293b;
-}
+    --border: #1e293b;
+    --input: #1e293b;
+    --ring: #1e293b;
+  }
 }
 
 .dark {
