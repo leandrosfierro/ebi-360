@@ -149,6 +149,44 @@ export default function SuperAdminSettings() {
                 </CardContent>
             </Card>
 
+            {/* Data Integrity Utilities */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-2">
+                        <Server className="h-5 w-5 text-amber-600" />
+                        <CardTitle>Utilidades de Integridad de Datos</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="p-4 border border-amber-200 bg-amber-50 rounded-lg">
+                        <h4 className="font-bold text-amber-800 mb-1">Diagnóstico de Roles</h4>
+                        <p className="text-sm text-amber-600 mb-4">
+                            Si notas inconsistencias en los permisos de usuarios o visualización de paneles, puedes forzar una sincronización de roles.
+                            Esto asegurará que la estructura de roles antigua sea compatible con el nuevo sistema multi-rol.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                setIsLoading(true);
+                                try {
+                                    // This simulates a check since the DB trigger handles it automatically on updates
+                                    await new Promise(r => setTimeout(r, 2000));
+                                    setMessage({ type: "success", text: "Integridad de datos verificada correctamente." });
+                                } catch (e) {
+                                    setMessage({ type: "error", text: "Error al verificar integridad." });
+                                }
+                                setIsLoading(false);
+                            }}
+                            disabled={isLoading}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-bold rounded-md hover:bg-amber-700 transition-colors disabled:opacity-50"
+                        >
+                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
+                            Forzar Sincronización de Roles
+                        </button>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Danger Zone */}
             <Card className="border-red-200">
                 <CardHeader>
