@@ -13,11 +13,19 @@ export default async function SuperAdminsPage() {
     }
 
     // Fetch all super admin users
-    const { data: superAdmins } = await supabase
+    // Use rpc or client-side filtering if complex OR logic with arrays is tricky in simple query builder
+    // Or robust approach: Get fields and filter in JS if dataset is small (super admins are few)
+    const { data: allProfiles } = await supabase
         .from('profiles')
-        .select('id, email, full_name, created_at, admin_status, invitation_link')
-        .or('role.eq.super_admin,active_role.eq.super_admin')
+        .select('id, email, full_name, created_at, admin_status, invitation_link, role, active_role, roles')
         .order('created_at', { ascending: false });
+
+    // Filter robustly in memory since OR logic with JSON/Array columns in Supabase client can be tricky
+    const superAdmins = allProfiles?.filter((p: any) =>
+        p.role === 'super_admin' ||
+        p.active_role === 'super_admin' ||
+        (Array.isArray(p.roles) && p.roles.includes('super_admin'))
+    ) || [];
 
     return (
         <div className="space-y-6">
