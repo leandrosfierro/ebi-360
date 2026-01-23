@@ -42,9 +42,13 @@ export default async function CompaniesPage() {
     }
 
     // Adapt the data structure to match what the UI expects (admin property)
+    // Filter using roles array to catch multi-role users (e.g., super_admins assigned to companies)
     const adaptedCompanies = companies?.map(company => ({
         ...company,
-        admins: company.profiles?.filter((p: any) => p.role === 'company_admin') || []
+        admins: company.profiles?.filter((p: any) =>
+            p.role === 'company_admin' ||
+            (p.roles && Array.isArray(p.roles) && p.roles.includes('company_admin'))
+        ) || []
     })) || [];
 
     console.log(">>> [COMPANIES PAGE] Companies found:", adaptedCompanies.length);

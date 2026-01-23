@@ -329,16 +329,20 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         }
 
         if (userId) {
-            // Update or Create profile for existing auth user
+            // MERGE roles to avoid losing Super Admin or other privileges
+            let newRoles: string[] = existingProfile?.roles || [];
+            if (!newRoles.includes('company_admin')) newRoles.push('company_admin');
+            if (!newRoles.includes('employee')) newRoles.push('employee');
+
             const { error: profileError } = await supabaseAdmin
                 .from('profiles')
                 .upsert({
                     id: userId,
                     email: email,
                     full_name: fullName || existingProfile?.full_name || '',
-                    role: 'company_admin',
-                    active_role: 'company_admin',
-                    roles: ['company_admin', 'employee'],
+                    role: existingProfile?.role === 'super_admin' ? 'super_admin' : 'company_admin',
+                    active_role: existingProfile?.active_role || 'company_admin',
+                    roles: newRoles,
                     company_id: companyId,
                     admin_status: 'active'
                 });

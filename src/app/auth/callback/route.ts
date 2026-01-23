@@ -32,8 +32,6 @@ export async function GET(request: Request) {
 
                 // Prioridad de rol: Perfil existente -> Metadata de Auth -> Default
                 let finalRole = existingProfile?.role || metadata.role || DEFAULT_ROLES.EMPLOYEE;
-
-                // Verificar si el email es de un super admin autorizado
                 const userEmail = user.email || '';
                 const isMaster = isSuperAdminEmail(userEmail);
 
@@ -41,25 +39,34 @@ export async function GET(request: Request) {
                     finalRole = DEFAULT_ROLES.SUPER_ADMIN;
                 }
 
+                // MERGE roles instead of replacing
                 let finalRoles = existingProfile?.roles || [finalRole];
+                if (!finalRoles.includes(finalRole as any)) {
+                    finalRoles.push(finalRole as any);
+                }
 
                 // Si es super_admin (por email o por DB), asegurar que tenga el array completo
-                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN || finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN) || isMaster) {
+                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN || finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN as any) || isMaster) {
                     finalRole = DEFAULT_ROLES.SUPER_ADMIN;
-                    finalRoles = [...SUPER_ADMIN_FULL_ROLES];
-                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN || finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN)) {
-                    // Ensure company admins also have employee role
-                    if (!finalRoles.includes(DEFAULT_ROLES.EMPLOYEE)) {
-                        finalRoles = [DEFAULT_ROLES.COMPANY_ADMIN, DEFAULT_ROLES.EMPLOYEE];
+                    // Ensure all master roles are present
+                    SUPER_ADMIN_FULL_ROLES.forEach(r => {
+                        if (!finalRoles.includes(r as any)) finalRoles.push(r as any);
+                    });
+                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN || finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN as any)) {
+                    // Ensure company admins also have employee role for self-testing
+                    if (!finalRoles.includes(DEFAULT_ROLES.EMPLOYEE as any)) {
+                        finalRoles.push(DEFAULT_ROLES.EMPLOYEE as any);
                     }
                 }
 
+                // Logic for company identity preservation
+                const finalCompanyId = metadata.company_id || existingProfile?.company_id || null;
                 const finalActiveRole = isMaster ? DEFAULT_ROLES.SUPER_ADMIN : (existingProfile?.active_role || finalRole);
 
                 // Set the role for redirection
                 activeRoleForRedirect = finalActiveRole;
 
-                // Upsert using Admin Client
+                // Upsert using Admin Client with merged data
                 await supabaseAdmin
                     .from('profiles')
                     .upsert({
@@ -69,8 +76,8 @@ export async function GET(request: Request) {
                         role: finalRole,
                         active_role: finalActiveRole,
                         roles: finalRoles,
-                        company_id: metadata.company_id || existingProfile?.company_id || null,
-                        admin_status: 'active',
+                        company_id: finalCompanyId,
+                        admin_status: existingProfile?.admin_status || 'active',
                         last_active_at: new Date().toISOString()
                     }, {
                         onConflict: 'id'
