@@ -112,28 +112,29 @@ export function RoleSwitcher({ currentRole, availableRoles, primaryColor }: Role
                                             setIsOpen(false);
                                         }}
                                         disabled={role === currentRole || switching}
+                                        className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all ${role === currentRole
                                             ? 'text-white'
-                                        : 'text-foreground hover:bg-muted'
+                                            : 'text-foreground hover:bg-muted'
                                             } disabled:opacity-50 disabled:cursor-not-allowed`}
-                                style={role === currentRole ? {
-                                    backgroundColor: primaryColor || 'var(--primary)',
-                                    boxShadow: primaryColor ? `0 10px 15px -3px ${primaryColor}40` : undefined
-                                } : {}}
+                                        style={role === currentRole ? {
+                                            backgroundColor: primaryColor || 'var(--primary)',
+                                            boxShadow: primaryColor ? `0 10px 15px -3px ${primaryColor}40` : undefined
+                                        } : {}}
                                     >
-                                <div className="flex items-center justify-between">
-                                    <span>{roleLabels[role] || role}</span>
-                                    {role === currentRole && (
-                                        <span className="text-[10px] opacity-70">(actual)</span>
-                                    )}
-                                </div>
-                            </button>
+                                        <div className="flex items-center justify-between">
+                                            <span>{roleLabels[role] || role}</span>
+                                            {role === currentRole && (
+                                                <span className="text-[10px] opacity-70">(actual)</span>
+                                            )}
+                                        </div>
+                                    </button>
                                 ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-        </>
-    )
-}
+                </>
+            )
+            }
         </div >
     );
 }
