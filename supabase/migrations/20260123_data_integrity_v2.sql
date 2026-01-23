@@ -39,15 +39,16 @@ CREATE TRIGGER tr_sync_user_roles
     EXECUTE FUNCTION public.sync_user_roles();
 
 -- 3. Sanitización de Datos Existentes
--- Convertir perfiles antiguos al nuevo formato de forma segura
+-- Primero, normalizar active_role y role para todos
 UPDATE public.profiles
 SET 
-    roles = CASE 
-        WHEN roles IS NULL OR array_length(roles, 1) = 0 THEN ARRAY[role::user_role]
-        ELSE roles 
-    END,
     active_role = COALESCE(active_role, role, 'employee'::user_role),
     role = COALESCE(role, active_role, 'employee'::user_role);
+
+-- Luego, arreglar los que no tienen roles array
+UPDATE public.profiles
+SET roles = ARRAY[role]
+WHERE roles IS NULL OR array_length(roles, 1) = 0 OR array_length(roles, 1) IS NULL;
 
 -- 4. Asegurar que Super Admins autorizados tengan acceso total (por si acaso)
 -- Nota: Esto usa la lista manual de emails definidos en el sistema
@@ -59,8 +60,6 @@ SET
 WHERE email IN (
     'leandro.fierro@bs360.com.ar',
     'carlos.menvielle@bs360.com.ar',
-    'leandrofierro@gmail.com',
-    'leandro.fierro@gmail.com',
     'carlos.menvielle@gmail.com',
     'carlitosmenvielle@gmail.com',
     'admin@bs360.com',
