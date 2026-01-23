@@ -67,17 +67,17 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                             <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
                                 <Calendar className="h-3 w-3" />
                             </span>
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                                 {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                             </span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-tight">
+                        <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight leading-tight">
                             {greeting}, <span className="text-primary">{user.user_metadata?.full_name?.split(' ')[0] || 'Usuario'}</span>
                         </h1>
                     </div>
                     <div className="relative group hidden sm:block">
                         <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                        <div className="relative h-16 w-16 rounded-full bg-white p-1.5 shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="relative h-16 w-16 rounded-full bg-card p-1.5 shadow-sm border border-border overflow-hidden">
                             {user.user_metadata?.avatar_url ? (
                                 <img src={user.user_metadata.avatar_url} alt="Profile" className="h-full w-full rounded-full object-cover" />
                             ) : (
@@ -98,7 +98,7 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                     {/* Wellbeing Wheel Master Card */}
                     <div className={cn(
                         "relative group p-8 rounded-[40px] overflow-hidden transition-all duration-500 hover:shadow-2xl md:col-span-8",
-                        hasWheel ? "bg-white border border-white shadow-glass" : "bg-primary text-white shadow-2xl shadow-primary/20"
+                        hasWheel ? "bg-card border border-border shadow-glass" : "bg-primary text-white shadow-2xl shadow-primary/20"
                     )}>
                         <div className="relative z-10 flex flex-col md:flex-row gap-8 h-full">
                             <div className="flex-1 flex flex-col justify-between min-h-[250px]">
@@ -109,10 +109,10 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                                     )}>
                                         <Activity className="h-6 w-6" />
                                     </div>
-                                    <h3 className={cn("text-4xl font-black tracking-tight mb-3", hasWheel ? "text-gray-900" : "text-white")}>
+                                    <h3 className={cn("text-4xl font-black tracking-tight mb-3", hasWheel ? "text-foreground" : "text-white")}>
                                         {hasWheel ? "Tu Rueda de Bienestar" : "Comenzá tu Viaje"}
                                     </h3>
-                                    <p className={cn("text-lg font-medium opacity-80 max-w-md leading-relaxed", hasWheel ? "text-gray-600" : "text-white/90")}>
+                                    <p className={cn("text-lg font-medium opacity-80 max-w-md leading-relaxed", hasWheel ? "text-muted-foreground" : "text-white/90")}>
                                         {hasWheel
                                             ? `Tu puntaje promedio hoy es de ${latestWheel.average_score.toFixed(1)}/10. Tu fortaleza principal es ${latestWheel.max_domain}.`
                                             : "Registrá tu estado actual en 2 minutos y obtené un feedback impulsado por IA para mejorar tu día."}
@@ -133,19 +133,19 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
 
                             {/* Mini Visualizer if hasWheel */}
                             {hasWheel && (
-                                <div className="w-full md:w-64 flex flex-col justify-center gap-4 bg-gray-50/50 p-6 rounded-[32px] border border-gray-100/50 backdrop-blur-sm">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Resumen por dominio</p>
+                                <div className="w-full md:w-64 flex flex-col justify-center gap-4 bg-muted/50 p-6 rounded-[32px] border border-border/50 backdrop-blur-sm">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Resumen por dominio</p>
                                     <div className="space-y-4">
                                         {Object.entries(latestWheel.scores || {}).slice(0, 4).map(([domain, score]: [string, any]) => (
                                             <div key={domain}>
                                                 <div className="flex justify-between text-xs font-bold mb-1.5">
-                                                    <span className="capitalize text-gray-700 flex items-center gap-2">
+                                                    <span className="capitalize text-muted-foreground flex items-center gap-2">
                                                         {domainIcons[domain.toLowerCase()] || <Smile className="h-3 w-3" />}
                                                         {domain}
                                                     </span>
                                                     <span className="text-primary">{score}</span>
                                                 </div>
-                                                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                                                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                                                     <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${score * 10}%` }}></div>
                                                 </div>
                                             </div>
@@ -163,13 +163,13 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                     </div>
 
                     {/* Assigned Survey Card */}
-                    <div className="relative group bg-white border border-white p-8 rounded-[40px] shadow-glass hover:shadow-2xl transition-all duration-500 md:col-span-4 flex flex-col justify-between overflow-hidden">
+                    <div className="relative group bg-card border border-border p-8 rounded-[40px] shadow-glass hover:shadow-2xl transition-all duration-500 md:col-span-4 flex flex-col justify-between overflow-hidden">
                         <div>
-                            <div className="inline-flex p-3 rounded-2xl bg-indigo-50 text-indigo-600 mb-8">
+                            <div className="inline-flex p-3 rounded-2xl bg-primary/10 text-primary mb-8">
                                 <ClipboardCheck className="h-6 w-6" />
                             </div>
-                            <h3 className="text-3xl font-black text-gray-900 tracking-tight mb-3">Diagnóstico Empresa</h3>
-                            <p className="text-gray-500 font-medium leading-relaxed">
+                            <h3 className="text-3xl font-black text-foreground tracking-tight mb-3">Diagnóstico Empresa</h3>
+                            <p className="text-muted-foreground font-medium leading-relaxed">
                                 {pendingSurveysCount > 0
                                     ? `Tenés un diagnóstico activo pendiente.`
                                     : "No tenés diagnósticos asignados en este momento."}
@@ -177,7 +177,7 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                         </div>
 
                         {pendingSurveysCount > 0 ? (
-                            <Link href="/diagnostico" className="mt-10 group/btn bg-indigo-600 text-white p-6 rounded-[28px] transition-all hover:bg-indigo-700 active:scale-95 shadow-lg flex items-center justify-between">
+                            <Link href="/diagnostico" className="mt-10 group/btn bg-primary text-white p-6 rounded-[28px] transition-all hover:bg-primary/90 active:scale-95 shadow-lg flex items-center justify-between">
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">Encuesta Activa</p>
                                     <h4 className="font-bold text-lg leading-tight">{assignedSurveys[0].name}</h4>
@@ -187,13 +187,13 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                                 </div>
                             </Link>
                         ) : (
-                            <div className="mt-10 p-6 rounded-[28px] bg-amber-50/50 border border-amber-100 flex gap-4">
-                                <div className="h-10 w-10 shrink-0 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                            <div className="mt-10 p-6 rounded-[28px] bg-muted border border-border flex gap-4">
+                                <div className="h-10 w-10 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                     <Clock className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-black text-amber-800 uppercase tracking-tight mb-1">Próximamente</h4>
-                                    <p className="text-xs font-medium text-amber-700/80 leading-snug">
+                                    <h4 className="text-sm font-black text-foreground uppercase tracking-tight mb-1">Próximamente</h4>
+                                    <p className="text-xs font-medium text-muted-foreground leading-snug">
                                         Tu administrador te avisará cuando haya un nuevo diagnóstico para completar.
                                     </p>
                                 </div>
@@ -210,26 +210,26 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
                     {/* Stat: Result Snapshot */}
-                    <div className="bg-white/80 backdrop-blur-xl border border-white p-7 rounded-[32px] shadow-sm flex items-center gap-5 group hover:bg-white transition-all transform hover:-translate-y-1">
-                        <div className="h-14 w-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
+                    <div className="bg-card/80 backdrop-blur-xl border border-border p-7 rounded-[32px] shadow-sm flex items-center gap-5 group hover:bg-card transition-all transform hover:-translate-y-1">
+                        <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                             <TrendingUp className="h-7 w-7" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Resultado EBI</p>
-                            <h4 className="text-3xl font-black text-gray-900 tracking-tighter">
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Resultado EBI</p>
+                            <h4 className="text-3xl font-black text-foreground tracking-tighter">
                                 {hasSurveyData ? diagnosticData.global_score?.toFixed(1) || "7.4" : "--"}
                             </h4>
                         </div>
                     </div>
 
                     {/* Stat: Streak */}
-                    <div className="bg-white/80 backdrop-blur-xl border border-white p-7 rounded-[32px] shadow-sm flex items-center gap-5 group hover:bg-white transition-all transform hover:-translate-y-1">
-                        <div className="h-14 w-14 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                    <div className="bg-card/80 backdrop-blur-xl border border-border p-7 rounded-[32px] shadow-sm flex items-center gap-5 group hover:bg-card transition-all transform hover:-translate-y-1">
+                        <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                             <Medal className="h-7 w-7" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Participación</p>
-                            <h4 className="text-3xl font-black text-gray-900 tracking-tighter">
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Participación</p>
+                            <h4 className="text-3xl font-black text-foreground tracking-tighter">
                                 {hasWheel ? "Alta" : "Baja"}
                             </h4>
                         </div>
@@ -264,41 +264,41 @@ export function AppleDashboard({ user, diagnosticData, latestWheel, assignedSurv
                 {/* 4. Secondary Quick Links */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
 
-                    <Link href="/wellbeing/history" className="group bg-white border border-white/40 p-6 rounded-[32px] shadow-sm flex items-center justify-between hover:bg-gray-50 transition-all border-b-4 border-b-primary/10">
+                    <Link href="/wellbeing/history" className="group bg-card border border-border p-6 rounded-[32px] shadow-sm flex items-center justify-between hover:bg-muted transition-all border-b-4 border-b-primary/10">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary/5 transition-colors">
+                            <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center text-primary group-hover:bg-primary/5 transition-colors">
                                 <TrendingUp className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-900 uppercase text-xs tracking-widest mb-0.5">Historial</h4>
-                                <p className="text-sm font-medium text-gray-500">Repasá tus avances</p>
+                                <h4 className="font-bold text-foreground uppercase text-xs tracking-widest mb-0.5">Historial</h4>
+                                <p className="text-sm font-medium text-muted-foreground">Repasá tus avances</p>
                             </div>
                         </div>
-                        <div className="p-1.5 rounded-full bg-gray-100 group-hover:bg-primary group-hover:text-white transition-all">
+                        <div className="p-1.5 rounded-full bg-muted group-hover:bg-primary group-hover:text-white transition-all">
                             <ArrowRight className="h-4 w-4" />
                         </div>
                     </Link>
 
-                    <Link href="/perfil" className="group bg-white border border-white/40 p-6 rounded-[32px] shadow-sm flex items-center justify-between hover:bg-gray-50 transition-all border-b-4 border-b-purple-500/10">
+                    <Link href="/perfil" className="group bg-card border border-border p-6 rounded-[32px] shadow-sm flex items-center justify-between hover:bg-muted transition-all border-b-4 border-b-purple-500/10">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-50 transition-colors">
+                            <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center text-purple-600 group-hover:bg-purple-50/10 transition-colors">
                                 <Medal className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-900 uppercase text-xs tracking-widest mb-0.5">Badges</h4>
-                                <p className="text-sm font-medium text-gray-500">Insignias logradas</p>
+                                <h4 className="font-bold text-foreground uppercase text-xs tracking-widest mb-0.5">Badges</h4>
+                                <p className="text-sm font-medium text-muted-foreground">Insignias logradas</p>
                             </div>
                         </div>
-                        <div className="p-1.5 rounded-full bg-gray-100 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                        <div className="p-1.5 rounded-full bg-muted group-hover:bg-purple-600 group-hover:text-white transition-all" >
                             <ArrowRight className="h-4 w-4" />
                         </div>
                     </Link>
 
-                    <div className="hidden lg:flex p-6 rounded-[32px] bg-white/40 border border-white/60 items-center justify-center text-gray-400 text-center flex-col gap-2">
+                    <div className="hidden lg:flex p-6 rounded-[32px] bg-card/40 border border-border items-center justify-center text-muted-foreground text-center flex-col gap-2">
                         <div className="flex -space-x-3">
-                            <div className="w-8 h-8 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600">LF</div>
-                            <div className="w-8 h-8 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">EM</div>
-                            <div className="w-8 h-8 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-600">+12</div>
+                            <div className="w-8 h-8 rounded-full border-2 border-card bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600">LF</div>
+                            <div className="w-8 h-8 rounded-full border-2 border-card bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">EM</div>
+                            <div className="w-8 h-8 rounded-full border-2 border-card bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-600">+12</div>
                         </div>
                         <p className="text-[10px] font-bold uppercase tracking-widest leading-none">Tu equipo está activo hoy</p>
                     </div>

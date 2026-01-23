@@ -49,7 +49,7 @@ export default function CompanyAdminLayoutClient({
     return (
         <div className="flex min-h-screen bg-mesh-gradient text-foreground flex-col md:flex-row">
             {/* Desktop Sidebar */}
-            <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
+            <aside className="w-72 glass-panel border-r border-border hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                 <div className="p-8">
                     <div className="flex items-center gap-3 mb-4">
                         {companyBranding?.logo_url ? (
@@ -70,7 +70,7 @@ export default function CompanyAdminLayoutClient({
                         )}
                     </div>
                     {companyBranding?.name && (
-                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 line-clamp-1" style={{ color: companyBranding.primary_color || undefined }}>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 line-clamp-1" style={{ color: companyBranding.primary_color || 'var(--primary)' }}>
                             {companyBranding.name}
                         </p>
                     )}
@@ -84,15 +84,15 @@ export default function CompanyAdminLayoutClient({
                 <nav className="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
                     <div className="mb-4">
                         <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Navegación</p>
-                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
-                            <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" style={{ color: companyBranding?.primary_color ? `${companyBranding.primary_color}99` : undefined }} />
+                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-primary transition-all">
+                            <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" style={{ color: companyBranding?.primary_color ? `${companyBranding.primary_color}99` : 'var(--muted-foreground)' }} />
                             <span>Volver al Home</span>
                         </Link>
                         <AdminSidebarLinks links={navLinks} primaryColor={companyBranding?.primary_color} />
                     </div>
                 </nav>
 
-                <div className="p-4 border-t border-white/10">
+                <div className="p-4 border-t border-border">
                     <form action="/auth/signout" method="post">
                         <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95">
                             <LogOut className="h-5 w-5" />

@@ -76,7 +76,7 @@ export function RoleSwitcher({ currentRole, availableRoles, primaryColor }: Role
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 disabled={switching}
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold text-foreground hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px] justify-between"
+                className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm font-bold text-foreground hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px] justify-between"
             >
                 <span className="truncate">{roleLabels[currentRole] || currentRole}</span>
                 {switching ? (
@@ -112,28 +112,28 @@ export function RoleSwitcher({ currentRole, availableRoles, primaryColor }: Role
                                             setIsOpen(false);
                                         }}
                                         disabled={role === currentRole || switching}
-                                        className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all ${role === currentRole
                                             ? 'text-white'
-                                            : 'text-foreground hover:bg-white/5'
+                                        : 'text-foreground hover:bg-muted'
                                             } disabled:opacity-50 disabled:cursor-not-allowed`}
-                                        style={role === currentRole ? {
-                                            backgroundColor: primaryColor || 'var(--primary)',
-                                            boxShadow: primaryColor ? `0 10px 15px -3px ${primaryColor}40` : undefined
-                                        } : {}}
+                                style={role === currentRole ? {
+                                    backgroundColor: primaryColor || 'var(--primary)',
+                                    boxShadow: primaryColor ? `0 10px 15px -3px ${primaryColor}40` : undefined
+                                } : {}}
                                     >
-                                        <div className="flex items-center justify-between">
-                                            <span>{roleLabels[role] || role}</span>
-                                            {role === currentRole && (
-                                                <span className="text-[10px] opacity-70">(actual)</span>
-                                            )}
-                                        </div>
-                                    </button>
+                                <div className="flex items-center justify-between">
+                                    <span>{roleLabels[role] || role}</span>
+                                    {role === currentRole && (
+                                        <span className="text-[10px] opacity-70">(actual)</span>
+                                    )}
+                                </div>
+                            </button>
                                 ))}
-                            </div>
                         </div>
                     </div>
-                </>
-            )}
-        </div>
+                </div>
+        </>
+    )
+}
+        </div >
     );
 }

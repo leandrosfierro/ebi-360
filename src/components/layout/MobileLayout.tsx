@@ -120,7 +120,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
         <div className="flex min-h-screen flex-col md:flex-row bg-background">
             {/* Desktop Sidebar */}
             {(isAuth || profile) && !isAdminRoute && (
-                <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
+                <aside className="w-72 glass-panel border-r border-border hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                     <div className="p-8">
                         <div className="flex items-center gap-3 mb-2">
                             <Image
@@ -144,7 +144,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                         {isAdmin && (
                             <div>
                                 <p className="px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Administración</p>
-                                <Link href={adminPath} className="group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all">
+                                <Link href={adminPath} className="group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-primary transition-all">
                                     <Target className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
                                     <span>Panel Admin</span>
                                 </Link>
@@ -152,7 +152,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                         )}
                     </nav>
 
-                    <div className="p-4 border-t border-white/10">
+                    <div className="p-4 border-t border-border">
                         <form action="/auth/signout" method="post">
                             <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95">
                                 <LogOut className="h-5 w-5" />
@@ -165,7 +165,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
 
             {/* Mobile Header (Only visible on mobile if auth) */}
             {isAuth && !isAdminRoute && (
-                <div className="md:hidden flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border-b border-white/20 sticky top-0 z-30">
+                <div className="md:hidden flex items-center justify-between p-4 bg-background/40 backdrop-blur-md border-b border-border sticky top-0 z-30">
                     <Image src="/logo-bs360.png" alt="Bs360" width={100} height={30} className="object-contain logo-color-filter" />
                     <div className="flex gap-4">
                         <Link href="/" className="p-2 text-muted-foreground hover:text-primary transition-colors">

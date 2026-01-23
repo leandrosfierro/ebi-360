@@ -62,7 +62,7 @@ export function AdminSidebarLinks({ links, primaryColor }: AdminSidebarLinksProp
                             "flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold transition-all mb-1",
                             isActive
                                 ? "text-white shadow-lg scale-[1.02]"
-                                : "text-muted-foreground hover:bg-white/5 hover:text-primary font-medium"
+                                : "text-muted-foreground hover:bg-muted hover:text-primary font-medium"
                         )}
                         style={isActive ? {
                             backgroundColor: primaryColor || 'var(--primary)',

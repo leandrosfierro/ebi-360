@@ -48,7 +48,7 @@ export default async function AdminLayout({
     return (
         <div className="flex min-h-screen bg-mesh-gradient text-foreground transition-colors duration-500 flex-col md:flex-row">
             {/* Desktop Sidebar */}
-            <aside className="w-72 glass-panel border-r border-white/20 hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
+            <aside className="w-72 glass-panel border-r border-border hidden md:flex flex-col z-20 sticky top-0 h-screen transition-all duration-300">
                 <div className="p-8">
                     <div className="flex items-center gap-3 mb-2">
                         <Image
@@ -73,7 +73,7 @@ export default async function AdminLayout({
                 <nav className="flex-1 px-4 space-y-4 overflow-y-auto no-scrollbar">
                     <div>
                         <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Principal</p>
-                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-primary transition-all mb-1">
+                        <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-primary transition-all mb-1">
                             <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" />
                             <span>Volver al Home</span>
                         </Link>
@@ -101,7 +101,7 @@ export default async function AdminLayout({
                     </div>
                 </nav>
 
-                <div className="p-4 border-t border-white/10">
+                <div className="p-4 border-t border-border">
                     <form action="/auth/signout" method="post">
                         <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all active:scale-95 group">
                             <div className="p-2 rounded-xl bg-rose-500/10 group-hover:bg-rose-500/20 transition-colors">

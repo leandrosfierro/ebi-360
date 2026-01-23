@@ -103,7 +103,7 @@ export default async function SuperAdminDashboard() {
                             Gestión integral de la infraestructura y clientes de EBI 360.
                         </p>
                     </div>
-                    <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-sm">
+                    <div className="flex items-center gap-4 bg-muted/50 backdrop-blur-md p-2 rounded-2xl border border-border shadow-sm">
                         <div className="p-3 bg-emerald-500/10 rounded-xl">
                             <Activity className="h-5 w-5 text-emerald-500 animate-pulse" />
                         </div>
@@ -178,7 +178,7 @@ export default async function SuperAdminDashboard() {
                         { title: "Respuestas", value: resultsCount, sub: "Participación", color: "text-emerald-500" },
                         { title: "Avg Score", value: averageScore, sub: "Bienestar Global", color: "text-rose-500" },
                     ].map((stat, i) => (
-                        <div key={i} className="glass-card p-6 rounded-[32px] border-white/5 shadow-sm group hover:bg-white/10 transition-all">
+                        <div key={i} className="glass-card p-6 rounded-[32px] border-border shadow-sm group hover:bg-muted transition-all">
                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">{stat.title}</p>
                             <div className={`text-4xl font-black tracking-tighter ${stat.color}`}>{stat.value}</div>
                             <p className="text-xs font-bold text-muted-foreground/60 mt-1 uppercase tracking-tight">{stat.sub}</p>
@@ -187,7 +187,7 @@ export default async function SuperAdminDashboard() {
                 </div>
 
                 {/* 4. Recent Activity / Companies List */}
-                <div className="glass-card rounded-[40px] overflow-hidden shadow-2xl border border-white/5">
+                <div className="glass-card rounded-[40px] overflow-hidden shadow-2xl border border-border">
                     <div className="p-10">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
@@ -196,7 +196,7 @@ export default async function SuperAdminDashboard() {
                                 </div>
                                 <h3 className="text-2xl font-black text-foreground tracking-tight">Altas Recientes</h3>
                             </div>
-                            <Link href="/admin/super/companies" className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-foreground hover:bg-white/10 font-black uppercase tracking-widest transition-all">
+                            <Link href="/admin/super/companies" className="px-6 py-2.5 rounded-xl bg-muted/50 border border-border text-xs text-foreground hover:bg-muted font-black uppercase tracking-widest transition-all">
                                 Ver todas
                             </Link>
                         </div>
@@ -214,7 +214,7 @@ export default async function SuperAdminDashboard() {
                                     {recentCompanies && recentCompanies.length > 0 ? (
                                         recentCompanies.map((company: any) => (
                                             <tr key={company.id} className="group hover:bg-white/[0.02] transition-colors">
-                                                <td className="px-6 py-6">
+                                                <td className="px-6 py-6 border-b border-border">
                                                     <p className="font-black text-foreground text-lg">{company.name}</p>
                                                     <p className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">ID: {company.id.slice(0, 8)}...</p>
                                                 </td>
@@ -243,7 +243,7 @@ export default async function SuperAdminDashboard() {
                                         <tr>
                                             <td colSpan={4} className="px-6 py-20 text-center">
                                                 <div className="flex flex-col items-center">
-                                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                                                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                                                         <Building2 className="h-8 w-8 text-muted-foreground/30" />
                                                     </div>
                                                     <p className="text-muted-foreground font-bold italic mb-6">No hay empresas registradas recientemente.</p>
