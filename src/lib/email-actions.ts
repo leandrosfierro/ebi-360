@@ -28,14 +28,16 @@ export async function getEmailTemplates() {
 
     if (!user) return { error: "Unauthorized" };
 
-    // Check if super admin
-    const { data: profile } = await supabase
+    // Use Admin Client for role check to avoid RLS recursion/blocks
+    const supabaseAdmin = createAdminClient();
+    const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
 
-    if (profile?.role !== 'super_admin') {
+    if (profileError || profile?.role !== 'super_admin') {
+        console.error("Access denied in getEmailTemplates:", profileError || "Not a super_admin");
         return { error: "Unauthorized: Super Admin only" };
     }
 
@@ -59,7 +61,20 @@ export async function updateEmailTemplate(id: string, subject: string, bodyHtml:
 
     if (!user) return { error: "Unauthorized" };
 
-    const { error } = await supabase
+    const supabaseAdmin = createAdminClient();
+
+    // Role check via Admin Client
+    const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (profile?.role !== 'super_admin') {
+        return { error: "Unauthorized" };
+    }
+
+    const { error } = await supabaseAdmin
         .from('email_templates')
         .update({
             subject,

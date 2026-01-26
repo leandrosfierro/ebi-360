@@ -116,18 +116,19 @@ export async function saveDiagnosticResult(
 
 export async function createCompany(formData: FormData) {
     const supabase = await createClient();
-
-    // Verify super admin role
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "Unauthorized" };
 
-    const { data: profile } = await supabase
+    // Use Admin Client for role check to bypass RLS recursion
+    const supabaseAdmin = createAdminClient();
+    const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
 
-    if (profile?.role !== 'super_admin') {
+    if (profileError || profile?.role !== 'super_admin') {
+        console.error("Access denied in createCompany:", profileError || "Not a super_admin");
         return { error: "Unauthorized: Super Admin only" };
     }
 
