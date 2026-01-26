@@ -19,6 +19,7 @@ export const SUPER_ADMIN_EMAILS = [
     'carlos.menvielle@bs360.com.ar',
     'carlos.menvielle@gmail.com',
     'carlitosmenvielle@gmail.com',
+    'leandrosfierro@gmail.com',
     'admin@bs360.com',
     'admin@bs360.com.ar',
     'soporte@bs360.com.ar',
