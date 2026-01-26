@@ -86,20 +86,22 @@ export async function deleteSurvey(id: string) {
 
 export async function assignSurveyToCompany(companyId: string, surveyId: string) {
     try {
-        // 1. Verify Super Admin status (Extra security check)
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) return { error: 'No autenticado' };
 
-        const { data: profile } = await supabase
+        // Use Admin Client for role check to bypass RLS recursion
+        const supabaseAdmin = createAdminClient();
+        const { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
             .select('role')
             .eq('id', user.id)
             .single();
 
-        if (profile?.role !== 'super_admin') {
-            return { error: 'Permisos insuficientes (Super Admin requerido)' };
+        if (profileError || profile?.role !== 'super_admin') {
+            console.error("Access denied in assignSurveyToCompany:", profileError || "Not a super_admin");
+            return { error: '[v2] Error al asignar: Permisos insuficientes (Super Admin requerido)' };
         }
 
         // 2. Perform assignment using Admin Client to bypass RLS
@@ -140,13 +142,14 @@ export async function removeSurveyFromCompany(assignmentId: string) {
 
         if (!user) return { error: 'No autenticado' };
 
-        const { data: profile } = await supabase
+        const supabaseAdmin = createAdminClient();
+        const { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
             .select('role')
             .eq('id', user.id)
             .single();
 
-        if (profile?.role !== 'super_admin') {
+        if (profileError || profile?.role !== 'super_admin') {
             return { error: 'Permisos insuficientes' };
         }
 
