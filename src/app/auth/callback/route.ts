@@ -20,15 +20,19 @@ export async function GET(request: Request) {
 
             // Get user and create/update profile
             const { data: { user } } = await supabase.auth.getUser();
+            let existingProfile: any = null;
+
             if (user) {
                 const metadata = user.user_metadata || {};
 
                 // Preservación y auto-reparación de roles (usando Admin Client)
-                const { data: existingProfile } = await supabaseAdmin
+                const { data: profile } = await supabaseAdmin
                     .from('profiles')
                     .select('role, roles, active_role, email, full_name, company_id, admin_status')
                     .eq('id', user.id)
                     .maybeSingle();
+
+                existingProfile = profile;
 
                 // Prioridad de rol: Perfil existente -> Metadata de Auth -> Default
                 let finalRole = existingProfile?.role || metadata.role || DEFAULT_ROLES.EMPLOYEE;
