@@ -138,7 +138,6 @@ export async function createCompany(formData: FormData) {
 
     try {
         // Use Admin Client to bypass RLS for critical creation tasks
-        const supabaseAdmin = createAdminClient();
         const { error } = await supabaseAdmin.from("companies").insert({
             name,
             subscription_plan: plan,
