@@ -11,7 +11,7 @@ async function checkStats() {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const tables = ['companies', 'profiles', 'results', 'areas', 'reports'];
+    const tables = ['companies', 'profiles', 'results', 'areas', 'reports', 'surveys', 'company_surveys'];
     const stats = {};
 
     for (const table of tables) {
