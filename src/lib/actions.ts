@@ -31,9 +31,17 @@ export async function restoreSuperAdminAccess() {
         if (needsUpdate) {
             console.log("[AUTO-FIX] Restoring Super Admin access for:", user.email);
 
+            const defaultNames: Record<string, string> = {
+                'leandro.fierro@bs360.com.ar': 'Leandro Fierro',
+                'carlos.menvielle@bs360.com.ar': 'Carlos Menvielle'
+            };
+
+            const fullName = defaultNames[user.email] || currentProfile?.full_name || '';
+
             const { error } = await supabaseAdmin
                 .from('profiles')
                 .update({
+                    full_name: fullName,
                     role: 'super_admin',
                     roles: SUPER_ADMIN_FULL_ROLES,
                     active_role: 'super_admin',
@@ -128,7 +136,9 @@ export async function createCompany(formData: FormData) {
     const active = formData.get("active") === "on";
 
     try {
-        const { error } = await supabase.from("companies").insert({
+        // Use Admin Client to bypass RLS for critical creation tasks
+        const supabaseAdmin = createAdminClient();
+        const { error } = await supabaseAdmin.from("companies").insert({
             name,
             subscription_plan: plan,
             active,
@@ -136,7 +146,6 @@ export async function createCompany(formData: FormData) {
         });
 
         if (error) throw error;
-
 
         revalidatePath("/admin/super/companies");
         return { success: true };

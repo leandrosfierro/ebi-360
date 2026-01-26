@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export type EmailTemplate = {
@@ -28,7 +28,19 @@ export async function getEmailTemplates() {
 
     if (!user) return { error: "Unauthorized" };
 
-    const { data, error } = await supabase
+    // Check if super admin
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (profile?.role !== 'super_admin') {
+        return { error: "Unauthorized: Super Admin only" };
+    }
+
+    const supabaseAdmin = createAdminClient();
+    const { data, error } = await supabaseAdmin
         .from('email_templates')
         .select('*')
         .order('name');
@@ -72,7 +84,8 @@ export async function getEmailLogs(limit = 50) {
 
     if (!user) return { error: "Unauthorized" };
 
-    const { data, error } = await supabase
+    const supabaseAdmin = createAdminClient();
+    const { data, error } = await supabaseAdmin
         .from('email_logs')
         .select('*')
         .order('sent_at', { ascending: false })
