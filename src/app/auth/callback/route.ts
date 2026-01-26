@@ -88,7 +88,10 @@ export async function GET(request: Request) {
             let targetPath = next;
 
             if (next === '/' || next === '/perfil') {
-                if (activeRoleForRedirect === 'super_admin') {
+                // If user is still 'invited', force them to set a password
+                if (existingProfile?.admin_status === 'invited') {
+                    targetPath = '/auth/setup-password';
+                } else if (activeRoleForRedirect === 'super_admin') {
                     targetPath = '/admin/super';
                 } else if (activeRoleForRedirect === 'company_admin') {
                     targetPath = '/admin/company';

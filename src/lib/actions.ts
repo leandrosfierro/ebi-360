@@ -168,9 +168,15 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
         return { error: "No company assigned to admin" };
     }
 
-    const errors: string[] = [];
-    let created = 0;
-    const createdIds: string[] = [];
+    const areaMap = new Map<string, string>();
+    const { data: existingAreas } = await supabase
+        .from('areas')
+        .select('id, name')
+        .eq('company_id', companyId);
+
+    if (existingAreas) {
+        existingAreas.forEach(a => areaMap.set(a.name.toLowerCase(), a.id));
+    }
 
     for (const userData of users) {
         try {
@@ -186,6 +192,28 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
                 continue;
             }
 
+            let areaId = null;
+            if (userData.department) {
+                const deptName = userData.department.trim();
+                const normalizedName = deptName.toLowerCase();
+
+                if (areaMap.has(normalizedName)) {
+                    areaId = areaMap.get(normalizedName);
+                } else {
+                    // Create new area on the fly
+                    const { data: newArea, error: areaError } = await supabase
+                        .from('areas')
+                        .insert({ name: deptName, company_id: companyId })
+                        .select('id')
+                        .single();
+
+                    if (!areaError && newArea) {
+                        areaId = newArea.id;
+                        areaMap.set(normalizedName, areaId);
+                    }
+                }
+            }
+
             const supabaseAdmin = createAdminClient();
 
             // Create user silently (without default invite email)
@@ -195,7 +223,8 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
                 user_metadata: {
                     full_name: userData.full_name,
                     company_id: companyId,
-                    role: 'employee'
+                    role: 'employee',
+                    area_id: areaId
                 }
             });
 
@@ -214,6 +243,7 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
                     active_role: 'employee',
                     roles: ['employee'],
                     company_id: companyId,
+                    area_id: areaId,
                     admin_status: 'invited'
                 });
 
