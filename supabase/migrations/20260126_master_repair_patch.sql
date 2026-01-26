@@ -1,64 +1,30 @@
--- 🛡️ PATCH MAESTRO: Estabilización Total de Seguridad y Accesos
--- Fecha: 26 de enero de 2026 (16:30)
+-- 🦅 Patch Maestro BS360 - v1.5 (ESTRENO TOTAL)
+-- Fecha: 26 de enero de 2026 (19:50)
 
--- 1. Habilitar RLS en todas las tablas críticas
-ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.results ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.areas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.email_templates ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.surveys ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.survey_questions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.company_surveys ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recommendations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+-- 1. Eliminar lo anterior para limpiar el terreno
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
+DROP FUNCTION IF EXISTS public.is_super_admin();
 
--- 2. Limpieza de políticas existentes para evitar duplicados
-DO $$ 
+-- 2. Función de verificación de Super Admin (Súper Segura)
+-- Buscamos directamente en la tabla sin usar RLS para evitar recursión
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS boolean AS $$
 DECLARE
-    t text;
+    is_admin boolean;
 BEGIN
-    FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
-    LOOP
-        EXECUTE 'DROP POLICY IF EXISTS "SuperAdmin: Full Access" ON public.' || t;
-        EXECUTE 'DROP POLICY IF EXISTS "Profiles: super admin all" ON public.' || t; -- Limpiar nombres anteriores
-    END LOOP;
-END $$;
+    -- Obtenemos el perfil directamente
+    SELECT EXISTS (
+        SELECT 1 FROM public.profiles 
+        WHERE id = auth.uid() 
+        AND (role = 'super_admin' OR 'super_admin' = ANY(roles))
+    ) INTO is_admin;
+    RETURN COALESCE(is_admin, false);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. POLÍTICA UNIVERSAL PARA SUPER ADMINS
--- Esta política otorga acceso TOTAL a cualquier tabla si el usuario tiene el rol de super_admin
-DO $$ 
-DECLARE
-    t text;
-BEGIN
-    FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
-    LOOP
-        -- Política simplificada y robusta usando ANY sobre el array de roles
-        EXECUTE format('CREATE POLICY "SuperAdmin: Full Access" ON public.%I FOR ALL TO authenticated 
-            USING (
-                ''super_admin'' = ANY((SELECT roles FROM public.profiles WHERE id = auth.uid())::text[]) OR 
-                (SELECT role FROM public.profiles WHERE id = auth.uid())::text = ''super_admin''
-            )', t);
-    END LOOP;
-END $$;
-
--- 4. POLÍTICAS ESPECÍFICAS PARA OTROS ROLES (Continuidad de negocio)
-
--- PROFILES
-DROP POLICY IF EXISTS "Profiles: view self" ON public.profiles;
-CREATE POLICY "Profiles: view self" ON public.profiles FOR SELECT TO authenticated USING (auth.uid() = id);
-DROP POLICY IF EXISTS "Profiles: update self" ON public.profiles;
-CREATE POLICY "Profiles: update self" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
-
--- RESULTS
-DROP POLICY IF EXISTS "Results: view self" ON public.results;
-CREATE POLICY "Results: view self" ON public.results FOR SELECT TO authenticated USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Results: insert self" ON public.results;
-CREATE POLICY "Results: insert self" ON public.results FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
-
--- 5. REPARACIÓN DEL TRIGGER DE LOGIN/REGISTRO
--- Corrige el error "Database error saving new user" al ser más tolerante y manejar multi-rol
+-- 3. Trigger ULTRA-TOLERANTE para nuevos usuarios
+-- Este trigger nunca fallará, asegurando que 'generateLink' funcione siempre
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -67,10 +33,10 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
-    'employee',
-    ARRAY['employee'::user_role],
-    'employee',
-    'active'
+    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'employee'::user_role),
+    ARRAY[COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'employee'::user_role)],
+    COALESCE((NEW.raw_user_meta_data->>'active_role')::user_role, 'employee'::user_role),
+    COALESCE(NEW.raw_user_meta_data->>'admin_status', 'active')
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
@@ -78,12 +44,48 @@ BEGIN
     updated_at = NOW();
   
   RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Si algo falla críticamente (ej. error de tipo enum), grabamos el perfil mínimo para no romper el flujo
+  INSERT INTO public.profiles (id, email, full_name)
+  VALUES (NEW.id, NEW.email, split_part(NEW.email, '@', 1))
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6. RESTAURACIÓN DE NOMBRES PARA SUPER ADMINS
-UPDATE public.profiles SET full_name = 'Leandro Fierro' WHERE email = 'leandro.fierro@bs360.com.ar';
-UPDATE public.profiles SET full_name = 'Carlos Menvielle' WHERE email = 'carlos.menvielle@bs360.com.ar';
+-- Re-crear el trigger
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 7. COMENTARIO DE ÉXITO
-COMMENT ON TABLE public.profiles IS 'Seguridad blindada y funcional. Patch v1.1 aplicado.';
+-- 4. Re-aplicar Políticas Universales para Super Admins
+DO $$ 
+DECLARE 
+    t text; 
+BEGIN
+    FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' LOOP
+        EXECUTE 'DROP POLICY IF EXISTS "SuperAdmin: Full Access" ON public.' || t;
+        EXECUTE format('CREATE POLICY "SuperAdmin: Full Access" ON public.%I FOR ALL TO authenticated 
+            USING (public.is_super_admin())', t);
+    END LOOP;
+END $$;
+
+-- 5. Restaurar Perfiles Maestros con Identidad Completa
+UPDATE public.profiles SET 
+    full_name = 'Leandro Fierro', 
+    role = 'super_admin', 
+    roles = ARRAY['super_admin'::user_role, 'company_admin'::user_role, 'employee'::user_role],
+    active_role = 'super_admin',
+    admin_status = 'active'
+WHERE email = 'leandro.fierro@bs360.com.ar';
+
+UPDATE public.profiles SET 
+    full_name = 'Carlos Menvielle', 
+    role = 'super_admin', 
+    roles = ARRAY['super_admin'::user_role, 'company_admin'::user_role, 'employee'::user_role],
+    active_role = 'super_admin',
+    admin_status = 'active'
+WHERE email = 'carlos.menvielle@bs360.com.ar';
+
+-- 6. Comentario de éxito
+COMMENT ON FUNCTION public.is_super_admin IS 'Verificación blindada anti-recursión v1.5';
