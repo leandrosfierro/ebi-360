@@ -178,6 +178,10 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
         existingAreas.forEach(a => areaMap.set(a.name.toLowerCase(), a.id));
     }
 
+    const errors: string[] = [];
+    let created = 0;
+    const createdIds: string[] = [];
+
     for (const userData of users) {
         try {
             // Check if user already exists
