@@ -19,7 +19,7 @@ export async function restoreSuperAdminAccess() {
         // 1. Get current profile to avoid unnecessary updates
         const { data: currentProfile } = await supabaseAdmin
             .from('profiles')
-            .select('role, roles, active_role')
+            .select('role, roles, active_role, full_name')
             .eq('id', user.id)
             .single();
 
