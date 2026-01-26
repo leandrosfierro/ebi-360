@@ -41,7 +41,6 @@ export async function getEmailTemplates() {
         return { error: "Unauthorized: Super Admin only" };
     }
 
-    const supabaseAdmin = createAdminClient();
     const { data, error } = await supabaseAdmin
         .from('email_templates')
         .select('*')
