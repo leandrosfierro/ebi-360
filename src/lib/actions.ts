@@ -300,7 +300,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         // 1. Check if user already exists in profiles
         const { data: existingProfile } = await supabaseAdmin
             .from('profiles')
-            .select('id, company_id, email, full_name')
+            .select('id, company_id, email, full_name, role, roles, active_role')
             .eq('email', email)
             .maybeSingle();
 

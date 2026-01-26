@@ -26,7 +26,7 @@ export async function GET(request: Request) {
                 // Preservación y auto-reparación de roles (usando Admin Client)
                 const { data: existingProfile } = await supabaseAdmin
                     .from('profiles')
-                    .select('role, roles, active_role, email, full_name, company_id')
+                    .select('role, roles, active_role, email, full_name, company_id, admin_status')
                     .eq('id', user.id)
                     .maybeSingle();
 
