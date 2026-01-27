@@ -39,16 +39,15 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                 .maybeSingle();
 
             if (profileData) {
-                // Auto-fix: Check if role is out of sync for super admins
-                if (profileData.role !== 'super_admin') {
-                    // Try to restore access quietly in the background
-                    restoreSuperAdminAccess().then(result => {
+                // Auto-fix: Ensure active_role is synced with the most powerful role in profile
+                import("@/lib/actions").then(({ syncUserRole }) => {
+                    syncUserRole().then(result => {
                         if (result.fixed) {
-                            console.log("Super Admin role restored. Reloading...");
+                            console.log(`Role synced to ${result.newRole}. Reloading...`);
                             window.location.reload();
                         }
                     });
-                }
+                });
 
                 setProfile(profileData);
                 if (profileData.company_id) {

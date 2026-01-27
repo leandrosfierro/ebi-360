@@ -62,6 +62,48 @@ export async function restoreSuperAdminAccess() {
     return { success: false };
 }
 
+export async function syncUserRole() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { success: false };
+
+    const supabaseAdmin = createAdminClient();
+    const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('role, roles, active_role, company_id')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile) return { success: false };
+
+    // Determinamos el rol más poderoso disponible
+    let targetRole = profile.role;
+    const roles = profile.roles || [];
+
+    if (roles.includes('super_admin') || isSuperAdminEmail(user.email || '')) {
+        targetRole = 'super_admin';
+    } else if (roles.includes('company_admin')) {
+        targetRole = 'company_admin';
+    }
+
+    if (profile.active_role !== targetRole) {
+        console.log(`[SYNC-ROLE] Changing active_role for ${user.email} from ${profile.active_role} to ${targetRole}`);
+        const { error } = await supabaseAdmin
+            .from('profiles')
+            .update({ active_role: targetRole })
+            .eq('id', user.id);
+
+        if (!error) {
+            revalidatePath("/", "layout");
+            return { success: true, fixed: true, newRole: targetRole };
+        }
+    }
+
+    return { success: true, fixed: false };
+}
+
+
 export async function saveDiagnosticResult(
     globalScore: number,
     domainScores: Record<string, number>,
