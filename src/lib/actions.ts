@@ -384,7 +384,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                     email: email,
                     full_name: fullName || existingProfile?.full_name || '',
                     role: existingProfile?.role === 'super_admin' ? 'super_admin' : 'company_admin',
-                    active_role: existingProfile?.active_role || 'company_admin',
+                    active_role: existingProfile?.role === 'super_admin' ? 'super_admin' : 'company_admin',
                     roles: newRoles,
                     company_id: companyId,
                     admin_status: 'active'

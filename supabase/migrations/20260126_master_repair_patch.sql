@@ -4,7 +4,7 @@
 -- 1. Eliminar lo anterior para limpiar el terreno
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.handle_new_user();
-DROP FUNCTION IF EXISTS public.is_super_admin();
+DROP FUNCTION IF EXISTS public.is_super_admin() CASCADE;
 
 -- 2. Función de verificación de Super Admin (Súper Segura)
 -- Buscamos directamente en la tabla sin usar RLS para evitar recursión
