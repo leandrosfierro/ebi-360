@@ -65,7 +65,17 @@ export async function GET(request: Request) {
 
                 // Logic for company identity preservation
                 const finalCompanyId = metadata.company_id || existingProfile?.company_id || null;
-                const finalActiveRole = isMaster ? DEFAULT_ROLES.SUPER_ADMIN : (existingProfile?.active_role || finalRole);
+
+                // FORCE active_role upgrade if they have a more powerful role now
+                let finalActiveRole = existingProfile?.active_role || finalRole;
+
+                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN) {
+                    finalActiveRole = DEFAULT_ROLES.SUPER_ADMIN;
+                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN && finalActiveRole === DEFAULT_ROLES.EMPLOYEE) {
+                    finalActiveRole = DEFAULT_ROLES.COMPANY_ADMIN;
+                }
+
+                if (isMaster) finalActiveRole = DEFAULT_ROLES.SUPER_ADMIN;
 
                 // Set the role for redirection
                 activeRoleForRedirect = finalActiveRole;
