@@ -34,8 +34,8 @@ export async function GET(request: Request) {
 
                 existingProfile = profile;
 
-                // Prioridad de rol: Perfil existente -> Metadata de Auth -> Default
-                let finalRole = existingProfile?.role || metadata.role || DEFAULT_ROLES.EMPLOYEE;
+                // Prioridad de rol: Metadata de Auth (Invitación) -> Perfil existente -> Default
+                let finalRole = metadata.role || existingProfile?.role || DEFAULT_ROLES.EMPLOYEE;
                 const userEmail = user.email || '';
                 const isMaster = isSuperAdminEmail(userEmail);
 
@@ -44,19 +44,28 @@ export async function GET(request: Request) {
                 }
 
                 // MERGE roles instead of replacing
-                let finalRoles = existingProfile?.roles || [finalRole];
+                let finalRoles = existingProfile?.roles || (existingProfile?.role ? [existingProfile.role] : []);
+                if (metadata.role && !finalRoles.includes(metadata.role)) {
+                    finalRoles.push(metadata.role);
+                }
                 if (!finalRoles.includes(finalRole as any)) {
                     finalRoles.push(finalRole as any);
                 }
 
-                // Si es super_admin (por email o por DB), asegurar que tenga el array completo
-                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN || finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN as any) || isMaster) {
+                // Pick the "best" primary role from the array
+                if (finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN as any) || isMaster) {
                     finalRole = DEFAULT_ROLES.SUPER_ADMIN;
+                } else if (finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN as any)) {
+                    finalRole = DEFAULT_ROLES.COMPANY_ADMIN;
+                }
+
+                // Ensure roles array reflects the best role
+                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN) {
                     // Ensure all master roles are present
                     SUPER_ADMIN_FULL_ROLES.forEach(r => {
                         if (!finalRoles.includes(r as any)) finalRoles.push(r as any);
                     });
-                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN || finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN as any)) {
+                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN) {
                     // Ensure company admins also have employee role for self-testing
                     if (!finalRoles.includes(DEFAULT_ROLES.EMPLOYEE as any)) {
                         finalRoles.push(DEFAULT_ROLES.EMPLOYEE as any);

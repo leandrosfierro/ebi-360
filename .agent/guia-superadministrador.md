@@ -30,12 +30,13 @@
 
 Como **Super Administrador** de EBI 360, tienes el nivel más alto de acceso y control sobre la plataforma. Tus responsabilidades incluyen:
 
-- ✅ Gestión completa de empresas clientes
+- ✅ Gestionar completa de empresas clientes
 - ✅ Administración de usuarios y permisos
 - ✅ Configuración global del sistema
 - ✅ Monitoreo de métricas y analíticas
 - ✅ Soporte técnico de primer nivel
 - ✅ Gestión de comunicaciones masivas
+- ✅ Gestión de enlaces de invitación directos
 
 ### Alcance de Permisos
 
@@ -471,11 +472,15 @@ Equipo EBI 360
 
 ## 👑 Gestión de Administradores
 
-### Panel de Super Admins
-
-**Acceso:** Dashboard → Super Admins
-
 #### Vista de Administradores
+
+Desde este panel puedes supervisar a todos los Super Administradores. También puedes copiar sus enlaces de invitación si aún no han activado su cuenta.
+
+1. Identifica al Super Admin con estado **"Invitado"**.
+2. Haz clic en el menú de acciones (`⋮`) al final de la fila.
+3. Selecciona **"Copiar Link Invitación"**.
+
+---
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -493,6 +498,21 @@ Equipo EBI 360
 │    Super Admin      │                        │ 10 Dic     │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Gestión de Enlaces de Invitación (Persistencia)
+
+Ahora los enlaces de invitación se guardan automáticamente en la base de datos para facilitar el soporte manual.
+
+#### Cómo copiar el enlace de un Administrador de Empresa
+1. Ve a la tabla de **Empresas**.
+2. Identifica al administrador invitado (estado "Invitado").
+3. Haz clic en el menú de acciones (`⋮`) de la fila de la empresa.
+4. Selecciona **"Copiar Link Invitación"**.
+5. El link se copiará directamente a tu portapapeles.
+
+Esto permite enviar el link por medios alternativos (WhatsApp, Slack, etc.) si el correo electrónico falla o se pierde.
+
+---
 
 ### Invitar Nuevo Super Admin
 

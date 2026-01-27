@@ -543,6 +543,13 @@ def main():
             "title": "Guía de Super Administrador EBI 360",
             "subtitle": "Panel de Control Completo",
             "color": "#8b5cf6"
+        },
+        {
+            "input": f"{AGENT_DIR}/guia-administrador-empresa.md",
+            "output": f"{OUTPUT_DIR}/EBI360-Guia-Administrador-Empresa.html",
+            "title": "Guía de Administrador de Empresa EBI 360",
+            "subtitle": "Gestión de Equipo y Resultados",
+            "color": "#10b981"
         }
     ]
     

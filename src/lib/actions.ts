@@ -377,14 +377,18 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
             if (!newRoles.includes('company_admin')) newRoles.push('company_admin');
             if (!newRoles.includes('employee')) newRoles.push('employee');
 
+            const finalRoleForExisting = existingProfile?.role === 'super_admin' ? 'super_admin' : 'company_admin';
+            const finalActiveRoleForExisting = existingProfile?.role === 'super_admin' ? 'super_admin' : 'company_admin';
+
+            // 1. Update Profile table
             const { error: profileError } = await supabaseAdmin
                 .from('profiles')
                 .upsert({
                     id: userId,
                     email: email,
                     full_name: fullName || existingProfile?.full_name || '',
-                    role: existingProfile?.role === 'super_admin' ? 'super_admin' : 'company_admin',
-                    active_role: existingProfile?.role === 'super_admin' ? 'super_admin' : 'company_admin',
+                    role: finalRoleForExisting,
+                    active_role: finalActiveRoleForExisting,
                     roles: newRoles,
                     company_id: companyId,
                     admin_status: 'active'
@@ -394,6 +398,16 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                 console.error("Error updating/creating profile for existing user:", profileError);
                 throw new Error(`Error al actualizar perfil: ${profileError.message}`);
             }
+
+            // 2. Update Auth Metadata as secondary source of truth
+            await supabaseAdmin.auth.admin.updateUserById(userId, {
+                user_metadata: {
+                    role: finalRoleForExisting,
+                    active_role: finalActiveRoleForExisting,
+                    roles: newRoles,
+                    company_id: companyId
+                }
+            });
 
             revalidatePath("/admin/super/companies");
             return {
