@@ -371,6 +371,24 @@ export default function ProfilePage() {
                             <span className="font-medium text-gray-900">Cerrar Sesión</span>
                         </div>
                     </button>
+
+                    <div className="pt-4 px-2">
+                        <button
+                            onClick={async () => {
+                                const { syncUserRole } = await import("@/lib/actions");
+                                const res = await syncUserRole();
+                                if (res.fixed) {
+                                    alert(`¡Acceso sincronizado! Rol detectado: ${res.newRole}. Refrescando...`);
+                                    window.location.reload();
+                                } else {
+                                    alert("Tu rol ya está sincronizado con la base de datos.");
+                                }
+                            }}
+                            className="text-[10px] font-bold text-primary/60 uppercase tracking-widest hover:text-primary transition-colors"
+                        >
+                            ¿No ves tu panel admin? Sincronizar acceso
+                        </button>
+                    </div>
                 </div>
 
                 {/* About */}
@@ -396,8 +414,8 @@ export default function ProfilePage() {
                     </p>
                 </a>
 
-                {/* Debug Info (Only in dev or for master users) */}
-                {debugInfo && (debugInfo.isMaster || process.env.NODE_ENV === 'development') && (
+                {/* Debug Info (For troubleshooting) */}
+                {debugInfo && (
                     <div className="mt-8 p-4 bg-black/5 rounded-xl text-[10px] font-mono break-all opacity-50 hover:opacity-100 transition-opacity">
                         <p><strong>DEBUG INFO:</strong></p>
                         <p>Email: {debugInfo.email}</p>

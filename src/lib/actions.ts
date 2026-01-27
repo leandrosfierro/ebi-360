@@ -386,7 +386,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
         const { data: existingProfile } = await supabaseAdmin
             .from('profiles')
             .select('id, company_id, email, full_name, role, roles, active_role')
-            .eq('email', email)
+            .ilike('email', email)
             .maybeSingle();
 
         let userId = existingProfile?.id;
