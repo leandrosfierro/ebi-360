@@ -8,7 +8,7 @@ import { LogOut, Home, Activity, User, Target, ClipboardCheck, TrendingUp } from
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import { BottomNav } from "./BottomNav";
 import { createClient } from "@/lib/supabase/client";
-import { restoreSuperAdminAccess } from "@/lib/actions";
+import { ensureProfileConsistency } from "@/lib/actions";
 import { isSuperAdminEmail } from "@/config/super-admins";
 
 interface MobileLayoutProps {
@@ -32,6 +32,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
         if (session?.user) {
             setIsAuth(true);
             setUserEmail(session.user.email || null);
+
             const { data: profileData } = await supabase
                 .from('profiles')
                 .select('role, roles, active_role, company_id')
@@ -39,16 +40,6 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                 .maybeSingle();
 
             if (profileData) {
-                // Auto-fix: Ensure active_role is synced with the most powerful role in profile
-                import("@/lib/actions").then(({ syncUserRole }) => {
-                    syncUserRole().then(result => {
-                        if (result.fixed) {
-                            console.log(`Role synced to ${result.newRole}. Reloading...`);
-                            window.location.reload();
-                        }
-                    });
-                });
-
                 setProfile(profileData);
                 if (profileData.company_id) {
                     const { data: companyData } = await supabase

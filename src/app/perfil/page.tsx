@@ -5,7 +5,6 @@ import { User, Calendar, TrendingUp, Settings, LogOut, ExternalLink, Award, Arro
 import { checkAchievements, type Achievement } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/client";
 import { RoleCard } from "@/components/profile/RoleCard";
-import { isSuperAdminEmail } from "@/config/super-admins";
 
 export default function ProfilePage() {
     const [userName, setUserName] = useState("Usuario");
@@ -19,26 +18,19 @@ export default function ProfilePage() {
     const [activeRole, setActiveRole] = useState<string | null>(null);
     const [companyName, setCompanyName] = useState<string>("");
 
-    const [debugInfo, setDebugInfo] = useState<any>(null);
-
     useEffect(() => {
         setMounted(true);
 
         const fetchData = async () => {
             try {
                 const supabase = createClient();
-
-                // 1. Ensure session is fresh
-                const { data: { session } } = await supabase.auth.refreshSession();
-                const user = session?.user;
+                const { data: { user } } = await supabase.auth.getUser();
 
                 if (user) {
                     setIsAuthenticated(true);
-                    const userEmail = user.email?.toLowerCase() || '';
-                    const isMaster = isSuperAdminEmail(userEmail);
 
-                    // 2. Fetch profile with cache-busting
-                    const { data: profile, error: profileError } = await supabase
+                    // Fetch profile - Roles and Active Role are already synced by the auth callback
+                    const { data: profile } = await supabase
                         .from("profiles")
                         .select(`
                             full_name, 
@@ -50,49 +42,23 @@ export default function ProfilePage() {
                         .eq("id", user.id)
                         .single();
 
-                    const effectiveProfile: any = profile ? { ...profile } : {
-                        full_name: user.user_metadata?.full_name || '',
-                        role: 'employee',
-                        roles: ['employee'],
-                        active_role: 'employee'
-                    };
+                    if (profile) {
+                        if (profile.role) setUserRole(profile.role);
+                        if (profile.roles) setUserRoles(profile.roles);
+                        if (profile.active_role) setActiveRole(profile.active_role);
 
-                    // Force roles if Master Email
-                    if (isMaster) {
-                        console.log(">>> [PROFILE] Master Admin detected. Forcing permissions.");
-                        effectiveProfile.role = 'super_admin';
-                        effectiveProfile.active_role = 'super_admin';
-                        effectiveProfile.roles = ['super_admin', 'company_admin', 'employee'];
-                    }
-
-                    if (effectiveProfile) {
-                        if (effectiveProfile.role) setUserRole(effectiveProfile.role);
-                        if (effectiveProfile.roles) setUserRoles(effectiveProfile.roles);
-                        if (effectiveProfile.active_role) setActiveRole(effectiveProfile.active_role);
-
-                        if (effectiveProfile.company && typeof effectiveProfile.company === 'object' && 'name' in effectiveProfile.company) {
-                            setCompanyName((effectiveProfile.company as any).name);
+                        if (profile.company && typeof profile.company === 'object' && 'name' in profile.company) {
+                            setCompanyName((profile.company as any).name);
                         }
 
-                        if (effectiveProfile.full_name) {
-                            setUserName(effectiveProfile.full_name);
+                        if (profile.full_name) {
+                            setUserName(profile.full_name);
                         } else if (user.user_metadata?.full_name) {
                             setUserName(user.user_metadata.full_name);
                         }
-
-                        // Set debug info
-                        setDebugInfo({
-                            email: user.email,
-                            dbRole: profile?.role,
-                            dbRoles: profile?.roles,
-                            forcedRole: effectiveProfile.role,
-                            forcedRoles: effectiveProfile.roles,
-                            isMaster: isMaster,
-                            hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
-                        });
                     }
 
-                    // 3. Fetch results
+                    // Fetch results
                     const { data: results } = await supabase
                         .from("results")
                         .select("*")
@@ -130,28 +96,12 @@ export default function ProfilePage() {
 
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-    const handleNameChange = () => {
-        const newName = prompt("Ingresa tu nombre:", userName);
-        if (newName && newName.trim()) {
-            setUserName(newName.trim());
-            localStorage.setItem("ebi_user_name", newName.trim());
-        }
-    };
-
     const handleSignOut = async () => {
-        // Optional: Simple confirmation or just sign out. 
-        // For better UX, we can just sign out without popup, or a gentle one.
-        // Given user request, we'll remove the scary "delete data" part.
-
         try {
             const supabase = createClient();
             await supabase.auth.signOut();
-
-            // Clear local session artifacts silently
             localStorage.removeItem("ebi_answers");
             localStorage.removeItem("ebi_user_name");
-
-            // Redirect to home or login
             window.location.href = "/login";
         } catch (error) {
             console.error("Error signing out:", error);
@@ -184,26 +134,17 @@ export default function ProfilePage() {
                         ) : (
                             <div className="flex flex-col items-center">
                                 <span className="mt-1 rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700 shadow-sm">
-                                    {userRoles.includes('super_admin') || activeRole === 'super_admin' || userRole === 'super_admin'
-                                        ? 'Super Admin'
-                                        : userRoles.includes('company_admin') || activeRole === 'company_admin' || userRole === 'company_admin'
-                                            ? 'Admin Empresa'
-                                            : 'Usuario'}
+                                    {activeRole === 'super_admin' ? 'Super Admin' :
+                                        activeRole === 'company_admin' ? 'Admin Empresa' : 'Usuario'}
                                 </span>
-                                {(userRoles.includes('super_admin') || userRoles.includes('company_admin') ||
-                                    activeRole === 'super_admin' || activeRole === 'company_admin' ||
-                                    userRole === 'super_admin' || userRole === 'company_admin') && (
-                                        <a
-                                            href={
-                                                (userRoles.includes('super_admin') || activeRole === 'super_admin' || userRole === 'super_admin')
-                                                    ? "/admin/super"
-                                                    : "/admin/company"
-                                            }
-                                            className="mt-4 flex items-center gap-2 rounded-xl bg-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-purple-700 hover:scale-[1.03] active:scale-[0.98]"
-                                        >
-                                            Ir al Panel de Control <ExternalLink className="h-4 w-4" />
-                                        </a>
-                                    )}
+                                {(userRoles.includes('super_admin') || userRoles.includes('company_admin')) && (
+                                    <a
+                                        href={activeRole === 'super_admin' ? "/admin/super" : "/admin/company"}
+                                        className="mt-4 flex items-center gap-2 rounded-xl bg-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-purple-700 hover:scale-[1.03] active:scale-[0.98]"
+                                    >
+                                        Ir al Panel de Control <ExternalLink className="h-4 w-4" />
+                                    </a>
+                                )}
                             </div>
                         )}
                     </div>
@@ -258,50 +199,43 @@ export default function ProfilePage() {
                             </p>
                         </div>
 
-                        {/* Check global super admin status */}
-                        {(() => {
-                            const isSuperAdminUniversal = userRoles.includes('super_admin');
+                        <div className="space-y-3">
+                            {userRoles.includes('super_admin') && (
+                                <RoleCard
+                                    title="Super Administrador"
+                                    description="Gestión global de todas las empresas"
+                                    icon={<Settings className="h-6 w-6" />}
+                                    role="super_admin"
+                                    active={activeRole === 'super_admin'}
+                                    href="/admin/super"
+                                    bypassSwitch={true}
+                                />
+                            )}
 
-                            return (
-                                <div className="space-y-3">
-                                    {userRoles.includes('super_admin') && (
-                                        <RoleCard
-                                            title="Super Administrador"
-                                            description="Gestión global de todas las empresas"
-                                            icon={<Settings className="h-6 w-6" />}
-                                            role="super_admin"
-                                            active={activeRole === 'super_admin'}
-                                            href="/admin/super"
-                                            bypassSwitch={isSuperAdminUniversal}
-                                        />
-                                    )}
+                            {userRoles.includes('company_admin') && (
+                                <RoleCard
+                                    title="Administrador de Empresa"
+                                    description={companyName ? `Gestión de ${companyName}` : "Gestión de empresa"}
+                                    icon={<User className="h-6 w-6" />}
+                                    role="company_admin"
+                                    active={activeRole === 'company_admin'}
+                                    href="/admin/company"
+                                    bypassSwitch={false}
+                                />
+                            )}
 
-                                    {userRoles.includes('company_admin') && (
-                                        <RoleCard
-                                            title="Administrador de Empresa"
-                                            description={companyName ? `Gestión de ${companyName}` : "Gestión de empresa"}
-                                            icon={<User className="h-6 w-6" />}
-                                            role="company_admin"
-                                            active={activeRole === 'company_admin'}
-                                            href="/admin/company"
-                                            bypassSwitch={isSuperAdminUniversal}
-                                        />
-                                    )}
-
-                                    {userRoles.includes('employee') && (
-                                        <RoleCard
-                                            title="Empleado"
-                                            description="Realizar diagnósticos y ver resultados"
-                                            icon={<TrendingUp className="h-6 w-6" />}
-                                            role="employee"
-                                            active={activeRole === 'employee'}
-                                            href="/diagnostico"
-                                            bypassSwitch={isSuperAdminUniversal}
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })()}
+                            {userRoles.includes('employee') && (
+                                <RoleCard
+                                    title="Empleado"
+                                    description="Realizar diagnósticos y ver resultados"
+                                    icon={<TrendingUp className="h-6 w-6" />}
+                                    role="employee"
+                                    active={activeRole === 'employee'}
+                                    href="/diagnostico"
+                                    bypassSwitch={false}
+                                />
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -335,9 +269,6 @@ export default function ProfilePage() {
                                 </div>
                             ))}
                         </div>
-                        <p className="mt-3 text-center text-xs text-gray-500">
-                            {achievements.filter(a => a.unlocked).length} de {achievements.length} desbloqueados
-                        </p>
                     </div>
                 )}
 
@@ -371,24 +302,6 @@ export default function ProfilePage() {
                             <span className="font-medium text-gray-900">Cerrar Sesión</span>
                         </div>
                     </button>
-
-                    <div className="pt-4 px-2">
-                        <button
-                            onClick={async () => {
-                                const { syncUserRole } = await import("@/lib/actions");
-                                const res = await syncUserRole();
-                                if (res.fixed) {
-                                    alert(`¡Acceso sincronizado! Rol detectado: ${res.newRole}. Refrescando...`);
-                                    window.location.reload();
-                                } else {
-                                    alert("Tu rol ya está sincronizado con la base de datos.");
-                                }
-                            }}
-                            className="text-[10px] font-bold text-primary/60 uppercase tracking-widest hover:text-primary transition-colors"
-                        >
-                            ¿No ves tu panel admin? Sincronizar acceso
-                        </button>
-                    </div>
                 </div>
 
                 {/* About */}
@@ -409,23 +322,7 @@ export default function ProfilePage() {
                         </div>
                         <ExternalLink className="h-5 w-5 text-gray-400" />
                     </div>
-                    <p className="mt-4 text-xs text-gray-400">
-                        Versión 1.0.0
-                    </p>
                 </a>
-
-                {/* Debug Info (For troubleshooting) */}
-                {debugInfo && (
-                    <div className="mt-8 p-4 bg-black/5 rounded-xl text-[10px] font-mono break-all opacity-50 hover:opacity-100 transition-opacity">
-                        <p><strong>DEBUG INFO:</strong></p>
-                        <p>Email: {debugInfo.email}</p>
-                        <p>DB Role: {debugInfo.dbRole}</p>
-                        <p>DB Roles: {JSON.stringify(debugInfo.dbRoles)}</p>
-                        <p>Effective Role: {debugInfo.forcedRole}</p>
-                        <p>Effective Roles: {JSON.stringify(debugInfo.forcedRoles)}</p>
-                        <p>Is Master: {debugInfo.isMaster ? 'YES' : 'NO'}</p>
-                    </div>
-                )}
             </div>
         </div>
     );

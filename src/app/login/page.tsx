@@ -70,7 +70,7 @@ function LoginFormContent() {
                     },
                 });
                 if (error) throw error;
-                alert("Registro exitoso. Por favor revisa tu email para confirmar tu cuenta.");
+                setError("Registro exitoso. Por favor revisa tu email para confirmar tu cuenta.");
                 setAuthMode("login");
             } else {
                 const { data, error } = await supabase.auth.signInWithPassword({

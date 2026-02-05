@@ -6,101 +6,62 @@ import { resend } from "@/lib/resend";
 import { sendManualInvitations } from "@/lib/invitation-actions";
 import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES } from "@/config/super-admins";
 
-export async function restoreSuperAdminAccess() {
+// Roles are now synced automatically in auth/callback/route.ts
+// Legacy patch functions removed.
+
+/**
+ * Ensures a user's profile is consistent with their hardcoded role status.
+ * This acts as a "live self-repair" mechanism for Super Admins.
+ */
+export async function ensureProfileConsistency() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || !user.email) return { success: false };
+    if (!user || !user.email) return { error: "No authenticated user" };
 
-    // Check if email is directly in the authorized list
-    if (isSuperAdminEmail(user.email)) {
-        const supabaseAdmin = createAdminClient();
-
-        // 1. Get current profile to avoid unnecessary updates
-        const { data: currentProfile } = await supabaseAdmin
-            .from('profiles')
-            .select('role, roles, active_role, full_name')
-            .eq('id', user.id)
-            .single();
-
-        // 2. Update only if needed
-        const needsUpdate = currentProfile?.role !== 'super_admin' ||
-            !currentProfile?.roles?.includes('super_admin') ||
-            currentProfile?.active_role !== 'super_admin';
-
-        if (needsUpdate) {
-            console.log("[AUTO-FIX] Restoring Super Admin access for:", user.email);
-
-            const defaultNames: Record<string, string> = {
-                'leandro.fierro@bs360.com.ar': 'Leandro Fierro',
-                'carlos.menvielle@bs360.com.ar': 'Carlos Menvielle'
-            };
-
-            const fullName = defaultNames[user.email] || currentProfile?.full_name || '';
-
-            const { error } = await supabaseAdmin
-                .from('profiles')
-                .update({
-                    full_name: fullName,
-                    role: 'super_admin',
-                    roles: SUPER_ADMIN_FULL_ROLES,
-                    active_role: 'super_admin',
-                    admin_status: 'active'
-                })
-                .eq('id', user.id);
-
-            if (error) {
-                console.error("[AUTO-FIX] Failed:", error);
-                return { success: false, error: error.message };
-            }
-
-            revalidatePath("/", "layout");
-            return { success: true, fixed: true };
-        }
-        return { success: true, fixed: false };
-    }
-    return { success: false };
-}
-
-export async function syncUserRole() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) return { success: false };
+    const isMaster = isSuperAdminEmail(user.email);
+    if (!isMaster) return { success: true, message: "No action needed for this user" };
 
     const supabaseAdmin = createAdminClient();
+
+    // Check current state
     const { data: profile } = await supabaseAdmin
         .from('profiles')
-        .select('role, roles, active_role, company_id')
+        .select('role, roles')
         .eq('id', user.id)
         .single();
 
-    if (!profile) return { success: false };
+    const needsUpdate = !profile ||
+        profile.role !== 'super_admin' ||
+        !profile.roles?.includes('super_admin');
 
-    // Determinamos el rol más poderoso disponible
-    let targetRole = profile.role;
-    const roles = profile.roles || [];
+    if (needsUpdate) {
+        console.log(`[Consistency Check] Repairing profile for Super Admin: ${user.email}`);
 
-    if (roles.includes('super_admin') || isSuperAdminEmail(user.email || '')) {
-        targetRole = 'super_admin';
-    } else if (roles.includes('company_admin')) {
-        targetRole = 'company_admin';
-    }
+        const newRoles = Array.from(new Set(['super_admin', 'company_admin', 'employee', ...(profile?.roles || [])]));
 
-    if (profile.active_role !== targetRole) {
-        console.log(`[SYNC-ROLE] Changing active_role for ${user.email} from ${profile.active_role} to ${targetRole}`);
-        const { error } = await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
             .from('profiles')
-            .update({ active_role: targetRole })
-            .eq('id', user.id);
+            .upsert({
+                id: user.id,
+                email: user.email,
+                role: 'super_admin',
+                active_role: profile?.active_role || 'super_admin',
+                roles: newRoles,
+                admin_status: 'active'
+            });
 
-        if (!error) {
-            revalidatePath("/", "layout");
-            return { success: true, fixed: true, newRole: targetRole };
+        if (updateError) {
+            console.error("[Consistency Check] Error updating profile:", updateError);
+            return { error: updateError.message };
         }
+
+        revalidatePath('/perfil');
+        revalidatePath('/admin/super');
+        return { success: true, repaired: true };
     }
 
-    return { success: true, fixed: false };
+    return { success: true, repaired: false };
 }
 
 
@@ -379,7 +340,18 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
 
     // Use Admin Client for privileged operations
     const supabaseAdmin = createAdminClient();
+
+    // Validate that SERVICE_ROLE_KEY is configured and not a placeholder
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey || serviceKey.endsWith('1234567890')) {
+        console.error("[inviteCompanyAdmin] Configuration Error: SUPABASE_SERVICE_ROLE_KEY is invalid");
+        return {
+            error: "Error de configuración: La clave de servicio no es válida. Por favor, actualiza SUPABASE_SERVICE_ROLE_KEY en el dashboard de Supabase y en las variables de entorno."
+        };
+    }
+
     let inviteLink: string | undefined;
+    console.log(`[inviteCompanyAdmin] Starting invitation for: ${email}`);
 
     try {
         // 1. Check if user already exists in profiles
@@ -437,17 +409,19 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                 });
 
             if (profileError) {
-                console.error("Error updating/creating profile for existing user:", profileError);
+                console.error("[inviteCompanyAdmin] Profile Upsert Error:", profileError);
                 throw new Error(`Error al actualizar perfil: ${profileError.message}`);
             }
+            console.log(`[inviteCompanyAdmin] Profile successfully updated for existing user: ${userId}`);
 
-            // 2. Update Auth Metadata as secondary source of truth
+            // 2. Update Auth Metadata - THIS ENABLES IMMEDIATE ACCESS FOR EXISTING GOOGLE/EMAIL USERS
             await supabaseAdmin.auth.admin.updateUserById(userId, {
                 user_metadata: {
                     role: finalRoleForExisting,
                     active_role: finalActiveRoleForExisting,
                     roles: newRoles,
-                    company_id: companyId
+                    company_id: companyId,
+                    admin_status: 'active' // They already exist, so they are active
                 }
             });
 
@@ -580,10 +554,13 @@ export async function inviteSuperAdmin(email: string, fullName: string) {
         return { error: "Unauthorized: Super Admin only" };
     }
 
-    // Validate that SERVICE_ROLE_KEY is configured
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
-        return { error: "Server configuration error: Missing service role key. Please contact support." };
+    // Validate that SERVICE_ROLE_KEY is configured and not a placeholder
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey || serviceKey.endsWith('1234567890')) {
+        console.error("[inviteSuperAdmin] Configuration Error: SUPABASE_SERVICE_ROLE_KEY is invalid");
+        return {
+            error: "Error de configuración: La clave de servicio no es válida. Por favor, actualiza SUPABASE_SERVICE_ROLE_KEY en el dashboard de Supabase y en las variables de entorno."
+        };
     }
 
     // Use Admin Client for privileged operations
@@ -990,9 +967,13 @@ export async function inviteEmployee(email: string, fullName: string) {
         return { error: "No company assigned to admin" };
     }
 
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
-        return { error: "Server configuration error: Missing service role key." };
+    // Validate that SERVICE_ROLE_KEY is configured and not a placeholder
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey || serviceKey.endsWith('1234567890')) {
+        console.error("[inviteEmployee] Configuration Error: SUPABASE_SERVICE_ROLE_KEY is invalid");
+        return {
+            error: "Error de configuración: La clave de servicio no es válida. Por favor, actualiza SUPABASE_SERVICE_ROLE_KEY en el dashboard de Supabase y en las variables de entorno."
+        };
     }
 
     const supabaseAdmin = createAdminClient();

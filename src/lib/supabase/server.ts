@@ -31,9 +31,15 @@ export async function createClient() {
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export function createAdminClient() {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!serviceKey || serviceKey.endsWith('1234567890')) {
+        console.error("CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing or invalid placeholder!");
+    }
+
     return createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        serviceKey!,
         {
             auth: {
                 autoRefreshToken: false,

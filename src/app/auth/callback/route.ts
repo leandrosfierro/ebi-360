@@ -1,134 +1,87 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES, DEFAULT_ROLES } from "@/config/super-admins";
+import { resolveUserAccess } from "@/lib/auth-utils";
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");
-    // if "next" is in param, use it as the redirect URL
     const next = searchParams.get("next") ?? "/";
 
     if (code) {
         const supabase = await createClient();
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error) {
-            let activeRoleForRedirect = 'employee';
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-            // Use Admin Client for database operations to bypass RLS
-            // This is critical to ensure we can read/write the profile correctly during login
+        if (!exchangeError) {
             const supabaseAdmin = createAdminClient();
-
-            // Get user and create/update profile
             const { data: { user } } = await supabase.auth.getUser();
-            let existingProfile: any = null;
 
             if (user) {
                 const metadata = user.user_metadata || {};
 
-                // Preservación y auto-reparación de roles (usando Admin Client)
-                const { data: profile } = await supabaseAdmin
+                // Get existing profile via Admin Client (bypass RLS)
+                const { data: dbProfile } = await supabaseAdmin
                     .from('profiles')
                     .select('role, roles, active_role, email, full_name, company_id, admin_status')
                     .eq('id', user.id)
                     .maybeSingle();
 
-                existingProfile = profile;
+                // 🦅 CENTRALIZED ACCESS RESOLUTION
+                console.log(`[Auth Callback] Resolving access for: ${user.email}`);
+                const access = resolveUserAccess(user.email!, metadata, dbProfile);
+                console.log(`[Auth Callback] Resolved Access:`, access);
 
-                // Prioridad de rol: Metadata de Auth (Invitación) -> Perfil existente -> Default
-                let finalRole = metadata.role || existingProfile?.role || DEFAULT_ROLES.EMPLOYEE;
-                const userEmail = user.email || '';
-                const isMaster = isSuperAdminEmail(userEmail);
+                // 2. Determine redirection and status
+                let adminStatus = dbProfile?.admin_status || metadata.admin_status || 'active';
 
-                if (isMaster) {
-                    finalRole = DEFAULT_ROLES.SUPER_ADMIN;
-                }
+                // If they were invited but we see they are logging in now, 
+                // we might want to keep 'invited' until they set password, 
+                // but the setup-password page handles the transition.
 
-                // MERGE roles instead of replacing
-                let finalRoles = existingProfile?.roles || (existingProfile?.role ? [existingProfile.role] : []);
-                if (metadata.role && !finalRoles.includes(metadata.role)) {
-                    finalRoles.push(metadata.role);
-                }
-                if (!finalRoles.includes(finalRole as any)) {
-                    finalRoles.push(finalRole as any);
-                }
-
-                // Pick the "best" primary role from the array
-                if (finalRoles.includes(DEFAULT_ROLES.SUPER_ADMIN as any) || isMaster) {
-                    finalRole = DEFAULT_ROLES.SUPER_ADMIN;
-                } else if (finalRoles.includes(DEFAULT_ROLES.COMPANY_ADMIN as any)) {
-                    finalRole = DEFAULT_ROLES.COMPANY_ADMIN;
-                }
-
-                // Ensure roles array reflects the best role
-                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN) {
-                    // Ensure all master roles are present
-                    SUPER_ADMIN_FULL_ROLES.forEach(r => {
-                        if (!finalRoles.includes(r as any)) finalRoles.push(r as any);
-                    });
-                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN) {
-                    // Ensure company admins also have employee role for self-testing
-                    if (!finalRoles.includes(DEFAULT_ROLES.EMPLOYEE as any)) {
-                        finalRoles.push(DEFAULT_ROLES.EMPLOYEE as any);
-                    }
-                }
-
-                // Logic for company identity preservation
-                const finalCompanyId = metadata.company_id || existingProfile?.company_id || null;
-
-                // FORCE active_role upgrade if they have a more powerful role now
-                let finalActiveRole = existingProfile?.active_role || finalRole;
-
-                if (finalRole === DEFAULT_ROLES.SUPER_ADMIN) {
-                    finalActiveRole = DEFAULT_ROLES.SUPER_ADMIN;
-                } else if (finalRole === DEFAULT_ROLES.COMPANY_ADMIN && finalActiveRole === DEFAULT_ROLES.EMPLOYEE) {
-                    finalActiveRole = DEFAULT_ROLES.COMPANY_ADMIN;
-                }
-
-                if (isMaster) finalActiveRole = DEFAULT_ROLES.SUPER_ADMIN;
-
-                // Set the role for redirection
-                activeRoleForRedirect = finalActiveRole;
-
-                // Upsert using Admin Client with merged data
-                await supabaseAdmin
+                // Upsert cleaned up profile
+                const { error: upsertError } = await supabaseAdmin
                     .from('profiles')
                     .upsert({
                         id: user.id,
                         email: user.email!,
-                        full_name: metadata.full_name || metadata.name || existingProfile?.full_name || '',
-                        role: finalRole,
-                        active_role: finalActiveRole,
-                        roles: finalRoles,
-                        company_id: finalCompanyId,
-                        admin_status: existingProfile?.admin_status || 'active',
+                        full_name: metadata.full_name || metadata.name || dbProfile?.full_name || '',
+                        role: access.role,
+                        active_role: access.active_role,
+                        roles: access.roles,
+                        company_id: access.company_id,
+                        admin_status: adminStatus,
                         last_active_at: new Date().toISOString()
                     }, {
                         onConflict: 'id'
                     });
-            }
 
-            // Robust redirect based on role
-            let targetPath = next;
-
-            if (next === '/' || next === '/perfil') {
-                // If user is still 'invited', force them to set a password
-                if (existingProfile?.admin_status === 'invited') {
-                    targetPath = '/auth/setup-password';
-                } else if (activeRoleForRedirect === 'super_admin') {
-                    targetPath = '/admin/super';
-                } else if (activeRoleForRedirect === 'company_admin') {
-                    targetPath = '/admin/company';
+                if (upsertError) {
+                    console.error("[Auth Callback] Profile Sync Error:", upsertError);
                 } else {
-                    targetPath = '/perfil';
+                    console.log(`[Auth Callback] Profile successfully synced for: ${user.email}`);
                 }
-            }
 
-            const redirectUrl = new URL(targetPath, request.url);
-            return NextResponse.redirect(redirectUrl);
+
+                // Robust redirect based on role
+                let targetPath = next;
+
+                if (next === '/' || next === '/perfil' || next === '/admin/company' || next === '/admin/super') {
+                    if (adminStatus === 'invited') {
+                        targetPath = '/auth/setup-password';
+                    } else if (access.active_role === 'super_admin') {
+                        targetPath = '/admin/super';
+                    } else if (access.active_role === 'company_admin') {
+                        targetPath = '/admin/company';
+                    } else {
+                        targetPath = '/perfil';
+                    }
+                }
+
+                return NextResponse.redirect(new URL(targetPath, request.url));
+            }
         }
     }
 
-    // fallback to login with error param instead of non-existent page
+    // fallback to login with error
     const errorUrl = new URL('/login', request.url);
     errorUrl.searchParams.set('error', 'auth_failed');
     return NextResponse.redirect(errorUrl);

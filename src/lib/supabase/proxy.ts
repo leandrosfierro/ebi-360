@@ -55,33 +55,29 @@ export async function updateSession(request: NextRequest) {
 
         // 2. Admin Routes - Role Check
         if (request.nextUrl.pathname.startsWith('/admin') && user) {
-            // ALWAYS check email first for Super Admin privileges
-            const isMaster = isSuperAdminEmail(user.email || '');
-
             let profile = null;
-            if (!isMaster) {
-                try {
-                    // Fetch profile to check role - be very conservative with columns
-                    const { data: profileData, error: profileError } = await supabase
-                        .from('profiles')
-                        .select('role, roles, active_role')
-                        .eq('id', user.id)
-                        .maybeSingle();
+            try {
+                // Fetch profile to check role - be very conservative with columns
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('role, roles, active_role')
+                    .eq('id', user.id)
+                    .maybeSingle();
 
-                    if (!profileError) {
-                        profile = profileData;
-                    }
-                } catch (e) {
-                    console.error("Middleware profile fetch conflict:", e);
+                if (!profileError) {
+                    profile = profileData;
                 }
+            } catch (e) {
+                console.error("Middleware profile fetch conflict:", e);
             }
 
             // Determine effective role
             const userRoles = profile?.roles || [];
             const activeRole = profile?.active_role || profile?.role || 'employee';
 
-            const role = isMaster ? 'super_admin' : activeRole;
-            const isSuperAdmin = role === 'super_admin' || userRoles.includes('super_admin');
+            // SECURITY: Combine DB check with Hardcoded List for reliability
+            const isMaster = user.email ? isSuperAdminEmail(user.email) : false;
+            const isSuperAdmin = isMaster || activeRole === 'super_admin' || userRoles.includes('super_admin');
 
             // Super Admin area
             if (request.nextUrl.pathname.startsWith('/admin/super')) {
@@ -94,7 +90,7 @@ export async function updateSession(request: NextRequest) {
 
             // Company Admin area
             if (request.nextUrl.pathname.startsWith('/admin/company')) {
-                if (role !== 'company_admin' && !isSuperAdmin) {
+                if (activeRole !== 'company_admin' && !isSuperAdmin) {
                     const url = request.nextUrl.clone();
                     url.pathname = '/perfil';
                     return NextResponse.redirect(url);

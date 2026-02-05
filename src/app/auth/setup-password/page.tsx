@@ -75,9 +75,8 @@ export default function SetupPasswordPage() {
 
             setIsSuccess(true);
             setTimeout(() => {
-                const target = userProfile?.role === 'super_admin' ? '/admin/super' :
-                    userProfile?.role === 'company_admin' ? '/admin/company' : '/perfil';
-                router.push(target);
+                // Redirect to callback to ensure final session/role sync
+                router.push("/auth/callback");
             }, 2000);
 
         } catch (err: any) {
