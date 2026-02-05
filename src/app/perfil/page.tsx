@@ -53,10 +53,21 @@ export default function ProfilePage() {
 
                         if (profile.full_name) {
                             setUserName(profile.full_name);
-                        } else if (user.user_metadata?.full_name) {
-                            setUserName(user.user_metadata.full_name);
+                        } else if (user.user_metadata?.full_name || user.user_metadata?.name) {
+                            setUserName(user.user_metadata.full_name || user.user_metadata.name);
                         }
+                    } else {
+                        // 🟢 UI RESILIENCE: Trust Metadata if DB is locked/empty
+                        console.warn("Profile not found in DB, falling back to Metadata");
+                        const metadata = user.user_metadata || {};
+                        setUserName(metadata.full_name || metadata.name || user.email?.split('@')[0] || "Usuario");
+
+                        // Extract roles from metadata (which we already hardened in the callback)
+                        if (metadata.active_role) setActiveRole(metadata.active_role);
+                        if (metadata.role) setUserRole(metadata.role);
+                        if (metadata.roles) setUserRoles(metadata.roles);
                     }
+
 
                     // Fetch results
                     const { data: results } = await supabase
