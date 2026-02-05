@@ -8,7 +8,7 @@ import { LogOut, Home, Activity, User, Target, ClipboardCheck, TrendingUp } from
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import { BottomNav } from "./BottomNav";
 import { createClient } from "@/lib/supabase/client";
-import { ensureProfileConsistency } from "@/lib/actions";
+
 import { isSuperAdminEmail } from "@/config/super-admins";
 
 interface MobileLayoutProps {

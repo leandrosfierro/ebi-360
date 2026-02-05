@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { restoreSuperAdminAccess } from "@/lib/actions";
+
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +26,7 @@ export default async function AdminLayout({
         redirect("/login");
     }
 
-    // Auto-repair Master access if email is in whitelist
-    await restoreSuperAdminAccess();
+
 
     const { data: profile } = await supabase
         .from('profiles')

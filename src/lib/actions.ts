@@ -9,60 +9,7 @@ import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES } from "@/config/super-admins
 // Roles are now synced automatically in auth/callback/route.ts
 // Legacy patch functions removed.
 
-/**
- * Ensures a user's profile is consistent with their hardcoded role status.
- * This acts as a "live self-repair" mechanism for Super Admins.
- */
-export async function ensureProfileConsistency() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || !user.email) return { error: "No authenticated user" };
-
-    const isMaster = isSuperAdminEmail(user.email);
-    if (!isMaster) return { success: true, message: "No action needed for this user" };
-
-    const supabaseAdmin = createAdminClient();
-
-    // Check current state
-    const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('role, roles')
-        .eq('id', user.id)
-        .single();
-
-    const needsUpdate = !profile ||
-        profile.role !== 'super_admin' ||
-        !profile.roles?.includes('super_admin');
-
-    if (needsUpdate) {
-        console.log(`[Consistency Check] Repairing profile for Super Admin: ${user.email}`);
-
-        const newRoles = Array.from(new Set(['super_admin', 'company_admin', 'employee', ...(profile?.roles || [])]));
-
-        const { error: updateError } = await supabaseAdmin
-            .from('profiles')
-            .upsert({
-                id: user.id,
-                email: user.email,
-                role: 'super_admin',
-                active_role: profile?.active_role || 'super_admin',
-                roles: newRoles,
-                admin_status: 'active'
-            });
-
-        if (updateError) {
-            console.error("[Consistency Check] Error updating profile:", updateError);
-            return { error: updateError.message };
-        }
-
-        revalidatePath('/perfil');
-        revalidatePath('/admin/super');
-        return { success: true, repaired: true };
-    }
-
-    return { success: true, repaired: false };
-}
 
 
 export async function saveDiagnosticResult(
