@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import { UserRoleSwitcher } from "@/components/UserRoleSwitcher";
+import { isSuperAdminEmail } from "@/config/super-admins";
 
 
 export const dynamic = "force-dynamic";

@@ -277,9 +277,3 @@ COMMIT;
 -- ✅ Created 4 minimal necessary policies
 -- ✅ Fixed data integrity issues (empty roles arrays, invalid active_role)
 -- ✅ Verified database state
-
-RAISE NOTICE '==================================================';
-RAISE NOTICE 'Database consolidation complete!';
-RAISE NOTICE 'Triggers: 2 (profile creation, role protection)';
-RAISE NOTICE 'RLS Policies: 4 (own select/update, admin all, company read)';
-RAISE NOTICE '==================================================';
