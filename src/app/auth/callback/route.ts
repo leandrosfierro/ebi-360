@@ -33,11 +33,7 @@ export async function GET(request: Request) {
                 // 2. Determine redirection and status
                 let adminStatus = dbProfile?.admin_status || metadata.admin_status || 'active';
 
-                // If they were invited but we see they are logging in now, 
-                // we might want to keep 'invited' until they set password, 
-                // but the setup-password page handles the transition.
-
-                // Upsert cleaned up profile
+                // 3. ATOMIC SYNC: Update Profile in DB
                 const { error: upsertError } = await supabaseAdmin
                     .from('profiles')
                     .upsert({
@@ -56,9 +52,19 @@ export async function GET(request: Request) {
 
                 if (upsertError) {
                     console.error("[Auth Callback] Profile Sync Error:", upsertError);
-                } else {
-                    console.log(`[Auth Callback] Profile successfully synced for: ${user.email}`);
                 }
+
+                // 4. ATOMIC SYNC: Update Auth Metadata (Sync intent with JWT immediately)
+                // This ensures the JWT is refreshed with the latest roles.
+                await supabaseAdmin.auth.admin.updateUserById(user.id, {
+                    user_metadata: {
+                        ...metadata,
+                        role: access.role,
+                        roles: access.roles,
+                        active_role: access.active_role,
+                        company_id: access.company_id
+                    }
+                });
 
 
                 // Robust redirect based on role

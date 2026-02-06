@@ -9,8 +9,46 @@ import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES } from "@/config/super-admins
 // Roles are now synced automatically in auth/callback/route.ts
 // Legacy patch functions removed.
 
+/**
+ * Helper to check if a user has administrative access to a company context.
+ * Allows super_admin, company_admin, rrhh and consultor_bs360.
+ */
+function hasAdminAccess(email: string | undefined, profile: any) {
+    // 1. MASTER WHITELIST (Highest priority)
+    if (isSuperAdminEmail(email || '')) return true;
 
+    // 2. Profile role columns (Fallback)
+    const activeRole = profile?.active_role || profile?.role || 'employee';
+    const userRoles = profile?.roles || (profile?.role ? [profile.role] : []);
 
+    const adminRoles = ['super_admin', 'company_admin', 'rrhh', 'consultor_bs360'];
+
+    // 3. Explicit check
+    const isAuthorized = adminRoles.includes(activeRole) ||
+        userRoles.some((r: string) => adminRoles.includes(r)) ||
+        profile?.role === 'super_admin' ||
+        profile?.role === 'company_admin';
+
+    if (!isAuthorized) {
+        console.warn(`[hasAdminAccess] Denied: email=${email}, activeRole=${activeRole}, roles=${JSON.stringify(userRoles)}`);
+    }
+
+    return isAuthorized;
+}
+
+/**
+ * Helper to check if a user is a super admin.
+ */
+function isSuperAdmin(email: string | undefined, profile: any) {
+    if (isSuperAdminEmail(email || '')) return true;
+
+    const activeRole = profile?.active_role || profile?.role || 'employee';
+    const userRoles = profile?.roles || (profile?.role ? [profile.role] : []);
+
+    return activeRole === 'super_admin' ||
+        userRoles.includes('super_admin') ||
+        profile?.role === 'super_admin';
+}
 
 export async function saveDiagnosticResult(
     globalScore: number,
@@ -73,7 +111,7 @@ export async function createCompany(formData: FormData) {
     const supabaseAdmin = createAdminClient();
     const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
-        .select('role')
+        .select('role, roles, active_role')
         .eq('id', user.id)
         .single();
 
@@ -114,15 +152,16 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role, company_id')
+        .select('role, roles, active_role, company_id')
         .eq('id', user.id)
         .single();
 
-    if (profile?.role !== 'company_admin' && profile?.role !== 'super_admin') {
-        return { error: "Unauthorized: Admin only" };
+    if (!hasAdminAccess(user.email, profile)) {
+        console.warn(`[bulkUploadUsers] Access DENIED for ${user.email}. Profile:`, profile);
+        return { error: "Acceso denegado: Solo administradores [v1.1]" };
     }
 
-    const companyId = profile.company_id;
+    const companyId = profile?.company_id;
     if (!companyId) {
         return { error: "No company assigned to admin" };
     }
@@ -269,13 +308,11 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
 
     const { data: adminProfile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, roles, active_role')
         .eq('id', user.id)
         .single();
 
-    const isMaster = isSuperAdminEmail(user.email || '');
-
-    if (adminProfile?.role !== 'super_admin' && !isMaster) {
+    if (!isSuperAdmin(user.email, adminProfile)) {
         return { error: "Unauthorized: Super Admin only" };
     }
 
@@ -649,11 +686,11 @@ export async function updateCompany(companyId: string, formData: FormData) {
 
     const { data: adminProfile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, roles, active_role')
         .eq('id', user.id)
         .single();
 
-    if (adminProfile?.role !== 'super_admin') {
+    if (!isSuperAdmin(user.email, adminProfile)) {
         return { error: "Unauthorized: Super Admin only" };
     }
 
@@ -691,11 +728,11 @@ export async function deleteCompany(companyId: string) {
 
     const { data: adminProfile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, roles, active_role')
         .eq('id', user.id)
         .single();
 
-    if (adminProfile?.role !== 'super_admin') {
+    if (!isSuperAdmin(user.email, adminProfile)) {
         return { error: "Unauthorized: Super Admin only" };
     }
 
@@ -728,11 +765,11 @@ export async function updateAdminStatus(adminId: string, newStatus: 'invited' | 
 
     const { data: adminProfile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, roles, active_role')
         .eq('id', user.id)
         .single();
 
-    if (adminProfile?.role !== 'super_admin') {
+    if (!isSuperAdmin(user.email, adminProfile)) {
         return { error: "Unauthorized: Super Admin only" };
     }
 
@@ -764,11 +801,11 @@ export async function resendAdminInvitation(adminId: string) {
 
     const { data: adminProfile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, roles, active_role')
         .eq('id', user.id)
         .single();
 
-    if (adminProfile?.role !== 'super_admin') {
+    if (!isSuperAdmin(user.email, adminProfile)) {
         return { error: "Unauthorized: Super Admin only" };
     }
 
@@ -837,178 +874,181 @@ export async function switchRole(newRole: 'super_admin' | 'company_admin' | 'emp
     if (!user) return { error: "Unauthorized" };
 
     try {
-        // Verify user has access to this role
-        const { data: profile, error: fetchError } = await supabase
+        // 🛡️ Use Service Role for atomic sync and bypassing RLS if needed
+        const supabaseAdmin = createAdminClient();
+
+        // 1. Verify user has access to this role (from DB source of truth)
+        const { data: profile, error: fetchError } = await supabaseAdmin
             .from('profiles')
-            .select('roles, active_role')
+            .select('roles, active_role, company_id, full_name')
             .eq('id', user.id)
             .single();
 
         if (fetchError || !profile) {
-            throw new Error("Profile not found");
+            console.error("[switchRole] Profile fetch error:", fetchError);
+            throw new Error("No se pudo verificar el perfil del usuario.");
         }
 
         let userRolesList = profile.roles || [];
-
-        // Auto-fix for Master Admins if roles are missing
         const userEmail = user.email?.toLowerCase() || '';
         const isMaster = isSuperAdminEmail(userEmail);
 
+        // Auto-fix for Master Admins if roles are missing in DB
         if (isMaster && !userRolesList.includes('super_admin')) {
             userRolesList = ['super_admin', 'company_admin', 'employee'];
-            // Sync this back to DB immediately
-            await supabase.from('profiles').update({ roles: userRolesList, role: 'super_admin' }).eq('id', user.id);
         }
 
-        // Check if user has this role
         if (!userRolesList.includes(newRole)) {
-            return { error: "No tienes acceso a este rol" };
+            return { error: "No tienes permisos para activar este rol." };
         }
 
-        // Update active role and main role for consistency
-        const { error: updateError } = await supabase
+        // 2. ATOMIC UPDATE: Database
+        const { error: dbError } = await supabaseAdmin
             .from('profiles')
             .update({
                 active_role: newRole,
-                role: newRole // Sync main role column as well
+                role: newRole, // Sync main role column
+                roles: userRolesList,
+                last_active_at: new Date().toISOString()
             })
             .eq('id', user.id);
 
-        if (updateError) throw updateError;
+        if (dbError) throw dbError;
 
-        // Revalidate relevant paths
-        revalidatePath('/perfil');
-        revalidatePath('/admin/super');
-        revalidatePath('/admin/company');
-        revalidatePath('/diagnostico');
-
-        return { success: true, newRole };
-    } catch (error: any) {
-        console.error("Error switching role:", error);
-        return { error: error.message || "Failed to switch role" };
-    }
-}
-
-export async function inviteEmployee(email: string, fullName: string) {
-    const supabase = await createClient();
-
-    // Verify company admin role (or super admin)
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Unauthorized" };
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, active_role, company_id')
-        .eq('id', user.id)
-        .single();
-
-    // Check permissions using active_role for multi-role support
-    const activeRole = profile?.active_role || profile?.role;
-
-    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
-        return { error: "Unauthorized: Company Admin only" };
-    }
-
-    const companyId = profile?.company_id;
-    if (!companyId) {
-        return { error: "No company assigned to admin" };
-    }
-
-    // Validate that SERVICE_ROLE_KEY is configured and not a placeholder
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!serviceKey || serviceKey.endsWith('1234567890')) {
-        console.error("[inviteEmployee] Configuration Error: SUPABASE_SERVICE_ROLE_KEY is invalid");
-        return {
-            error: "Error de configuración: La clave de servicio no es válida. Por favor, actualiza SUPABASE_SERVICE_ROLE_KEY en el dashboard de Supabase y en las variables de entorno."
-        };
-    }
-
-    const supabaseAdmin = createAdminClient();
-
-    try {
-        // 1. Check if profile already exists
-        const { data: existingProfile } = await supabaseAdmin
-            .from('profiles')
-            .select('id, email')
-            .eq('email', email)
-            .single();
-
-        if (existingProfile) {
-            return { error: "Este email ya está registrado en el sistema." };
-        }
-
-        // 2. Generate invitation link (this also creates the user in auth.users)
-        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'invite',
-            email: email,
-            options: {
-                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
-                data: {
-                    full_name: fullName,
-                    company_id: companyId,
-                    role: 'employee'
-                }
+        // 3. ATOMIC UPDATE: Auth Metadata (Sync intent with JWT immediately)
+        // This ensures Server Components and RLS (if using JWT) stay in sync.
+        const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+            user_metadata: {
+                ...user.user_metadata,
+                active_role: newRole,
+                role: newRole,
+                roles: userRolesList,
+                company_id: profile.company_id
             }
         });
 
-        if (linkError) {
-            console.error("Error generating link:", linkError);
-            throw new Error(`Error al generar invitación: ${linkError.message}`);
+        if (authError) {
+            console.warn("[switchRole] Metadata Sync Warning (Non-fatal):", authError);
         }
 
-        const { user: newUser, properties } = linkData;
-        const inviteLink = properties.action_link;
+        // 4. Clean revalidation
+        revalidatePath('/perfil');
+        revalidatePath('/admin/super');
+        revalidatePath('/admin/company');
+        revalidatePath('/wellbeing');
 
-        // 3. Create profile with the same ID from auth.users
-        const { error: profileError } = await supabaseAdmin
+        return { success: true };
+    } catch (error: any) {
+        console.error("[switchRole] Fatal Error:", error);
+        return { error: error.message || "Error al cambiar de rol" };
+    }
+}
+
+
+export async function inviteEmployee(email: string, fullName: string) {
+    console.log(`[inviteEmployee] Starting invitation for: ${email}`);
+
+    try {
+        const supabase = await createClient();
+        const { data: { user: adminUser } } = await supabase.auth.getUser();
+        if (!adminUser) return { error: "No autorizado" };
+
+        const supabaseAdmin = createAdminClient();
+
+        // 1. Get Admin Profile to identify company
+        const { data: adminProfile } = await supabaseAdmin
             .from('profiles')
-            .upsert({
-                id: newUser.id,
-                email: email,
+            .select('company_id, active_role, role, roles')
+            .eq('id', adminUser.id)
+            .single();
+
+        if (!hasAdminAccess(adminUser.email, adminProfile)) {
+            return { error: "No tienes permisos para realizar esta acción." };
+        }
+
+        if (!adminProfile?.company_id) {
+            return { error: "No tienes una empresa asignada para invitar usuarios." };
+        }
+
+        // 2. Check if user already exists in auth
+        const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+        const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+
+        if (existingUser) {
+            console.log("[inviteEmployee] User already exists, linking to company.");
+            return await promoteExistingUserToEmployee(email, adminProfile.company_id);
+        }
+
+        // 3. INVITE via Auth
+        const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+            data: {
                 full_name: fullName,
+                company_id: adminProfile.company_id,
                 role: 'employee',
-                company_id: companyId,
-                active_role: 'employee',
                 roles: ['employee'],
-                admin_status: 'invited',
-                invitation_link: inviteLink
-            });
+                active_role: 'employee'
+            },
+            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+        });
 
-        if (profileError) {
-            console.error("Error creating profile:", profileError);
-            await supabaseAdmin.auth.admin.deleteUser(newUser.id);
-            throw new Error(`Error al crear perfil: ${profileError.message}`);
-        }
+        if (inviteError) throw inviteError;
 
-        // 4. Send branded invitation email
-        let emailSent = false;
-        try {
-            const result = await sendManualInvitations([newUser.id]);
-            if ('success' in result && result.success && result.sent > 0) {
-                emailSent = true;
-            } else if ('error' in result) {
-                console.warn("Branded email invitation failed (non-critical):", result.error);
-            } else if ('errors' in result) {
-                console.warn("Branded email invitation failed (non-critical):", result.errors);
-            }
-        } catch (emailError) {
-            console.warn("Branded email invitation unexpected failure (non-critical):", emailError);
-        }
+        // 4. Atomic DB Sync (Trigger will handle creation, but we want to ensure fields are set)
+        await supabaseAdmin.from('profiles').upsert({
+            id: inviteData.user.id,
+            email: email,
+            full_name: fullName,
+            company_id: adminProfile.company_id,
+            role: 'employee',
+            roles: ['employee'],
+            active_role: 'employee',
+            admin_status: 'invited'
+        });
 
         revalidatePath("/admin/company/employees");
-
         return {
             success: true,
-            emailSent,
-            inviteLink,
-            message: emailSent
-                ? "Usuario registrado e invitación enviada por email."
-                : "Usuario registrado. Puedes copiar el link de invitación o enviarlo manualmente."
+            message: "Invitación enviada exitosamente.",
+            userId: inviteData.user.id
         };
     } catch (error: any) {
-        console.error("Error inviting employee:", error);
-        return { error: error.message || "Failed to invite employee" };
+        console.error("[inviteEmployee] Fatal Error:", error);
+        return { error: error.message || "Error al procesar la invitación" };
     }
+}
+
+/**
+ * Helper to handle cases where an invited email is already registered in the system.
+ */
+async function promoteExistingUserToEmployee(email: string, companyId: string) {
+    const supabaseAdmin = createAdminClient();
+    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
+    const user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+
+    if (!user) return { error: "No se pudo encontrar al usuario existente." };
+
+    const currentRoles = user.user_metadata.roles || [];
+    const newRoles = Array.from(new Set([...currentRoles, 'employee']));
+
+    await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        user_metadata: {
+            ...user.user_metadata,
+            company_id: companyId,
+            roles: newRoles
+        }
+    });
+
+    await supabaseAdmin.from('profiles').upsert({
+        id: user.id,
+        email: email,
+        company_id: companyId,
+        roles: newRoles,
+        role: 'employee',
+        active_role: 'employee'
+    });
+
+    revalidatePath("/admin/company/employees");
+    return { success: true, message: "Usuario existente vinculado a la empresa correctamente." };
 }
 
 // New action: Update employee details
@@ -1020,13 +1060,11 @@ export async function updateEmployee(employeeId: string, fullName: string, email
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role, active_role, company_id')
+        .select('role, roles, active_role, company_id')
         .eq('id', user.id)
         .single();
 
-    const activeRole = profile?.active_role || profile?.role;
-
-    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+    if (!hasAdminAccess(user.email, profile)) {
         return { error: "Unauthorized: Admin only" };
     }
 
@@ -1063,13 +1101,11 @@ export async function toggleEmployeeStatus(employeeId: string, active: boolean) 
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role, active_role, company_id')
+        .select('role, roles, active_role, company_id')
         .eq('id', user.id)
         .single();
 
-    const activeRole = profile?.active_role || profile?.role;
-
-    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+    if (!hasAdminAccess(user.email, profile)) {
         return { error: "Unauthorized: Admin only" };
     }
 
@@ -1107,13 +1143,11 @@ export async function deleteEmployee(employeeId: string) {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role, active_role, company_id')
+        .select('role, roles, active_role, company_id')
         .eq('id', user.id)
         .single();
 
-    const activeRole = profile?.active_role || profile?.role;
-
-    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+    if (!hasAdminAccess(user.email, profile)) {
         return { error: "Unauthorized: Admin only" };
     }
 
@@ -1158,13 +1192,11 @@ export async function updateCompanyBranding(formData: FormData) {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role, active_role, company_id')
+        .select('role, roles, active_role, company_id')
         .eq('id', user.id)
         .single();
 
-    const activeRole = profile?.active_role || profile?.role;
-
-    if (activeRole !== 'company_admin' && activeRole !== 'super_admin') {
+    if (!hasAdminAccess(user.email, profile)) {
         return { error: "Unauthorized: Admin only" };
     }
 
@@ -1251,9 +1283,9 @@ export async function removeCompanyAdmin(adminId: string) {
     if (!user) return { error: "Unauthorized" };
 
     const isMaster = isSuperAdminEmail(user.email || '');
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    const { data: profile } = await supabase.from('profiles').select('role, roles, active_role').eq('id', user.id).single();
 
-    if (profile?.role !== 'super_admin' && !isMaster) {
+    if (!isSuperAdmin(user.email, profile)) {
         return { error: "Unauthorized: Super Admin only" };
     }
 

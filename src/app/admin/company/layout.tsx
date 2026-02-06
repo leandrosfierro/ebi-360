@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import CompanyAdminLayoutClient from "./layout-client";
 import { isSuperAdminEmail } from "@/config/super-admins";
+import { redirect } from "next/navigation";
 
 export default async function CompanyAdminLayout({
     children,
@@ -30,9 +31,6 @@ export default async function CompanyAdminLayout({
             if (!userRoles.includes('super_admin')) {
                 userRoles = ['super_admin', 'company_admin', 'employee'];
             }
-            if (activeRole !== 'super_admin' && activeRole !== 'company_admin') {
-                activeRole = 'super_admin';
-            }
         }
 
         if (profile?.company_id) {
@@ -50,6 +48,15 @@ export default async function CompanyAdminLayout({
                 primary_color: "#7e22ce",
                 secondary_color: null
             };
+        }
+
+        // 🛡️ SECURITY AUDIT: Hardened Role Protection
+        // Masters are always authorized in Company Panel. 
+        // Others must have company_admin or super_admin active_role.
+        const isAuthorized = isMaster || activeRole === 'company_admin' || activeRole === 'super_admin';
+        if (!isAuthorized) {
+            console.warn(`[CompanyAdminLayout] Access denied for user ${user.email} with active_role ${activeRole}`);
+            redirect("/perfil");
         }
     }
 

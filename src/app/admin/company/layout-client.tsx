@@ -10,7 +10,7 @@ import {
     Home
 } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { UserRoleSwitcher } from "@/components/UserRoleSwitcher";
 import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
 import Image from "next/image";
@@ -74,16 +74,17 @@ export default function CompanyAdminLayoutClient({
                             {companyBranding.name}
                         </p>
                     )}
-                    <RoleSwitcher
+                    <UserRoleSwitcher
                         currentRole={activeRole}
                         availableRoles={userRoles}
                         primaryColor={companyBranding?.primary_color}
+                        excludeSuperAdmin={true}
                     />
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
                     <div className="mb-4">
-                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Navegación</p>
+                        <p className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Menú Principal</p>
                         <Link href="/" className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-primary transition-all">
                             <Home className="h-5 w-5 text-primary/60 group-hover:text-primary transition-colors" style={{ color: companyBranding?.primary_color ? `${companyBranding.primary_color}99` : 'var(--muted-foreground)' }} />
                             <span>Volver al Home</span>

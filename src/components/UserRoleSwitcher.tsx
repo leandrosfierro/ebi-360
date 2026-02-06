@@ -2,83 +2,80 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { ChevronDown, Loader2 } from "lucide-react";
+import { switchRole } from "@/lib/actions";
 
 interface RoleSwitcherProps {
     currentRole: string;
     availableRoles: string[];
     primaryColor?: string | null;
+    excludeSuperAdmin?: boolean;
 }
 
 const roleLabels: Record<string, string> = {
     super_admin: "Super Administrador",
-    company_admin: "Admin de Empresa",
+    company_admin: "Administrador",
     employee: "Colaborador"
 };
 
+// Map paths for redirect after switch
 const rolePaths: Record<string, string> = {
     super_admin: "/admin/super",
     company_admin: "/admin/company",
     employee: "/"
 };
 
-export function RoleSwitcher({ currentRole, availableRoles, primaryColor }: RoleSwitcherProps) {
+export function UserRoleSwitcher({ currentRole, availableRoles, primaryColor, excludeSuperAdmin = false }: RoleSwitcherProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [switching, setSwitching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    if (availableRoles.length <= 1) {
+    // Filter roles if needed
+    const filteredRoles = excludeSuperAdmin
+        ? availableRoles.filter(r => r !== 'super_admin')
+        : availableRoles;
+
+    if (filteredRoles.length <= 1) {
         return null; // Don't show if user only has one role
     }
 
-    const handleRoleSwitch = async (newRole: string) => {
+    const handleRoleSwitch = async (newRole: any) => {
         if (newRole === currentRole) return;
 
         setSwitching(true);
         setError(null);
-        const supabase = createClient();
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            const res = await switchRole(newRole);
+            if (res?.error) throw new Error(res.error);
 
-            if (!user) {
-                throw new Error("Usuario no autenticado");
-            }
-
-            const { error: updateError } = await supabase
-                .from('profiles')
-                .update({ active_role: newRole })
-                .eq('id', user.id);
-
-            if (updateError) {
-                throw updateError;
-            }
-
-            // Redirect to the appropriate panel
-            router.push(rolePaths[newRole] || '/');
-            router.refresh();
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Error al cambiar de rol";
-            setError(errorMessage);
-
-            if (process.env.NODE_ENV === 'development') {
-                console.error("[RoleSwitcher] Error:", err);
-            }
-        } finally {
+            // Force hard refresh to ensure layout and metadata catch up
+            window.location.href = rolePaths[newRole] || '/';
+        } catch (err: any) {
+            setError(err.message || "Error al cambiar de rol");
             setSwitching(false);
         }
     };
+
+    // Label override: in company context, Super Admin is shown as "Administrador"
+    // This is the "de base" fix for visual consistency.
+    let activeLabel = roleLabels[currentRole] || "Administrador";
+    if (excludeSuperAdmin && currentRole === 'super_admin') {
+        activeLabel = "Administrador";
+    }
+    if (currentRole === 'company_admin') {
+        activeLabel = "Administrador";
+    }
 
     return (
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 disabled={switching}
-                className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm font-bold text-foreground hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px] justify-between"
+                className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-4 py-2.5 text-sm font-bold text-foreground hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px] justify-between shadow-lg"
             >
-                <span className="truncate">{roleLabels[currentRole] || currentRole}</span>
+                <span className="truncate">{activeLabel}</span>
                 {switching ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -98,13 +95,13 @@ export function RoleSwitcher({ currentRole, availableRoles, primaryColor }: Role
                         className="fixed inset-0 z-10"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-64 rounded-2xl glass-card border-none shadow-xl z-20 overflow-hidden">
+                    <div className="absolute left-0 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-[100] overflow-hidden border border-border/50 ring-1 ring-black/5">
                         <div className="p-2">
                             <div className="px-4 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] border-b border-white/5">
                                 Cambiar Rol
                             </div>
                             <div className="py-2 space-y-1">
-                                {availableRoles.map((role) => (
+                                {filteredRoles.map((role) => (
                                     <button
                                         key={role}
                                         onClick={() => {

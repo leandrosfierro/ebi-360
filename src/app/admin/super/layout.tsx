@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { MobileAdminNav } from "@/components/layout/MobileAdminNav";
 import { AdminSidebarLinks } from "@/components/admin/AdminSidebarLinks";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { UserRoleSwitcher } from "@/components/UserRoleSwitcher";
 
 
 export const dynamic = "force-dynamic";
@@ -36,6 +36,18 @@ export default async function AdminLayout({
 
     const userRoles = profile?.roles || (profile?.role ? [profile.role] : ['employee']);
     const activeRole = profile?.active_role || profile?.role || 'employee';
+
+    const isMaster = isSuperAdminEmail(user.email || '');
+
+    // 🛡️ SECURITY AUDIT: Hardened Role Protection
+    // Master Admins (whitelisted) are always authorized to enter super_admin layouts.
+    // Others must have super_admin as their active_role.
+    const isAuthorized = isMaster || activeRole === 'super_admin';
+
+    if (!isAuthorized) {
+        console.warn(`[SuperAdminLayout] Access denied for user ${user.email} with active_role ${activeRole}`);
+        redirect("/perfil");
+    }
 
     const navLinks = [
         { href: "/admin/super", label: "Dashboard", icon: "LayoutDashboard" },
@@ -66,7 +78,7 @@ export default async function AdminLayout({
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-6">Super Admin Panel</p>
 
                     <div className="mb-4">
-                        <RoleSwitcher
+                        <UserRoleSwitcher
                             currentRole={activeRole}
                             availableRoles={userRoles}
                         />

@@ -49,15 +49,6 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
                         .maybeSingle();
                     setPrimaryColor(companyData?.primary_color);
                 }
-            } else {
-                // 🟢 UI RESILIENCE: Use metadata if profile is not readable/empty
-                const metadata = session.user.user_metadata || {};
-                setProfile({
-                    role: metadata.role || 'employee',
-                    roles: metadata.roles || ['employee'],
-                    active_role: metadata.active_role || metadata.role || 'employee',
-                    company_id: metadata.company_id || null
-                });
             }
         } else {
             setIsAuth(false);
