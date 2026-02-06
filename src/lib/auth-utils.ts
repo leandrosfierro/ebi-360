@@ -48,28 +48,28 @@ export function resolveUserAccess(
 
     // 3. Determine Active Role
     // Priority: Metadata Intent > Primary (Highest) Role
-    // This handles the "I log in and want to be admin" flow immediately after invitation.
     let targetActiveRole: UserRole = metadata.active_role || metadata.role || primaryRole;
 
     // Fallback to DB active_role only if we have NO metadata intent
+    // BUT: If the user is an admin, never let them land on 'employee' by default on login
     if (!metadata.active_role && !metadata.role && dbProfile?.active_role) {
         targetActiveRole = dbProfile.active_role;
     }
 
-    // CRITICAL: If you ARE an admin but your active_role is stuck in 'employee', 
-    // we bump you to your Primary Role. This solves the "stale state" issue for tests.
+    // CRITICAL: If you ARE an admin but your active_role is 'employee' (either from DB or default),
+    // we bump you to your Primary Role. This ensures admins don't land on a locked-down view.
     if (targetActiveRole === 'employee' && primaryRole !== 'employee') {
         targetActiveRole = primaryRole;
     }
 
-    // Security: You can't be active in a role you don't possess
-    if (!roles.includes(targetActiveRole)) {
-        targetActiveRole = primaryRole;
+    // Special case for Absolute Master: Always land on Super Admin if possible
+    if (isMaster && targetActiveRole !== 'super_admin') {
+        targetActiveRole = 'super_admin';
     }
 
-    // Special case for Absolute Master
-    if (isMaster && targetActiveRole === 'employee') {
-        targetActiveRole = 'super_admin';
+    // Security check: cannot be active in a role you don't possess
+    if (!roles.includes(targetActiveRole)) {
+        targetActiveRole = primaryRole;
     }
 
     // 4. Determine Company ID
