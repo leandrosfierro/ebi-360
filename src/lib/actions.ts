@@ -4,51 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { resend } from "@/lib/resend";
 import { sendManualInvitations } from "@/lib/invitation-actions";
-import { isSuperAdminEmail, SUPER_ADMIN_FULL_ROLES } from "@/config/super-admins";
-
-// Roles are now synced automatically in auth/callback/route.ts
-// Legacy patch functions removed.
-
-/**
- * Helper to check if a user has administrative access to a company context.
- * Allows super_admin, company_admin, rrhh and consultor_bs360.
- */
-function hasAdminAccess(email: string | undefined, profile: any) {
-    // 1. MASTER WHITELIST (Highest priority)
-    if (isSuperAdminEmail(email || '')) return true;
-
-    // 2. Profile role columns (Fallback)
-    const activeRole = profile?.active_role || profile?.role || 'employee';
-    const userRoles = profile?.roles || (profile?.role ? [profile.role] : []);
-
-    const adminRoles = ['super_admin', 'company_admin', 'rrhh', 'consultor_bs360'];
-
-    // 3. Explicit check
-    const isAuthorized = adminRoles.includes(activeRole) ||
-        userRoles.some((r: string) => adminRoles.includes(r)) ||
-        profile?.role === 'super_admin' ||
-        profile?.role === 'company_admin';
-
-    if (!isAuthorized) {
-        console.warn(`[hasAdminAccess] Denied: email=${email}, activeRole=${activeRole}, roles=${JSON.stringify(userRoles)}`);
-    }
-
-    return isAuthorized;
-}
-
-/**
- * Helper to check if a user is a super admin.
- */
-function isSuperAdmin(email: string | undefined, profile: any) {
-    if (isSuperAdminEmail(email || '')) return true;
-
-    const activeRole = profile?.active_role || profile?.role || 'employee';
-    const userRoles = profile?.roles || (profile?.role ? [profile.role] : []);
-
-    return activeRole === 'super_admin' ||
-        userRoles.includes('super_admin') ||
-        profile?.role === 'super_admin';
-}
+import { requireCompanyAdmin, requireSuperAdmin } from "@/lib/auth-core";
 
 export async function saveDiagnosticResult(
     globalScore: number,
@@ -103,21 +59,11 @@ export async function saveDiagnosticResult(
 }
 
 export async function createCompany(formData: FormData) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Unauthorized" };
-
-    // Use Admin Client for role check to bypass RLS recursion
-    const supabaseAdmin = createAdminClient();
-    const { data: profile, error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .select('role, roles, active_role')
-        .eq('id', user.id)
-        .single();
-
-    if (profileError || profile?.role !== 'super_admin') {
-        console.error("Access denied in createCompany:", profileError || "Not a super_admin");
-        return { error: "Unauthorized: Super Admin only" };
+    // Unified auth check - throws if not super admin
+    try {
+        await requireSuperAdmin();
+    } catch (error: any) {
+        return { error: error.message || "Unauthorized: Super Admin only" };
     }
 
     const name = formData.get("name") as string;
@@ -126,6 +72,7 @@ export async function createCompany(formData: FormData) {
 
     try {
         // Use Admin Client to bypass RLS for critical creation tasks
+        const supabaseAdmin = createAdminClient();
         const { error } = await supabaseAdmin.from("companies").insert({
             name,
             subscription_plan: plan,
@@ -144,27 +91,20 @@ export async function createCompany(formData: FormData) {
 }
 
 export async function bulkUploadUsers(users: Array<{ email: string; full_name: string; department?: string }>) {
-    const supabase = await createClient();
-
-    // Verify company admin role
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Unauthorized" };
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, roles, active_role, company_id')
-        .eq('id', user.id)
-        .single();
-
-    if (!hasAdminAccess(user.email, profile)) {
-        console.warn(`[bulkUploadUsers] Access DENIED for ${user.email}. Profile:`, profile);
-        return { error: "Acceso denegado: Solo administradores [v1.1]" };
+    // Unified auth check - requires company admin privileges
+    let context;
+    try {
+        context = await requireCompanyAdmin();
+    } catch (error: any) {
+        return { error: error.message || "Acceso denegado: Solo administradores" };
     }
 
-    const companyId = profile?.company_id;
+    const companyId = context.companyId;
     if (!companyId) {
         return { error: "No company assigned to admin" };
     }
+
+    const supabase = await createClient();
 
     const areaMap = new Map<string, string>();
     const { data: existingAreas } = await supabase
@@ -300,20 +240,11 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function inviteCompanyAdmin(email: string, fullName: string, companyId: string, force: boolean = false) {
-    const supabase = await createClient();
-
-    // Verify super admin role
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Unauthorized" };
-
-    const { data: adminProfile } = await supabase
-        .from('profiles')
-        .select('role, roles, active_role')
-        .eq('id', user.id)
-        .single();
-
-    if (!isSuperAdmin(user.email, adminProfile)) {
-        return { error: "Unauthorized: Super Admin only" };
+    // Unified auth check - requires super admin
+    try {
+        await requireSuperAdmin();
+    } catch (error: any) {
+        return { error: error.message || "Unauthorized: Super Admin only" };
     }
 
     // Validate that SERVICE_ROLE_KEY is configured
