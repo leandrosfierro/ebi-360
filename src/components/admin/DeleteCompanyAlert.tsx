@@ -13,6 +13,7 @@ import {
 import { deleteCompany } from "@/lib/actions";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface DeleteCompanyAlertProps {
     companyId: string;
@@ -23,12 +24,21 @@ interface DeleteCompanyAlertProps {
 
 export function DeleteCompanyAlert({ companyId, companyName, open, onOpenChange }: DeleteCompanyAlertProps) {
     const [isDeleting, setIsDeleting] = useState(false);
+    const router = useRouter();
 
     const handleDelete = async () => {
         setIsDeleting(true);
-        await deleteCompany(companyId);
-        setIsDeleting(false);
-        onOpenChange(false);
+        const result = await deleteCompany(companyId);
+
+        if (result.error) {
+            alert(`Error al eliminar: ${result.error}`);
+            setIsDeleting(false);
+        } else {
+            // Success - close dialog and refresh page
+            onOpenChange(false);
+            setIsDeleting(false);
+            router.refresh(); // Force page refresh to update company list
+        }
     };
 
     return (
