@@ -36,8 +36,21 @@ export function UserRoleSwitcher({ currentRole, availableRoles, primaryColor, ex
         ? availableRoles.filter(r => r !== 'super_admin')
         : availableRoles;
 
-    if (filteredRoles.length <= 1) {
-        return null; // Don't show if user only has one role
+    // 🛡️ SECURITY / UX HARDENING: 
+    // Only Super Admins are allowed to switch roles.
+    // Company Admins should not be able to switch to 'employee' to avoid confusion/lockout.
+    const isSuperAdmin = availableRoles.includes('super_admin');
+
+    if (!isSuperAdmin || filteredRoles.length <= 1) {
+        // Render static badge (non-interactive)
+        return (
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10 w-full">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
+                <span className="text-xs font-semibold text-primary/90">
+                    {roleLabels[currentRole] || roleLabels[currentRole === 'company_admin' ? 'company_admin' : 'employee'] || currentRole}
+                </span>
+            </div>
+        );
     }
 
     const handleRoleSwitch = async (newRole: any) => {

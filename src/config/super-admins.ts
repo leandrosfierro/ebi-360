@@ -5,8 +5,7 @@
 
 export const SUPER_ADMIN_EMAILS = [
     'leandro.fierro@bs360.com.ar',
-    'carlos.menvielle@bs360.com.ar',
-    'leandrosfierro@gmail.com'
+    'carlos.menvielle@bs360.com.ar'
 ];
 
 export function isSuperAdminEmail(email: string): boolean {
