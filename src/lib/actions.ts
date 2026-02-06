@@ -651,27 +651,22 @@ export async function updateCompany(companyId: string, formData: FormData) {
 }
 
 export async function deleteCompany(companyId: string) {
-    const supabase = await createClient();
-
-    // Verify super admin role
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "Unauthorized" };
-
-    const { data: adminProfile } = await supabase
-        .from('profiles')
-        .select('role, roles, active_role')
-        .eq('id', user.id)
-        .single();
-
-    if (!isSuperAdmin(user.email, adminProfile)) {
-        return { error: "Unauthorized: Super Admin only" };
+    // Unified auth check - requires super admin
+    try {
+        await requireSuperAdmin();
+    } catch (error: any) {
+        return { error: error.message || "Unauthorized: Super Admin only" };
     }
 
     try {
-        // Note: This might fail if there are foreign key constraints (users, results, surveys)
-        // Ideally we should use CASCADE in DB or delete related data first.
-        // For now, we assume the DB handles cascade or we catch the error.
-        const { error } = await supabase
+        // Use Admin Client to bypass RLS/foreign key checks if needed
+        const supabaseAdmin = createAdminClient();
+
+        // 1. Delete associated users first (optional but safer)
+        // Note: Ideally allow cascade in DB
+
+        // 2. Delete company
+        const { error } = await supabaseAdmin
             .from("companies")
             .delete()
             .eq("id", companyId);
@@ -679,11 +674,10 @@ export async function deleteCompany(companyId: string) {
         if (error) throw error;
 
         revalidatePath("/admin/super/companies");
-        revalidatePath("/admin/super");
         return { success: true };
     } catch (error: any) {
         console.error("Error deleting company:", error);
-        return { error: error.message || "Failed to delete company. Ensure it has no active users." };
+        return { error: "Failed to delete company" };
     }
 }
 
