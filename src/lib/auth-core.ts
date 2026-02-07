@@ -49,8 +49,10 @@ export async function getUserAuthContext(): Promise<UserAuthContext | null> {
 
     if (!user) return null;
 
-    // Fetch profile data (use regular client for proper RLS)
-    const { data: profile } = await supabase
+    // Use Admin Client to fetch profile data (bypass RLS for auth checks)
+    // This is critical - RLS policies can block profile access during auth verification
+    const supabaseAdmin = createAdminClient();
+    const { data: profile } = await supabaseAdmin
         .from('profiles')
         .select('roles, active_role, role, company_id')
         .eq('id', user.id)
