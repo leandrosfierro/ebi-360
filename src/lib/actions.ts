@@ -166,6 +166,7 @@ export async function bulkUploadUsers(users: Array<{ email: string; full_name: s
                     full_name: userData.full_name,
                     company_id: companyId,
                     role: 'employee',
+                    roles: ['employee'], // REQUIRED: prevents database trigger error
                     area_id: areaId
                 }
             });
@@ -357,6 +358,7 @@ export async function inviteCompanyAdmin(email: string, fullName: string, compan
                         company_id: companyId,
                         role: 'company_admin',
                         active_role: 'company_admin',
+                        roles: ['company_admin', 'employee'], // Required for trigger
                         admin_status: 'invited',
                     }
                 }
